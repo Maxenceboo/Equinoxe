@@ -82,7 +82,7 @@ formly-field-primeng-radio {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
   gap: 0.5rem;
-  .field-radiobutton {
+  .field-radiobutton, .p-field-radiobutton {
     position: relative;
     border: 1px solid var(--ligne-forte);
     border-radius: var(--rayon);
@@ -399,7 +399,7 @@ formly-field-primeng-radio {
 formly-field .p-checkbox-box { background: transparent !important; border-color: var(--ligne-forte) !important; border-radius: 4px; }
 formly-field .p-checkbox-checked .p-checkbox-box { border-color: var(--texte) !important; }
 formly-field .p-checkbox-checked .p-checkbox-icon { color: var(--texte) !important; }
-formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font-size: 0.9rem; }
+formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font-size: 0.9rem; margin-left: 0.6rem; }
 
 .bilan-resume {
   display: grid;

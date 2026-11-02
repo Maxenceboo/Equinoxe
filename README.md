@@ -10,7 +10,7 @@ Cahier des charges : https://claude.ai/artifact/PZuVvTzm7RJPZJj7S9qzZ1
 ```
 api/openapi.yaml   Contrat de l'API : seule source de vérité
 backend/           Java 21 + Spring Boot 3, architecture hexagonale
-frontend/          Angular 22 + PrimeNG, emballé pour Android avec Capacitor
+frontend/          Angular 21 + PrimeNG 21, emballé pour Android avec Capacitor
 ```
 
 ### API en contract-first
@@ -141,9 +141,10 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
 
 ## PrimeNG et licence
 
-PrimeNG 21 et plus demandent une clé de licence PrimeUI. Elle est gratuite pour un particulier
-(Community License : https://primeui.dev/licenses/community). Sans clé l'app marche, mais affiche un bandeau
-« Invalid PrimeUI License ». Coller la clé dans `frontend/src/app/primeui-license.ts`.
+Le front reste sur PrimeNG 21 (avec Angular 21 et ngx-formly 7) : c'est la dernière version sans clé de
+licence PrimeUI, donc sans bandeau « Invalid PrimeUI License ». PrimeNG 22 demande une clé (gratuite pour un
+particulier) : pour y passer un jour, il faudra monter Angular en 22, ngx-formly en 11 et ajouter la clé
+dans `providePrimeNG({ license })`.
 
 ## Configuration du back
 

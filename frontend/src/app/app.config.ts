@@ -12,7 +12,6 @@ import { Configuration } from './api/generated';
 import { SessionService } from './core/session.service';
 import { erreurInterceptor } from './core/erreur.interceptor';
 import { messagesValidation } from './core/schema-form.service';
-import { PRIMEUI_LICENSE } from './primeui-license';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,7 +20,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([erreurInterceptor])),
     providePrimeNG({
       theme: { preset: ThemeNoir, options: { darkModeSelector: '.sombre' } },
-      license: PRIMEUI_LICENSE || undefined,
     }),
     provideFormlyCore([...withFormlyPrimeNG(), { validationMessages: messagesValidation }]),
     MessageService,
