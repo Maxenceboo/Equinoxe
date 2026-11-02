@@ -4,7 +4,6 @@ import { Router, RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { ProgressBar } from 'primeng/progressbar';
 import { Objectif, ObjectifsService, ValidationSaisie } from '../../api/generated';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
@@ -13,11 +12,11 @@ import { aujourdhui } from '../../shared/dates';
 
 @Component({
   selector: 'app-accueil',
-  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog, ProgressBar],
+  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog],
   template: `
     <header class="entete">
       <div>
-        <h1>Cette semaine</h1>
+        <h1>Cette<br />semaine</h1>
         <small>{{ session.email() }}</small>
       </div>
       <p-button icon="pi pi-sign-out" [text]="true" ariaLabel="Se déconnecter" (onClick)="deconnecter()" />
@@ -34,23 +33,28 @@ import { aujourdhui } from '../../shared/dates';
       @for (o of objectifs(); track o.id) {
         <li class="objectif" [style.--couleur]="o.couleur">
           <a class="infos" [routerLink]="['/objectifs', o.id]">
-            <span class="nom">{{ o.nom }}</span>
-            <span class="compteur">{{ o.progression.realisees }}/{{ o.progression.cible }}</span>
-            <p-progressbar
-              [value]="(100 * o.progression.realisees) / o.progression.cible"
-              [showValue]="false"
-              styleClass="barre"
-            />
+            <div class="ligne-haut">
+              <span class="nom">{{ o.nom }}</span>
+              <span class="compteur">{{ o.progression.realisees }}<span>/{{ o.progression.cible }}</span></span>
+            </div>
+            <div class="segments" aria-hidden="true">
+              @for (plein of segments(o); track $index) {
+                <i [class.plein]="plein"></i>
+              }
+            </div>
             <small class="message">{{ o.progression.message }}</small>
           </a>
-          <p-button
-            [icon]="o.progression.faitAujourdhui ? 'pi pi-check' : 'pi pi-stop'"
-            
-            [outlined]="!o.progression.faitAujourdhui"
-            size="large"
-            [ariaLabel]="o.progression.faitAujourdhui ? 'Annuler pour aujourd\\'hui' : 'Marquer comme fait'"
-            (onClick)="basculer(o)"
-          />
+          <button
+            type="button"
+            class="coche"
+            [class.fait]="o.progression.faitAujourdhui"
+            [attr.aria-label]="o.progression.faitAujourdhui ? 'Annuler pour aujourd\\'hui' : 'Marquer comme fait'"
+            (click)="basculer(o)"
+          >
+            @if (o.progression.faitAujourdhui) {
+              <i class="pi pi-check"></i>
+            }
+          </button>
         </li>
       }
     </ul>
@@ -101,6 +105,10 @@ export class AccueilPage implements OnInit {
   ngOnInit(): void {
     this.charger();
     this.notifications.synchroniser();
+  }
+
+  protected segments(o: Objectif): boolean[] {
+    return Array.from({ length: o.progression.cible }, (_, i) => i < o.progression.realisees);
   }
 
   private charger(): void {

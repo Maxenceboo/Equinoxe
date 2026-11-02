@@ -1,11 +1,13 @@
 @import 'primeicons/primeicons.css';
 
+// Thème noir, angles droits, fort contraste. Une seule couleur d'accent : le blanc.
 :root {
   --fond: #000000;
   --texte: #ffffff;
-  --discret: #b3b3b3;
-  --carte: #0a0a0a;
-  --bordure: #333333;
+  --discret: #8a8a8a;
+  --ligne: #262626;
+  --ligne-forte: #4a4a4a;
+  --pas: 0.5rem;
   color-scheme: dark;
 }
 
@@ -16,145 +18,184 @@ body {
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   background: var(--fond);
   color: var(--texte);
+  -webkit-font-smoothing: antialiased;
 }
 
 .page {
-  max-width: 34rem;
+  max-width: 32rem;
   margin: 0 auto;
-  padding: calc(env(safe-area-inset-top) + 1rem) 1rem 6rem;
+  padding: calc(env(safe-area-inset-top) + 1.5rem) 1.25rem 7rem;
 }
 
-h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 0; }
 .w-full { width: 100%; }
 .aide, small { color: var(--discret); }
+.aide { font-size: 0.9rem; margin: 0 0 1.25rem; }
+
+// Petites étiquettes en capitales
+.etiquette,
+formly-field .p-field > label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--discret);
+  margin-bottom: 0.5rem;
+}
+
+// Angles droits partout
+.p-button, .p-dialog, .p-toast-message, input, .p-inputtext { border-radius: 0 !important; }
 
 .entete {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: var(--pas);
+  margin-bottom: 2rem;
   h1 { flex: 1; }
+  small { display: block; margin-top: 0.35rem; font-size: 0.8rem; }
 }
 
-formly-form { display: block; margin-bottom: 1rem; }
-formly-field { display: block; margin-bottom: 0.75rem; }
-formly-field input:not([type='radio']) { width: 100%; }
-formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
+// ---------- Formulaires ----------
+formly-form { display: block; margin-bottom: 1.5rem; }
+formly-field { display: block; margin-bottom: 1.25rem; }
+formly-field input:not([type='radio']) {
+  width: 100%;
+  height: 3rem;
+  background: transparent;
+  border: 1px solid var(--ligne-forte);
+  color: var(--texte);
+  font-size: 1rem;
+  &:focus { border-color: var(--texte); box-shadow: none; }
+}
+formly-field input[type='color'] { padding: 0.35rem; cursor: pointer; }
 
+// Choix : tuiles carrées, un tap par choix, sans rond de bouton radio
+formly-field-primeng-radio {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  padding: 1px 0 0 1px;
+  .field-radiobutton {
+    position: relative;
+    margin: -1px 0 0 -1px;
+    border: 1px solid var(--ligne-forte);
+    background: var(--fond);
+    p-radiobutton { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.5rem;
+      margin: 0;
+      text-align: center;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    &:has(p-radiobutton[data-p-checked='true']) { background: var(--texte); color: var(--fond); font-weight: 600; }
+    &:has(input:focus-visible) { outline: 2px solid var(--texte); outline-offset: -4px; }
+  }
+}
+
+// ---------- Connexion ----------
 .connexion {
-  padding-top: 15vh;
-  .sous-titre { color: var(--discret); margin-bottom: 2rem; }
-  .serveur { margin-top: 2rem; }
-  .ligne { display: flex; gap: 0.5rem; margin: 0.5rem 0; input { flex: 1; } }
+  padding-top: 18vh;
+  h1 { font-size: 2.75rem; }
+  .sous-titre { color: var(--discret); margin: 0.75rem 0 3rem; }
+  .serveur { margin-top: 3rem; color: var(--discret); font-size: 0.85rem; }
+  .ligne { display: flex; gap: var(--pas); margin: var(--pas) 0; input { flex: 1; } }
 }
 
-.vide { text-align: center; padding: 3rem 0; }
+.vide { padding: 4rem 0; p { color: var(--discret); margin-bottom: 1.5rem; } }
 
+// ---------- Liste des objectifs ----------
 .objectifs {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
-  gap: 0.75rem;
+  border-top: 1px solid var(--ligne);
 }
 
 .objectif {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  background: var(--carte);
-  border: 1px solid var(--bordure);
-  border-radius: 0;
-  .infos {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 0.35rem;
-    color: inherit;
-    text-decoration: none;
-  }
-  .nom { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
-  .nom::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 0; background: var(--couleur); }
-  .compteur { font-weight: 600; }
-  .barre, .message { grid-column: 1 / -1; }
-  .barre { height: 0.25rem; --p-progressbar-value-background: #ffffff; --p-progressbar-background: var(--bordure); }
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--ligne);
+  .infos { flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+  .ligne-haut { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); }
+  .nom { font-weight: 700; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .compteur { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .compteur span { color: var(--discret); font-weight: 500; }
+  .message { display: block; margin-top: 0.5rem; font-size: 0.8rem; }
+}
+
+// Une case par séance visée
+.segments {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+  margin-top: 0.75rem;
+  i { height: 0.5rem; background: var(--ligne); }
+  i.plein { background: var(--texte); }
+}
+
+.coche {
+  flex: none;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1.5px solid var(--texte);
+  background: transparent;
+  color: var(--texte);
+  font-size: 1.1rem;
+  cursor: pointer;
+  &.fait { background: var(--texte); color: var(--fond); }
+  &:active { transform: scale(0.95); }
 }
 
 .fab {
   position: fixed;
-  right: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+  .p-button { width: 3.5rem; height: 3.5rem; }
 }
 
-.actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.actions { display: flex; justify-content: flex-end; gap: var(--pas); }
 
+// ---------- Détail ----------
 .stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  div {
-    background: var(--carte);
-    border: 1px solid var(--bordure);
-    border-radius: 0;
-    padding: 0.75rem;
-    text-align: center;
-    display: grid;
-  }
-  strong { font-size: 1.75rem; font-weight: 700; }
-  span { font-size: 0.8rem; color: var(--discret); }
+  border-top: 1px solid var(--ligne);
+  border-bottom: 1px solid var(--ligne);
+  margin-bottom: 2rem;
+  div { padding: 1rem 0; display: grid; gap: 0.25rem; }
+  div + div { border-left: 1px solid var(--ligne); padding-left: 1rem; }
+  strong { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  span { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--discret); }
 }
 
 .calendrier {
-  background: var(--carte);
-  border: 1px solid var(--bordure);
-  border-radius: 0;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  .mois { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
-  .grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; margin: 0.5rem 0; }
-  .jour-semaine { text-align: center; font-size: 0.75rem; color: var(--discret); }
+  margin-bottom: 2rem;
+  .mois { display: flex; justify-content: space-between; align-items: center; font-weight: 700; margin-bottom: 0.75rem; }
+  .grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 0.75rem; }
+  .jour-semaine { text-align: center; font-size: 0.7rem; letter-spacing: 0.08em; color: var(--discret); padding-bottom: 0.25rem; }
   .jour {
     aspect-ratio: 1;
     border: none;
-    border-radius: 0;
-    background: transparent;
-    color: inherit;
+    background: #111111;
+    color: var(--texte);
     font: inherit;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
     cursor: pointer;
-    &.fait { background: #ffffff; color: #000000; font-weight: 700; }
-    &.aujourdhui { outline: 1px solid #ffffff; }
-    &:disabled { opacity: 0.35; cursor: default; }
+    &.fait { background: var(--texte); color: var(--fond); font-weight: 800; }
+    &.aujourdhui { box-shadow: inset 0 0 0 1.5px var(--texte); }
+    &:disabled { background: transparent; color: #3a3a3a; cursor: default; }
   }
 }
 
-// Choix en « pastilles » : un tap par choix
-formly-field .p-field > label { display: block; font-weight: 500; margin-bottom: 0.4rem; }
-formly-field-primeng-radio {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  .field-radiobutton {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.45rem 0.85rem;
-    border: 1px solid var(--bordure);
-    border-radius: 0;
-    background: var(--carte);
-    cursor: pointer;
-    label { margin: 0; cursor: pointer; }
-    &:has(p-radiobutton[data-p-checked='true']) {
-      border-color: #ffffff;
-      background: #ffffff;
-      color: #000000;
-    }
-  }
-}
-.p-dialog formly-field { margin-bottom: 1rem; }
-
-// Tout en angles droits
-.p-radiobutton-box, .p-radiobutton-icon, .p-button, .p-dialog, .p-toast-message,
-.p-progressbar, .p-progressbar-value, input, .p-inputtext { border-radius: 0 !important; }
+.p-dialog formly-field { margin-bottom: 1.25rem; }
