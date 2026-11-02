@@ -98,8 +98,13 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
 - **Flamme de série** sur chaque objectif : jours d'affilée pour un objectif quotidien, semaines réussies
   d'affilée sinon. Une journée ou une semaine en cours pas encore faite ne casse pas la série. Calculée par le
   domaine (`CalculProgression.serie`), renvoyée dans `progression.serie`, `meilleureSerie` et `uniteSerie`.
-- **À chaque coche** : vibration légère et petite animation.
-- **Écran de célébration** quand une semaine est réussie, quand une série quotidienne franchit un palier
+- **À chaque coche** : vibration légère, petit « ding », coche qui se trace, éclats et onde autour du bouton,
+  case de progression qui se remplit. Un son grave et discret quand on décoche.
+- **Flamme vivante** : elle vacille, grossit quand la série augmente et brille plus fort quand la série s'allonge.
+- **Sons** synthétisés (aucun fichier audio), coupables avec le bouton haut-parleur de l'accueil.
+- **Transitions** entre écrans et apparition progressive de la liste. Tout est désactivé si le téléphone
+  demande de réduire les animations.
+- **Écran de célébration** (grande flamme, chiffre qui défile, anneau et éclats, petite fanfare) quand une semaine est réussie, quand une série quotidienne franchit un palier
   (3, 7, 14, 21, 30, 50, 100… jours), ou quand tous les objectifs du jour sont cochés.
 - **Bilan en haut de l'accueil** : objectifs tenus cette semaine et objectifs faits aujourd'hui.
 

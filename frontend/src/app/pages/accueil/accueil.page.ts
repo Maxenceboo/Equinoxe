@@ -9,6 +9,7 @@ import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
+import { SonsService } from '../../core/sons.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
 
@@ -21,7 +22,15 @@ import { Flamme } from '../../shared/flamme';
         <h1>Cette<br />semaine</h1>
         <small>{{ semaine }}</small>
       </div>
-      <p-button icon="pi pi-sign-out" [text]="true" ariaLabel="Se déconnecter" (onClick)="deconnecter()" />
+      <div class="outils">
+        <p-button
+          [icon]="sons.actif() ? 'pi pi-volume-up' : 'pi pi-volume-off'"
+          [text]="true"
+          [ariaLabel]="sons.actif() ? 'Couper le son' : 'Activer le son'"
+          (onClick)="sons.basculer()"
+        />
+        <p-button icon="pi pi-sign-out" [text]="true" ariaLabel="Se déconnecter" (onClick)="deconnecter()" />
+      </div>
     </header>
 
     @if (objectifs().length > 0) {
@@ -45,8 +54,8 @@ import { Flamme } from '../../shared/flamme';
     }
 
     <ul class="objectifs">
-      @for (o of objectifs(); track o.id) {
-        <li class="objectif" [class.pop]="pop() === o.id" [class.atteint]="o.progression.atteint">
+      @for (o of objectifs(); track o.id; let i = $index) {
+        <li class="objectif" [class.pop]="pop() === o.id" [class.atteint]="o.progression.atteint" [style.--i]="i">
           <a class="infos" [routerLink]="['/objectifs', o.id]">
             <div class="ligne-haut">
               <span class="nom">{{ o.nom }}</span>
@@ -71,7 +80,14 @@ import { Flamme } from '../../shared/flamme';
               (click)="basculer(o)"
             >
               @if (o.progression.faitAujourdhui) {
-                <i class="pi pi-check"></i>
+                <svg class="coche-trait" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+              }
+              @if (pop() === o.id) {
+                <span class="eclats" aria-hidden="true">
+                  @for (a of angles; track a) {
+                    <i [style.--angle]="a + 'deg'"></i>
+                  }
+                </span>
               }
             </button>
             @if (o.progression.faitAujourdhui && o.categorie !== 'AUTRE') {
@@ -107,6 +123,8 @@ import { Flamme } from '../../shared/flamme';
 })
 export class AccueilPage implements OnInit {
   protected readonly session = inject(SessionService);
+  protected readonly sons = inject(SonsService);
+  protected readonly angles = [0, 45, 90, 135, 180, 225, 270, 315];
   private readonly api = inject(ObjectifsService);
   private readonly notifications = inject(NotificationsService);
   private readonly schemas = inject(SchemaFormService);
@@ -143,7 +161,14 @@ export class AccueilPage implements OnInit {
     if (this.enCours.has(o.id)) return; // évite les doubles taps
     this.enCours.add(o.id);
     const cocher = !o.progression.faitAujourdhui;
-    if (cocher) this.celebration.coche();
+    if (cocher) {
+      // Effet immédiat au toucher, sans attendre le serveur
+      this.celebration.coche();
+      this.pop.set(o.id);
+      setTimeout(() => this.pop.set(null), 700);
+    } else {
+      this.celebration.decoche();
+    }
     const appel = cocher
       ? this.api.validerObjectif(o.id, { date: aujourdhui() })
       : this.api.annulerValidation(o.id, aujourdhui());
@@ -160,8 +185,6 @@ export class AccueilPage implements OnInit {
 
   /** Animation à chaque coche ; écran de célébration quand la semaine est réussie ou qu'un palier est franchi. */
   private feterSiBesoin(avant: Objectif, apres: Objectif): void {
-    this.pop.set(apres.id);
-    setTimeout(() => this.pop.set(null), 500);
     const p = apres.progression;
     const tousFaits = this.objectifs().every((x) => x.progression.faitAujourdhui);
     if (p.uniteSerie === 'SEMAINES' && p.atteint && !avant.progression.atteint) {

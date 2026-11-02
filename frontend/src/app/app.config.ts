@@ -1,6 +1,6 @@
 import { ApplicationConfig, inject, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
 import { ThemeNoir } from './theme';
@@ -17,7 +17,7 @@ import { PRIMEUI_LICENSE } from './primeui-license';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions({ skipInitialTransition: true })),
     provideHttpClient(withInterceptors([erreurInterceptor])),
     providePrimeNG({
       theme: { preset: ThemeNoir, options: { darkModeSelector: '.sombre' } },

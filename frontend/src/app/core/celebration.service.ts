@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
+import { SonsService } from './sons.service';
 
 export interface Celebration {
   titre: string;
@@ -15,6 +16,7 @@ export interface Celebration {
 @Injectable({ providedIn: 'root' })
 export class CelebrationService {
   readonly enCours = signal<Celebration | null>(null);
+  private readonly sons = inject(SonsService);
   private minuteur?: ReturnType<typeof setTimeout>;
 
   /** Paliers de série qui méritent une célébration. */
@@ -23,10 +25,16 @@ export class CelebrationService {
 
   coche(): void {
     this.vibrer('legere');
+    this.sons.coche();
+  }
+
+  decoche(): void {
+    this.sons.decoche();
   }
 
   celebrer(c: Celebration): void {
     this.vibrer('succes');
+    this.sons.fanfare();
     this.enCours.set(c);
     clearTimeout(this.minuteur);
     this.minuteur = setTimeout(() => this.fermer(), 3500);
