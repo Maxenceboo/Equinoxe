@@ -30,3 +30,14 @@ export function nomDuMois(mois: string): string {
   const nom = new Date(annee, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
   return nom.charAt(0).toUpperCase() + nom.slice(1);
 }
+
+/** « 2 – 8 novembre » ou « 27 oct. – 2 nov. » pour la semaine (lundi-dimanche) de la date. */
+export function libelleSemaine(d: Date): string {
+  const lundi = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7));
+  const dimanche = new Date(lundi.getFullYear(), lundi.getMonth(), lundi.getDate() + 6);
+  if (lundi.getMonth() === dimanche.getMonth()) {
+    return `${lundi.getDate()} – ${dimanche.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}`;
+  }
+  const court = { day: 'numeric', month: 'short' } as const;
+  return `${lundi.toLocaleDateString('fr-FR', court)} – ${dimanche.toLocaleDateString('fr-FR', court)}`;
+}

@@ -9,5 +9,6 @@ public record ProgressionSemaine(
         boolean atteint,
         int joursRestants,
         boolean faitAujourdhui,
-        String message) {
+        String message,
+        Serie serie) {
 }

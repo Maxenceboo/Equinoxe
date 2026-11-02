@@ -41,6 +41,20 @@ class CalculProgressionTest {
     }
 
     @Test
+    void serie_de_jours_pour_un_objectif_quotidien() {
+        Objectif o = new Objectif(2L, 1L, "Coucher", Categorie.SOMMEIL, Frequence.quotidien(), LocalTime.of(23, 0),
+                "#ffffff", false, LUNDI.minusDays(10), List.of());
+        LocalDate auj = LUNDI;
+        for (int i : new int[]{9, 8, 7, 6, 3, 2, 1}) o.valider(LUNDI.minusDays(i), DetailsSeance.AUCUN, auj);
+        // pas encore fait aujourd'hui : la série d'hier (3 jours) tient toujours
+        assertThat(calcul.serie(o, auj).enCours()).isEqualTo(3);
+        assertThat(calcul.serie(o, auj).record()).isEqualTo(4);
+        o.valider(auj, DetailsSeance.AUCUN, auj);
+        assertThat(calcul.serie(o, auj).enCours()).isEqualTo(4);
+        assertThat(calcul.serie(o, auj.plusDays(2)).enCours()).isZero();
+    }
+
+    @Test
     void message_neutre_quand_la_semaine_est_perdue() {
         Objectif o = sport(LUNDI);
         LocalDate dimanche = LUNDI.plusDays(6);

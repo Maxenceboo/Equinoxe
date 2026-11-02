@@ -15,3 +15,12 @@ describe('dates', () => {
     expect(moisDecale('2026-01', -1)).toBe('2025-12');
   });
 });
+
+import { libelleSemaine } from './dates';
+
+describe('libelleSemaine', () => {
+  it('affiche la semaine du lundi au dimanche', () => {
+    expect(libelleSemaine(new Date(2026, 10, 4))).toBe('2 – 8 novembre');
+    expect(libelleSemaine(new Date(2026, 10, 1))).toBe('26 oct. – 1 nov.');
+  });
+});

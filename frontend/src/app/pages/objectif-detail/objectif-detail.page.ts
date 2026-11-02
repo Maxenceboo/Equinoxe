@@ -2,13 +2,14 @@ import { Component, OnInit, computed, inject, input, signal } from '@angular/cor
 import { DecimalPipe, PercentPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
+import { Flamme } from '../../shared/flamme';
 import { Historique, Objectif, ObjectifsService } from '../../api/generated';
 import { NotificationsService } from '../../core/notifications.service';
 import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../../shared/dates';
 
 @Component({
   selector: 'app-objectif-detail',
-  imports: [RouterLink, Button, PercentPipe, DecimalPipe],
+  imports: [RouterLink, Button, PercentPipe, DecimalPipe, Flamme],
   template: `
     <header class="entete">
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" routerLink="/" />
@@ -18,8 +19,16 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
 
     @if (historique(); as h) {
       <section class="stats">
-        <div><strong>{{ h.serieSemaines }}</strong><span>semaine(s) d'affilée</span></div>
-        <div><strong>{{ h.meilleureSerie }}</strong><span>meilleure série</span></div>
+        @if (objectif(); as o) {
+          <div class="serie-en-cours">
+            <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
+            <span>{{ o.progression.uniteSerie === 'JOURS' ? 'jour(s)' : 'semaine(s)' }} d'affilée</span>
+          </div>
+          <div>
+            <strong>{{ o.progression.meilleureSerie }}</strong>
+            <span>record</span>
+          </div>
+        }
         <div><strong>{{ h.tauxReussite | percent: '1.0-0' }}</strong><span>semaines réussies</span></div>
       </section>
 

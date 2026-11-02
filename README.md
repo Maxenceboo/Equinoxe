@@ -93,6 +93,16 @@ Les notifications sont programmées sur le téléphone (plugin Capacitor Local N
 Pour le Play Store : passer le serveur en https, mettre `androidScheme: 'https'` dans `capacitor.config.ts`,
 générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle).
 
+## Motivation
+
+- **Flamme de série** sur chaque objectif : jours d'affilée pour un objectif quotidien, semaines réussies
+  d'affilée sinon. Une journée ou une semaine en cours pas encore faite ne casse pas la série. Calculée par le
+  domaine (`CalculProgression.serie`), renvoyée dans `progression.serie`, `meilleureSerie` et `uniteSerie`.
+- **À chaque coche** : vibration légère et petite animation.
+- **Écran de célébration** quand une semaine est réussie, quand une série quotidienne franchit un palier
+  (3, 7, 14, 21, 30, 50, 100… jours), ou quand tous les objectifs du jour sont cochés.
+- **Bilan en haut de l'accueil** : objectifs tenus cette semaine et objectifs faits aujourd'hui.
+
 ## Direction artistique
 
 À garder sur tous les écrans (règles dans `frontend/src/styles.scss` et `frontend/src/app/theme.ts`) :

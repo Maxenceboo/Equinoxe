@@ -38,7 +38,13 @@ export class ObjectifFormPage implements OnInit {
 
   // Champs construits depuis le schéma ObjectifSaisie, avec deux règles d'affichage
   protected readonly champs: FormlyFieldConfig[] = inject(SchemaFormService).champs('ObjectifSaisie', {
-    cible: { expressions: { hide: 'model.typeFrequence === "QUOTIDIEN"' } },
+    cible: {
+      type: 'radio',
+      props: { options: [1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: n, label: String(n) })) },
+      expressions: { hide: 'model.typeFrequence === "QUOTIDIEN"' },
+    },
+    // La DA est en noir et blanc : la couleur n'est plus affichée, on ne la demande pas
+    couleur: { hide: true },
     heure: {
       expressions: {
         'props.label': (f: FormlyFieldConfig) =>

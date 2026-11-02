@@ -4,6 +4,8 @@ import com.objectifsperso.domain.model.Historique;
 import com.objectifsperso.domain.model.Objectif;
 import com.objectifsperso.domain.model.ProgressionSemaine;
 import com.objectifsperso.domain.model.Semaine;
+import com.objectifsperso.domain.model.Serie;
+import com.objectifsperso.domain.model.TypeFrequence;
 import com.objectifsperso.domain.model.Validation;
 
 import java.time.LocalDate;
@@ -23,7 +25,30 @@ public class CalculProgression {
         int joursRestants = (int) ChronoUnit.DAYS.between(aujourdhui, semaine.dimanche()) + 1;
         boolean faitAujourdhui = objectif.estFaitLe(aujourdhui);
         return new ProgressionSemaine(semaine.lundi(), realisees, cible, atteint, joursRestants, faitAujourdhui,
-                message(realisees, cible, joursRestants, faitAujourdhui));
+                message(realisees, cible, joursRestants, faitAujourdhui), serie(objectif, aujourdhui));
+    }
+
+    /**
+     * Série en cours : jours d'affilée pour un objectif quotidien, semaines réussies d'affilée sinon.
+     * Une journée (ou semaine) en cours pas encore faite ne casse pas la série.
+     */
+    public Serie serie(Objectif objectif, LocalDate aujourdhui) {
+        if (objectif.frequence().type() == TypeFrequence.QUOTIDIEN) {
+            LocalDate debut = objectif.premiereDate().orElse(aujourdhui);
+            int enCours = 0;
+            int record = 0;
+            for (LocalDate d = debut; !d.isAfter(aujourdhui); d = d.plusDays(1)) {
+                if (objectif.estFaitLe(d)) {
+                    enCours++;
+                    record = Math.max(record, enCours);
+                } else if (!d.equals(aujourdhui)) {
+                    enCours = 0;
+                }
+            }
+            return new Serie(enCours, record, Serie.Unite.JOURS);
+        }
+        Historique h = historique(objectif, YearMonth.from(aujourdhui), aujourdhui);
+        return new Serie(h.serieSemaines(), h.meilleureSerie(), Serie.Unite.SEMAINES);
     }
 
     private String message(int realisees, int cible, int joursRestants, boolean faitAujourdhui) {

@@ -13,6 +13,7 @@ import com.objectifsperso.adapter.in.web.vo.RessentiVO;
 import com.objectifsperso.adapter.in.web.vo.ReveilVO;
 import com.objectifsperso.adapter.in.web.vo.TypeFrequenceVO;
 import com.objectifsperso.adapter.in.web.vo.TypeSeanceVO;
+import com.objectifsperso.adapter.in.web.vo.UniteSerieVO;
 import com.objectifsperso.adapter.in.web.vo.ValidationSaisieVO;
 import com.objectifsperso.adapter.in.web.vo.ValidationVO;
 import com.objectifsperso.application.port.in.ObjectifCommande;
@@ -69,7 +70,8 @@ final class WebMapper {
 
     static ProgressionSemaineVO vo(ProgressionSemaine p) {
         return new ProgressionSemaineVO(p.debutSemaine(), p.realisees(), p.cible(), p.atteint(), p.joursRestants(),
-                p.faitAujourdhui()).message(p.message());
+                p.faitAujourdhui(), p.serie().enCours(), p.serie().record(),
+                UniteSerieVO.fromValue(p.serie().unite().name())).message(p.message());
     }
 
     static HistoriqueVO vo(Historique h) {

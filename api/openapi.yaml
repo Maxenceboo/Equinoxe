@@ -334,7 +334,7 @@ components:
 
     ProgressionSemaine:
       type: object
-      required: [debutSemaine, realisees, cible, atteint, joursRestants, faitAujourdhui]
+      required: [debutSemaine, realisees, cible, atteint, joursRestants, faitAujourdhui, serie, meilleureSerie, uniteSerie]
       properties:
         debutSemaine: { type: string, format: date, description: Lundi de la semaine en cours }
         realisees: { type: integer }
@@ -343,6 +343,13 @@ components:
         joursRestants: { type: integer, description: "Jours restants dans la semaine, aujourd'hui compris" }
         faitAujourdhui: { type: boolean }
         message: { type: string, description: Message d'encouragement neutre }
+        serie: { type: integer, description: "Série en cours (flamme) : jours d'affilée pour un objectif quotidien, semaines réussies d'affilée sinon" }
+        meilleureSerie: { type: integer, description: Record de série dans la même unité }
+        uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
+
+    UniteSerie:
+      type: string
+      enum: [JOURS, SEMAINES]
 
     TypeSeance:
       type: string
