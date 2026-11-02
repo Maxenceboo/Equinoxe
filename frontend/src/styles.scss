@@ -1,0 +1,159 @@
+@import 'primeicons/primeicons.css';
+
+:root {
+  --fond: #f6f7f9;
+  --texte: #1f2937;
+  --discret: #6b7280;
+  --carte: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond: #111318;
+    --texte: #e5e7eb;
+    --discret: #9ca3af;
+    --carte: #1b1e25;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--fond);
+  color: var(--texte);
+}
+
+.page {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: calc(env(safe-area-inset-top) + 1rem) 1rem 6rem;
+}
+
+h1 { font-size: 1.5rem; margin: 0; }
+.w-full { width: 100%; }
+.aide, small { color: var(--discret); }
+
+.entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  h1 { flex: 1; }
+}
+
+formly-form { display: block; margin-bottom: 1rem; }
+formly-field { display: block; margin-bottom: 0.75rem; }
+formly-field input:not([type='radio']) { width: 100%; }
+formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
+
+.connexion {
+  padding-top: 15vh;
+  .sous-titre { color: var(--discret); margin-bottom: 2rem; }
+  .serveur { margin-top: 2rem; }
+  .ligne { display: flex; gap: 0.5rem; margin: 0.5rem 0; input { flex: 1; } }
+}
+
+.vide { text-align: center; padding: 3rem 0; }
+
+.objectifs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.objectif {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--carte);
+  border-radius: 1rem;
+  border-left: 0.4rem solid var(--couleur);
+  .infos {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.35rem;
+    color: inherit;
+    text-decoration: none;
+  }
+  .nom { font-weight: 600; font-size: 1.1rem; }
+  .compteur { font-weight: 600; }
+  .barre, .message { grid-column: 1 / -1; }
+  .barre { height: 0.5rem; --p-progressbar-value-background: var(--couleur); }
+}
+
+.fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+}
+
+.actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  div {
+    background: var(--carte);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    text-align: center;
+    display: grid;
+  }
+  strong { font-size: 1.5rem; }
+  span { font-size: 0.8rem; color: var(--discret); }
+}
+
+.calendrier {
+  background: var(--carte);
+  border-radius: 1rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  .mois { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.3rem; margin: 0.5rem 0; }
+  .jour-semaine { text-align: center; font-size: 0.75rem; color: var(--discret); }
+  .jour {
+    aspect-ratio: 1;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    &.fait { background: var(--couleur); color: white; }
+    &.aujourdhui { outline: 2px solid var(--couleur); }
+    &:disabled { opacity: 0.35; cursor: default; }
+  }
+}
+
+// Choix en « pastilles » : un tap par choix
+formly-field .p-field > label { display: block; font-weight: 500; margin-bottom: 0.4rem; }
+formly-field-primeng-radio {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  .field-radiobutton {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--p-content-border-color, #d1d5db);
+    border-radius: 999px;
+    background: var(--carte);
+    cursor: pointer;
+    label { margin: 0; cursor: pointer; }
+    &:has(p-radiobutton[data-p-checked='true']) {
+      border-color: var(--p-primary-color);
+      background: color-mix(in srgb, var(--p-primary-color) 12%, var(--carte));
+    }
+  }
+}
+.p-dialog formly-field { margin-bottom: 1rem; }

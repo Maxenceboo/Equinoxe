@@ -1,0 +1,429 @@
+openapi: 3.0.3
+info:
+  title: Objectifs perso API
+  version: 1.0.0
+  description: |
+    Contrat de l'API de l'app d'objectifs perso. Ce fichier est la seule source de vérité :
+    les VO du back (Spring) et du front (Angular) sont générés à partir de lui, et les
+    formulaires du front sont construits à partir des schémas ci-dessous.
+servers:
+  - url: http://localhost:8080/api
+tags:
+  - name: Auth
+  - name: Objectifs
+  - name: Rappels
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/inscription:
+    post:
+      tags: [Auth]
+      operationId: inscription
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Identifiants' }
+      responses:
+        '201':
+          description: Compte créé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '409':
+          description: Email déjà utilisé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+
+  /auth/connexion:
+    post:
+      tags: [Auth]
+      operationId: connexion
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Identifiants' }
+      responses:
+        '200':
+          description: Connecté
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '401':
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+
+  /objectifs:
+    get:
+      tags: [Objectifs]
+      operationId: listerObjectifs
+      parameters:
+        - name: archives
+          in: query
+          required: false
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Objectifs avec la progression de la semaine en cours
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Objectif' }
+    post:
+      tags: [Objectifs]
+      operationId: creerObjectif
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ObjectifSaisie' }
+      responses:
+        '201':
+          description: Objectif créé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '400':
+          description: Saisie invalide
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+
+  /objectifs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    get:
+      tags: [Objectifs]
+      operationId: lireObjectif
+      responses:
+        '200':
+          description: L'objectif
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+    put:
+      tags: [Objectifs]
+      operationId: modifierObjectif
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ObjectifSaisie' }
+      responses:
+        '200':
+          description: Objectif modifié
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /objectifs/{id}/archiver:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    post:
+      tags: [Objectifs]
+      operationId: archiverObjectif
+      responses:
+        '200':
+          description: Objectif archivé
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /objectifs/{id}/validations:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    post:
+      tags: [Objectifs]
+      operationId: validerObjectif
+      description: Coche l'objectif pour une date (aujourd'hui par défaut), avec des détails facultatifs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ValidationSaisie' }
+      responses:
+        '200':
+          description: Objectif mis à jour avec sa nouvelle progression
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /objectifs/{id}/validations/{date}:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+      - name: date
+        in: path
+        required: true
+        schema: { type: string, format: date }
+    delete:
+      tags: [Objectifs]
+      operationId: annulerValidation
+      responses:
+        '200':
+          description: Objectif mis à jour avec sa nouvelle progression
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /objectifs/{id}/historique:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    get:
+      tags: [Objectifs]
+      operationId: historiqueObjectif
+      parameters:
+        - name: mois
+          in: query
+          required: false
+          description: Mois au format AAAA-MM (mois en cours par défaut)
+          schema: { type: string, pattern: '^\d{4}-\d{2}$' }
+      responses:
+        '200':
+          description: Historique du mois et statistiques
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Historique' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /rappels:
+    get:
+      tags: [Rappels]
+      operationId: prochainsRappels
+      description: Rappels calculés pour les prochains jours, que l'app programme en notifications locales.
+      parameters:
+        - name: jours
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 14, default: 7 }
+      responses:
+        '200':
+          description: Rappels à programmer, triés par date
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Rappel' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ObjectifId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, format: int64 }
+
+  responses:
+    Introuvable:
+      description: Objectif introuvable
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erreur' }
+
+  schemas:
+    Identifiants:
+      type: object
+      required: [email, motDePasse]
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+          maxLength: 120
+        motDePasse:
+          type: string
+          title: Mot de passe
+          minLength: 8
+          maxLength: 100
+          format: password
+
+    Session:
+      type: object
+      required: [token, email]
+      properties:
+        token: { type: string }
+        email: { type: string }
+
+    Erreur:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+
+    Categorie:
+      type: string
+      title: Catégorie
+      enum: [SPORT, SOMMEIL, AUTRE]
+      x-enum-descriptions: [Sport, Sommeil, Autre]
+
+    TypeFrequence:
+      type: string
+      title: Fréquence
+      enum: [PAR_SEMAINE, QUOTIDIEN]
+      x-enum-descriptions: [X fois par semaine, Tous les jours]
+
+    ObjectifSaisie:
+      type: object
+      required: [nom, categorie, typeFrequence, cible, heure]
+      properties:
+        nom:
+          type: string
+          title: Nom
+          minLength: 1
+          maxLength: 50
+        categorie:
+          $ref: '#/components/schemas/Categorie'
+        typeFrequence:
+          $ref: '#/components/schemas/TypeFrequence'
+        cible:
+          type: integer
+          title: Nombre de fois par semaine
+          minimum: 1
+          maximum: 7
+          default: 3
+        heure:
+          type: string
+          title: Heure du rappel (ou heure de coucher visée pour le sommeil)
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+          default: '18:00'
+        couleur:
+          type: string
+          title: Couleur
+          pattern: '^#[0-9a-fA-F]{6}$'
+          default: '#3b82f6'
+
+    Objectif:
+      type: object
+      required: [id, nom, categorie, typeFrequence, cible, heure, couleur, archive, dateCreation, progression]
+      properties:
+        id: { type: integer, format: int64 }
+        nom: { type: string }
+        categorie: { $ref: '#/components/schemas/Categorie' }
+        typeFrequence: { $ref: '#/components/schemas/TypeFrequence' }
+        cible: { type: integer }
+        heure: { type: string }
+        couleur: { type: string }
+        archive: { type: boolean }
+        dateCreation: { type: string, format: date }
+        progression: { $ref: '#/components/schemas/ProgressionSemaine' }
+
+    ProgressionSemaine:
+      type: object
+      required: [debutSemaine, realisees, cible, atteint, joursRestants, faitAujourdhui]
+      properties:
+        debutSemaine: { type: string, format: date, description: Lundi de la semaine en cours }
+        realisees: { type: integer }
+        cible: { type: integer }
+        atteint: { type: boolean }
+        joursRestants: { type: integer, description: "Jours restants dans la semaine, aujourd'hui compris" }
+        faitAujourdhui: { type: boolean }
+        message: { type: string, description: Message d'encouragement neutre }
+
+    TypeSeance:
+      type: string
+      title: Type
+      enum: [COURSE, MUSCU, VELO, NATATION, MARCHE, YOGA, SPORT_COLLECTIF, AUTRE]
+      x-enum-descriptions: [Course, Muscu, Vélo, Natation, Marche, Yoga / étirements, Sport collectif, Autre]
+
+    Ressenti:
+      type: string
+      title: Ressenti
+      enum: [FACILE, MOYEN, DUR]
+      x-enum-descriptions: [Facile, Moyen, Dur]
+
+    Ponctualite:
+      type: string
+      title: Coucher
+      enum: [A_L_HEURE, RETARD_30_MIN, RETARD_PLUS_1H]
+      x-enum-descriptions: [À l'heure, 30 min de retard, Plus d'1 h de retard]
+
+    Reveil:
+      type: string
+      title: Au réveil
+      enum: [REPOSE, MOYEN, FATIGUE]
+      x-enum-descriptions: [Reposé, Moyen, Fatigué]
+
+    DetailsSport:
+      type: object
+      title: Détails de la séance
+      properties:
+        typeSeance: { $ref: '#/components/schemas/TypeSeance' }
+        dureeMinutes:
+          type: integer
+          title: Durée
+          enum: [15, 30, 45, 60, 90]
+          x-enum-descriptions: [15 min, 30 min, 45 min, 1 h, 1 h 30 et plus]
+        ressenti: { $ref: '#/components/schemas/Ressenti' }
+
+    DetailsSommeil:
+      type: object
+      title: Détails de la nuit
+      properties:
+        ponctualite: { $ref: '#/components/schemas/Ponctualite' }
+        reveil: { $ref: '#/components/schemas/Reveil' }
+
+    ValidationSaisie:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Date de la validation (aujourd'hui si absente)
+        sport: { $ref: '#/components/schemas/DetailsSport' }
+        sommeil: { $ref: '#/components/schemas/DetailsSommeil' }
+
+    Validation:
+      type: object
+      required: [date]
+      properties:
+        date: { type: string, format: date }
+        sport: { $ref: '#/components/schemas/DetailsSport' }
+        sommeil: { $ref: '#/components/schemas/DetailsSommeil' }
+
+    Historique:
+      type: object
+      required: [mois, validations, serieSemaines, meilleureSerie, semainesReussies, semainesTotales, tauxReussite]
+      properties:
+        mois: { type: string, description: AAAA-MM }
+        validations:
+          type: array
+          items: { $ref: '#/components/schemas/Validation' }
+        serieSemaines: { type: integer, description: Semaines réussies d'affilée jusqu'à maintenant }
+        meilleureSerie: { type: integer }
+        semainesReussies: { type: integer }
+        semainesTotales: { type: integer }
+        tauxReussite: { type: number, format: double, description: Entre 0 et 1 }
+
+    Rappel:
+      type: object
+      required: [objectifId, nomObjectif, dateHeure, message]
+      properties:
+        objectifId: { type: integer, format: int64 }
+        nomObjectif: { type: string }
+        dateHeure: { type: string, description: 'Heure locale du téléphone, sans fuseau (AAAA-MM-JJTHH:mm)' }
+        message: { type: string }

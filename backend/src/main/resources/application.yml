@@ -1,0 +1,34 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  datasource:
+    # Base locale dans un fichier, aucune installation nécessaire
+    url: jdbc:h2:file:./data/objectifs;AUTO_SERVER=TRUE
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+app:
+  fuseau: Europe/Paris
+  jwt:
+    # À remplacer en production (variable d'environnement APP_JWT_SECRET)
+    secret: ${APP_JWT_SECRET:dev-secret-a-changer-absolument-0123456789}
+    duree-jours: 30
+  cors:
+    origines: http://localhost:4200,http://localhost,capacitor://localhost,https://localhost
+
+---
+spring:
+  config:
+    activate:
+      on-profile: postgres
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/objectifs}
+    username: ${DB_USER:objectifs}
+    password: ${DB_PASSWORD:objectifs}

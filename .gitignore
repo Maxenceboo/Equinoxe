@@ -1,0 +1,14 @@
+# Back
+backend/target/
+backend/data/
+# Front
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/src/app/api/generated/
+# Android
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+.idea/
+.vscode/
