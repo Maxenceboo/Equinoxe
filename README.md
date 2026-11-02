@@ -93,6 +93,16 @@ Les notifications sont programmées sur le téléphone (plugin Capacitor Local N
 Pour le Play Store : passer le serveur en https, mettre `androidScheme: 'https'` dans `capacitor.config.ts`,
 générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle).
 
+## Direction artistique
+
+À garder sur tous les écrans (règles dans `frontend/src/styles.scss` et `frontend/src/app/theme.ts`) :
+
+- Fond noir pur, texte blanc, gris pour le secondaire, aucune autre couleur d'accent.
+- Angles légèrement arrondis : 6 px partout (variable `--rayon`).
+- Sélection et état « fait » : contour blanc, jamais de fond plein (choix, bouton fait, jours du calendrier).
+- Fond blanc plein réservé à l'action principale (Enregistrer, Se connecter) et aux cases de progression.
+- Titres très gras, petites étiquettes en capitales espacées, chiffres alignés.
+
 ## PrimeNG et licence
 
 PrimeNG 21 et plus demandent une clé de licence PrimeUI. Elle est gratuite pour un particulier

@@ -1,6 +1,10 @@
 @import 'primeicons/primeicons.css';
 
-// Thème noir, angles légèrement arrondis (6 px), fort contraste. Une seule couleur d'accent : le blanc.
+// Direction artistique de l'app (à garder partout) :
+// - fond noir pur, texte blanc, gris pour le secondaire, aucune autre couleur d'accent
+// - angles légèrement arrondis : 6 px (--rayon)
+// - sélection et état « fait » : contour blanc, jamais de fond plein
+// - fond blanc plein réservé à l'action principale (bouton Enregistrer, Se connecter) et à la progression Une seule couleur d'accent : le blanc.
 :root {
   --fond: #000000;
   --texte: #ffffff;
@@ -96,7 +100,8 @@ formly-field-primeng-radio {
       font-size: 0.9rem;
       cursor: pointer;
     }
-    &:has(p-radiobutton[data-p-checked='true']) { background: var(--texte); border-color: var(--texte); color: var(--fond); font-weight: 600; }
+    // Sélection : contour blanc (comme le calendrier), pas de fond plein
+    &:has(p-radiobutton[data-p-checked='true']) { border-color: var(--texte); box-shadow: inset 0 0 0 0.5px var(--texte); font-weight: 700; }
     &:has(input:focus-visible) { outline: 2px solid var(--texte); outline-offset: 2px; }
   }
 }
@@ -156,7 +161,8 @@ formly-field-primeng-radio {
   color: var(--texte);
   font-size: 1.1rem;
   cursor: pointer;
-  &.fait { background: var(--texte); color: var(--fond); }
+  border-color: var(--ligne-forte);
+  &.fait { border-color: var(--texte); box-shadow: inset 0 0 0 0.5px var(--texte); }
   &:active { transform: scale(0.95); }
 }
 
