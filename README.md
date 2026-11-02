@@ -153,3 +153,14 @@ dans `providePrimeNG({ license })`.
 | `APP_JWT_SECRET` | Secret de signature des jetons (32 caractères min.) | valeur de dev, à changer |
 | `DB_URL`, `DB_USER`, `DB_PASSWORD` | Base PostgreSQL (profil `postgres`) | localhost |
 | `app.fuseau` | Fuseau horaire des calculs | Europe/Paris |
+
+## Base de données et migrations (Flyway)
+
+Les tables sont créées et modifiées uniquement par Flyway, à partir des fichiers SQL de
+`backend/src/main/resources/db/migration` (`V1__schema_initial.sql`, puis `V2__...`, `V3__...`).
+Au démarrage, le back applique les migrations manquantes, dans l'ordre, une seule fois ; Hibernate se contente
+de vérifier que les tables correspondent au code (`ddl-auto: validate`).
+
+Pour changer la base : ajouter un nouveau fichier `V<n>__description.sql`, ne jamais modifier une migration
+déjà appliquée. Le SQL doit rester compatible PostgreSQL (prod) et H2 (local et tests).
+Une base créée avant Flyway est reprise telle quelle comme version 1 (`baseline-on-migrate`).

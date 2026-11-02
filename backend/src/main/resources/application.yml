@@ -11,8 +11,12 @@ spring:
     password:
   jpa:
     hibernate:
-      ddl-auto: update
+      # Les tables sont créées et modifiées par Flyway ; Hibernate vérifie seulement qu'elles collent au code
+      ddl-auto: validate
     open-in-view: false
+  flyway:
+    # Bases créées avant Flyway (par Hibernate) : on les prend comme point de départ, sans rejouer V1
+    baseline-on-migrate: true
 
 app:
   fuseau: Europe/Paris
