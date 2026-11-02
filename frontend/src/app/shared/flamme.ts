@@ -5,7 +5,6 @@ import { Component, computed, effect, input, signal } from '@angular/core';
   selector: 'app-flamme',
   template: `
     <span class="flamme" [class.active]="valeur() > 0" [class.bump]="bump()" [class.grande]="taille() === 'grande'"
-          [attr.data-niveau]="niveau()"
           [attr.aria-label]="libelle()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path
@@ -27,12 +26,6 @@ export class Flamme {
   protected readonly libelle = computed(
     () => `Série : ${this.valeur()} ${this.unite() === 'JOURS' ? 'jour(s)' : 'semaine(s)'} d'affilée`,
   );
-  /** Plus la série est longue, plus la flamme brille. */
-  protected readonly niveau = computed(() => {
-    const v = this.valeur();
-    const seuils = this.unite() === 'JOURS' ? [1, 3, 7, 30] : [1, 2, 4, 12];
-    return seuils.filter((s) => v >= s).length;
-  });
   private precedente = -1;
 
   constructor() {

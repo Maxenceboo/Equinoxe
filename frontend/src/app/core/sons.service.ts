@@ -20,22 +20,20 @@ export class SonsService {
   /** « Ding » montant court quand on coche. */
   coche(): void {
     this.jouer([
-      { note: 880, debut: 0, duree: 0.09, forme: 'sine', volume: 0.18 },
-      { note: 1320, debut: 0.07, duree: 0.16, forme: 'sine', volume: 0.16 },
+      { note: 880, debut: 0, duree: 0.08, forme: 'sine', volume: 0.08 },
+      { note: 1320, debut: 0.06, duree: 0.12, forme: 'sine', volume: 0.07 },
     ]);
   }
 
   /** Petit son grave et discret quand on décoche. */
   decoche(): void {
-    this.jouer([{ note: 330, debut: 0, duree: 0.08, forme: 'triangle', volume: 0.1 }]);
+    this.jouer([{ note: 330, debut: 0, duree: 0.06, forme: 'sine', volume: 0.05 }]);
   }
 
-  /** Arpège de fête pour les célébrations. */
+  /** Trois notes douces pour les célébrations. */
   fanfare(): void {
-    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-    this.jouer(
-      notes.map((note, i) => ({ note, debut: i * 0.09, duree: i === notes.length - 1 ? 0.5 : 0.16, forme: 'triangle' as const, volume: 0.16 })),
-    );
+    const notes = [659.25, 783.99, 1046.5];
+    this.jouer(notes.map((note, i) => ({ note, debut: i * 0.1, duree: i === 2 ? 0.35 : 0.14, forme: 'sine' as const, volume: 0.1 })));
   }
 
   private jouer(sons: { note: number; debut: number; duree: number; forme: OscillatorType; volume: number }[]): void {
@@ -65,8 +63,8 @@ export class SonsService {
 
 function lireActif(): boolean {
   try {
-    return localStorage.getItem(CLE) !== '0';
+    return localStorage.getItem(CLE) === '1';
   } catch {
-    return true;
+    return false;
   }
 }

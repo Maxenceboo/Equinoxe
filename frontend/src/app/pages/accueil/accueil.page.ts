@@ -54,8 +54,8 @@ import { Flamme } from '../../shared/flamme';
     }
 
     <ul class="objectifs">
-      @for (o of objectifs(); track o.id; let i = $index) {
-        <li class="objectif" [class.pop]="pop() === o.id" [class.atteint]="o.progression.atteint" [style.--i]="i">
+      @for (o of objectifs(); track o.id) {
+        <li class="objectif" [class.pop]="pop() === o.id" [class.atteint]="o.progression.atteint" >
           <a class="infos" [routerLink]="['/objectifs', o.id]">
             <div class="ligne-haut">
               <span class="nom">{{ o.nom }}</span>
@@ -81,13 +81,6 @@ import { Flamme } from '../../shared/flamme';
             >
               @if (o.progression.faitAujourdhui) {
                 <svg class="coche-trait" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
-              }
-              @if (pop() === o.id) {
-                <span class="eclats" aria-hidden="true">
-                  @for (a of angles; track a) {
-                    <i [style.--angle]="a + 'deg'"></i>
-                  }
-                </span>
               }
             </button>
             @if (o.progression.faitAujourdhui && o.categorie !== 'AUTRE') {
@@ -124,7 +117,6 @@ import { Flamme } from '../../shared/flamme';
 export class AccueilPage implements OnInit {
   protected readonly session = inject(SessionService);
   protected readonly sons = inject(SonsService);
-  protected readonly angles = [0, 45, 90, 135, 180, 225, 270, 315];
   private readonly api = inject(ObjectifsService);
   private readonly notifications = inject(NotificationsService);
   private readonly schemas = inject(SchemaFormService);
@@ -165,7 +157,7 @@ export class AccueilPage implements OnInit {
       // Effet immédiat au toucher, sans attendre le serveur
       this.celebration.coche();
       this.pop.set(o.id);
-      setTimeout(() => this.pop.set(null), 700);
+      setTimeout(() => this.pop.set(null), 350);
     } else {
       this.celebration.decoche();
     }
@@ -186,7 +178,6 @@ export class AccueilPage implements OnInit {
   /** Animation à chaque coche ; écran de célébration quand la semaine est réussie ou qu'un palier est franchi. */
   private feterSiBesoin(avant: Objectif, apres: Objectif): void {
     const p = apres.progression;
-    const tousFaits = this.objectifs().every((x) => x.progression.faitAujourdhui);
     if (p.uniteSerie === 'SEMAINES' && p.atteint && !avant.progression.atteint) {
       this.celebration.celebrer({
         titre: 'Semaine réussie !',
@@ -200,13 +191,6 @@ export class AccueilPage implements OnInit {
         sousTitre: `${apres.nom} : continue comme ça.`,
         nombre: String(p.serie),
         legende: "jours d'affilée",
-      });
-    } else if (tousFaits && this.objectifs().length > 1) {
-      this.celebration.celebrer({
-        titre: 'Journée complète !',
-        sousTitre: 'Tous tes objectifs sont cochés aujourd\'hui.',
-        nombre: `${this.objectifs().length}/${this.objectifs().length}`,
-        legende: "objectifs faits aujourd'hui",
       });
     }
   }

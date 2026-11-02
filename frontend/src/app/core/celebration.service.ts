@@ -20,7 +20,7 @@ export class CelebrationService {
   private minuteur?: ReturnType<typeof setTimeout>;
 
   /** Paliers de série qui méritent une célébration. */
-  static readonly PALIERS_JOURS = [3, 7, 14, 21, 30, 50, 100, 200, 365];
+  static readonly PALIERS_JOURS = [7, 30, 100, 365];
   static readonly PALIERS_SEMAINES = [2, 4, 8, 12, 26, 52];
 
   coche(): void {
@@ -37,7 +37,7 @@ export class CelebrationService {
     this.sons.fanfare();
     this.enCours.set(c);
     clearTimeout(this.minuteur);
-    this.minuteur = setTimeout(() => this.fermer(), 3500);
+    this.minuteur = setTimeout(() => this.fermer(), 2500);
   }
 
   fermer(): void {

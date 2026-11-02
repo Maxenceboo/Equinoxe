@@ -135,10 +135,8 @@ formly-field-primeng-radio {
   .ligne-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--pas); }
   .ligne-bas { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); margin-top: 0.5rem; }
   .cote { display: grid; justify-items: center; gap: 0.35rem; }
-  &.pop .coche { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
-  &.pop .compteur { animation: bump 0.5s ease-out; }
-  animation: entre 0.4s ease-out both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  &.pop .coche { animation: pop 0.3s ease-out; }
+  animation: apparait 0.3s ease-out both;
   &.atteint .compteur { text-decoration: underline; text-underline-offset: 4px; }
   .nom { font-weight: 700; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .compteur { font-weight: 800; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
@@ -269,7 +267,7 @@ formly-field-primeng-radio {
   svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
   &.active { color: var(--texte); svg { fill: var(--texte); } }
   &.bump svg { animation: bump 0.6s ease-out; }
-  &.grande svg { width: 5rem; height: 5rem; animation: brule 1.6s ease-in-out infinite; }
+  &.grande svg { width: 4rem; height: 4rem; }
 }
 
 .serie-en-cours {
@@ -288,35 +286,19 @@ formly-field-primeng-radio {
   gap: 0.25rem;
   padding: 2rem;
   text-align: center;
-  background: rgba(0, 0, 0, 0.94);
-  animation: apparait 0.25s ease-out;
+  background: rgba(0, 0, 0, 0.92);
+  animation: apparait 0.2s ease-out;
   cursor: pointer;
   .flamme { color: var(--texte); }
-  .serie { font-size: 4.5rem; font-weight: 900; line-height: 1; margin-top: 0.5rem; letter-spacing: -0.04em; }
+  .serie { font-size: 3.5rem; font-weight: 800; line-height: 1; margin-top: 0.5rem; letter-spacing: -0.04em; }
   .unite { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--discret); }
   h2 { font-size: 1.75rem; font-weight: 800; margin: 1.5rem 0 0.25rem; }
   p { color: var(--discret); margin: 0 0 2rem; }
-  .etincelles { position: absolute; top: 40%; left: 50%; }
-  .etincelles i {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 1px;
-    background: var(--texte);
-    transform: rotate(var(--angle)) translateY(0);
-    opacity: 0;
-    animation: etincelle 1.1s ease-out var(--delai) forwards;
-  }
 }
 
-@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
-@keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.5) translateY(-2px); } 100% { transform: scale(1); } }
-@keyframes brule { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.06) rotate(2deg); } }
+@keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.2); } 100% { transform: scale(1); } }
 @keyframes apparait { from { opacity: 0; } to { opacity: 1; } }
-@keyframes etincelle {
-  0% { opacity: 1; transform: rotate(var(--angle)) translateY(0) scale(1); }
-  100% { opacity: 0; transform: rotate(var(--angle)) translateY(calc(var(--distance, 9rem) * -1)) scale(0.4); }
-}
 .stats .flamme .nombre { color: inherit; font-size: 2rem; text-transform: none; letter-spacing: -0.03em; }
 
 // ---------- Effets ----------
@@ -333,85 +315,20 @@ formly-field-primeng-radio {
   path { stroke-dasharray: 24; stroke-dashoffset: 0; animation: trace 0.35s ease-out both; }
 }
 
-// Éclats autour du bouton quand on coche
-.eclats {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  pointer-events: none;
-  i {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    margin: -2px;
-    border-radius: 1px;
-    background: var(--texte);
-    animation: eclat 0.6s ease-out forwards;
-  }
-}
-.coche::after {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border-radius: 8px;
-  border: 1.5px solid var(--texte);
-  opacity: 0;
-  pointer-events: none;
-}
-.objectif.pop .coche::after { animation: onde 0.6s ease-out; }
-
-// Flamme vivante : scintille, et brille plus fort quand la série s'allonge
-.flamme.active svg { animation: vacille 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
-.flamme[data-niveau='2'] svg { filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35)); }
-.flamme[data-niveau='3'] svg { filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.55)); }
-.flamme[data-niveau='4'] svg { filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)); }
-
-// Célébration
 .celebration {
-  .flamme.grande svg { animation: surgit 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both, brule 1.6s ease-in-out 0.6s infinite; }
-  .serie { animation: surgit 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.1s both; }
-  h2 { animation: monte 0.45s ease-out 0.25s both; }
-  p, small, .unite { animation: monte 0.45s ease-out 0.35s both; }
-  .etincelles i {
-    width: var(--taille);
-    height: var(--taille);
-    animation: etincelle 1.2s cubic-bezier(0.1, 0.7, 0.3, 1) var(--delai) forwards;
-  }
-  .anneau {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    width: 6rem;
-    height: 6rem;
-    margin: -3rem;
-    border-radius: 50%;
-    border: 2px solid var(--texte);
-    opacity: 0;
-    animation: anneau 1s ease-out 0.1s;
-  }
+  .flamme.grande svg { animation: surgit 0.4s ease-out both; }
+  .serie { animation: monte 0.4s ease-out 0.1s both; }
+  h2, p, small, .unite { animation: monte 0.4s ease-out 0.2s both; }
 }
 
 // Transitions entre écrans
-::view-transition-old(root) { animation: sort 0.18s ease-in both; }
-::view-transition-new(root) { animation: arrive 0.25s ease-out both; }
+::view-transition-old(root) { animation: apparait 0.15s ease-in reverse both; }
+::view-transition-new(root) { animation: apparait 0.2s ease-out both; }
 
 @keyframes trace { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
-@keyframes eclat {
-  0% { opacity: 1; transform: rotate(var(--angle)) translateY(0); }
-  100% { opacity: 0; transform: rotate(var(--angle)) translateY(-2.6rem) scale(0.5); }
-}
-@keyframes onde { 0% { opacity: 0.9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.6); } }
 @keyframes remplit { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes entre { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-@keyframes vacille {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  30% { transform: scale(1.04, 0.97) rotate(-2deg); }
-  60% { transform: scale(0.97, 1.05) rotate(2deg); }
-}
-@keyframes surgit { from { opacity: 0; transform: scale(0.3); } to { opacity: 1; transform: scale(1); } }
+@keyframes surgit { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 @keyframes monte { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes anneau { 0% { opacity: 0.8; transform: scale(0.5); } 100% { opacity: 0; transform: scale(3); } }
-@keyframes sort { to { opacity: 0; transform: translateX(-12px); } }
-@keyframes arrive { from { opacity: 0; transform: translateX(16px); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
