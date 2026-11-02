@@ -57,6 +57,11 @@ public class ObjectifService implements GererObjectifsUseCase {
     }
 
     @Override
+    public ObjectifAvecProgression restaurer(Long utilisateurId, Long objectifId) {
+        return modifierEtEnregistrer(utilisateurId, objectifId, Objectif::restaurer);
+    }
+
+    @Override
     public ObjectifAvecProgression valider(Long utilisateurId, Long objectifId, LocalDate date, DetailsSeance details) {
         LocalDate aujourdhui = horloge.aujourdhui();
         LocalDate jour = date == null ? aujourdhui : date;

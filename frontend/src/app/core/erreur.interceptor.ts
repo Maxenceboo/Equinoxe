@@ -14,7 +14,9 @@ export const erreurInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((e: HttpErrorResponse) => {
       const auth = req.url.includes('/auth/');
-      if (e.status === 401 && !auth) {
+      if (e.status === 0 && !auth) {
+        // Pas de réseau : les écrans gèrent eux-mêmes le mode hors ligne
+      } else if (e.status === 401 && !auth) {
         session.fermer();
         router.navigate(['/connexion']);
       } else {

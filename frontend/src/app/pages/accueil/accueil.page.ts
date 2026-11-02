@@ -1,10 +1,11 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Objectif, ObjectifsService, ValidationSaisie } from '../../api/generated';
+import { Objectif, ObjectifSaisie, ObjectifsService, ValidationSaisie } from '../../api/generated';
+import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
@@ -46,10 +47,26 @@ import { Flamme } from '../../shared/flamme';
       </section>
     }
 
+    @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
+      <p class="bandeau-hors-ligne">
+        <i class="pi pi-wifi"></i>
+        Hors ligne. {{ horsLigne.enAttente().length }} action(s) enregistrée(s) sur le téléphone, envoyée(s) au retour du réseau.
+      </p>
+    }
+
     @if (charge() && objectifs().length === 0) {
       <div class="vide">
-        <p>Aucun objectif pour l'instant. Commence par un seul, par exemple « Sport, 3 fois par semaine ».</p>
-        <p-button label="Créer mon premier objectif" icon="pi pi-plus" routerLink="/objectifs/nouveau" />
+        <p class="etiquette">Pour commencer</p>
+        <p>Choisis un objectif, il est prêt en un tap. Tu pourras le modifier ensuite.</p>
+        <div class="modeles">
+          @for (m of modeles; track m.nom) {
+            <button type="button" class="modele" [disabled]="creation()" (click)="creerDepuisModele(m)">
+              <strong>{{ m.nom }}</strong>
+              <small>{{ m.detail }}</small>
+            </button>
+          }
+        </div>
+        <p-button label="Autre objectif" icon="pi pi-plus" [text]="true" routerLink="/objectifs/nouveau" />
       </div>
     }
 
@@ -91,6 +108,8 @@ import { Flamme } from '../../shared/flamme';
       }
     </ul>
 
+    <p class="lien-archives"><a routerLink="/archives">Objectifs archivés</a></p>
+
     @if (objectifs().length > 0) {
       <p-button class="fab" icon="pi pi-plus" ariaLabel="Nouvel objectif" routerLink="/objectifs/nouveau" />
     }
@@ -114,9 +133,17 @@ import { Flamme } from '../../shared/flamme';
     </p-dialog>
   `,
 })
-export class AccueilPage implements OnInit {
+export class AccueilPage implements OnInit, OnDestroy {
   protected readonly session = inject(SessionService);
   protected readonly sons = inject(SonsService);
+  protected readonly horsLigne = inject(HorsLigneService);
+  protected readonly creation = signal(false);
+  protected readonly modeles: (ObjectifSaisie & { detail: string })[] = [
+    { nom: 'Sport', categorie: 'SPORT', typeFrequence: 'PAR_SEMAINE', cible: 3, heure: '18:00', detail: '3 fois par semaine, rappel à 18 h' },
+    { nom: 'Me coucher tôt', categorie: 'SOMMEIL', typeFrequence: 'QUOTIDIEN', cible: 7, heure: '23:00', detail: 'Tous les soirs, coucher à 23 h' },
+    { nom: 'Lire', categorie: 'AUTRE', typeFrequence: 'PAR_SEMAINE', cible: 4, heure: '21:00', detail: '4 fois par semaine, rappel à 21 h' },
+    { nom: 'Marcher 30 min', categorie: 'SPORT', typeFrequence: 'QUOTIDIEN', cible: 7, heure: '12:30', detail: 'Tous les jours, rappel à 12 h 30' },
+  ];
   private readonly api = inject(ObjectifsService);
   private readonly notifications = inject(NotificationsService);
   private readonly schemas = inject(SchemaFormService);
@@ -137,12 +164,50 @@ export class AccueilPage implements OnInit {
   protected modelDetails: Record<string, unknown> = {};
   private enCours = new Set<number>();
 
+  private readonly auRetourDuReseau = () => this.synchroniserPuisCharger();
+
   ngOnInit(): void {
-    this.api.listerObjectifs(false).subscribe((liste) => {
-      this.objectifs.set(liste);
-      this.charge.set(true);
+    this.synchroniserPuisCharger();
+    window.addEventListener('online', this.auRetourDuReseau);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('online', this.auRetourDuReseau);
+  }
+
+  /** Envoie d'abord les coches faites hors ligne, puis recharge la liste (ou affiche la dernière connue). */
+  private async synchroniserPuisCharger(): Promise<void> {
+    await this.horsLigne.envoyer();
+    this.api.listerObjectifs(false).subscribe({
+      next: (liste) => {
+        this.objectifs.set(liste);
+        this.horsLigne.memoriser(liste);
+        this.horsLigne.horsLigne.set(false);
+        this.charge.set(true);
+        this.notifications.synchroniser();
+      },
+      error: (e) => {
+        if (HorsLigneService.estHorsLigne(e)) {
+          this.horsLigne.horsLigne.set(true);
+          this.objectifs.set(this.horsLigne.derniereListe());
+          this.charge.set(true);
+        }
+      },
     });
-    this.notifications.synchroniser();
+  }
+
+  creerDepuisModele(m: ObjectifSaisie & { detail: string }): void {
+    const { detail, ...saisie } = m;
+    this.creation.set(true);
+    this.api.creerObjectif(saisie).subscribe({
+      next: (o) => {
+        this.objectifs.update((l) => [...l, o]);
+        this.horsLigne.memoriser(this.objectifs());
+        this.notifications.synchroniser();
+        this.creation.set(false);
+      },
+      error: () => this.creation.set(false),
+    });
   }
 
   protected segments(o: Objectif): boolean[] {
@@ -171,7 +236,18 @@ export class AccueilPage implements OnInit {
         if (cocher) this.feterSiBesoin(o, maj);
       },
       complete: () => this.enCours.delete(o.id),
-      error: () => this.enCours.delete(o.id),
+      error: (e) => {
+        this.enCours.delete(o.id);
+        if (HorsLigneService.estHorsLigne(e)) {
+          // Pas de réseau : on garde la coche sur le téléphone et on l'enverra plus tard
+          this.horsLigne.mettreDeCote(
+            cocher
+              ? { type: 'valider', id: o.id, saisie: { date: aujourdhui() } }
+              : { type: 'annuler', id: o.id, date: aujourdhui() },
+          );
+          this.remplacer(HorsLigneService.appliquerLocalement(o, cocher));
+        }
+      },
     });
   }
 
@@ -216,6 +292,7 @@ export class AccueilPage implements OnInit {
 
   private remplacer(maj: Objectif): void {
     this.objectifs.update((liste) => liste.map((x) => (x.id === maj.id ? maj : x)));
+    this.horsLigne.memoriser(this.objectifs());
   }
 
   async deconnecter(): Promise<void> {

@@ -62,6 +62,8 @@ public class Objectif {
 
     public void archiver() { this.archive = true; }
 
+    public void restaurer() { this.archive = false; }
+
     public boolean estFaitLe(LocalDate date) {
         return validations.stream().anyMatch(v -> v.date().equals(date));
     }

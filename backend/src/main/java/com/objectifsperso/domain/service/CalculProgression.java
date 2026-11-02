@@ -12,7 +12,9 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Règles de progression : semaine en cours, séries et taux de réussite. */
 public class CalculProgression {
@@ -28,11 +30,16 @@ public class CalculProgression {
                 message(realisees, cible, joursRestants, faitAujourdhui), serie(objectif, aujourdhui));
     }
 
+    /** Nombre de jokers par mois et par objectif. */
+    public static final int JOKERS_PAR_MOIS = 1;
+
     /**
      * Série en cours : jours d'affilée pour un objectif quotidien, semaines réussies d'affilée sinon.
      * Une journée (ou semaine) en cours pas encore faite ne casse pas la série.
+     * Joker : un jour (ou une semaine) raté par mois ne casse pas la série ; il est utilisé automatiquement.
      */
     public Serie serie(Objectif objectif, LocalDate aujourdhui) {
+        Set<YearMonth> jokersUtilises = new HashSet<>();
         if (objectif.frequence().type() == TypeFrequence.QUOTIDIEN) {
             LocalDate debut = objectif.premiereDate().orElse(aujourdhui);
             int enCours = 0;
@@ -41,14 +48,26 @@ public class CalculProgression {
                 if (objectif.estFaitLe(d)) {
                     enCours++;
                     record = Math.max(record, enCours);
-                } else if (!d.equals(aujourdhui)) {
+                } else if (!d.equals(aujourdhui) && !utiliserJoker(enCours, YearMonth.from(d), jokersUtilises)) {
                     enCours = 0;
                 }
             }
-            return new Serie(enCours, record, Serie.Unite.JOURS);
+            return new Serie(enCours, record, Serie.Unite.JOURS, jokersRestants(jokersUtilises, aujourdhui));
         }
-        Historique h = historique(objectif, YearMonth.from(aujourdhui), aujourdhui);
-        return new Serie(h.serieSemaines(), h.meilleureSerie(), Serie.Unite.SEMAINES);
+        Historique h = historique(objectif, YearMonth.from(aujourdhui), aujourdhui, jokersUtilises);
+        return new Serie(h.serieSemaines(), h.meilleureSerie(), Serie.Unite.SEMAINES,
+                jokersRestants(jokersUtilises, aujourdhui));
+    }
+
+    /** Un joker ne sert que s'il y a une série à protéger, et une fois par mois. */
+    private static boolean utiliserJoker(int serie, YearMonth mois, Set<YearMonth> utilises) {
+        if (serie == 0 || utilises.contains(mois)) return false;
+        utilises.add(mois);
+        return true;
+    }
+
+    private static int jokersRestants(Set<YearMonth> utilises, LocalDate aujourdhui) {
+        return utilises.contains(YearMonth.from(aujourdhui)) ? 0 : JOKERS_PAR_MOIS;
     }
 
     private String message(int realisees, int cible, int joursRestants, boolean faitAujourdhui) {
@@ -63,6 +82,10 @@ public class CalculProgression {
     }
 
     public Historique historique(Objectif objectif, YearMonth mois, LocalDate aujourdhui) {
+        return historique(objectif, mois, aujourdhui, new HashSet<>());
+    }
+
+    private Historique historique(Objectif objectif, YearMonth mois, LocalDate aujourdhui, Set<YearMonth> jokers) {
         List<Validation> duMois = objectif.validations().stream()
                 .filter(v -> YearMonth.from(v.date()).equals(mois))
                 .sorted(Comparator.comparing(Validation::date))
@@ -85,9 +108,10 @@ public class CalculProgression {
                 serie++;
                 meilleure = Math.max(meilleure, serie);
             } else if (!enCours) {
-                // Une semaine en cours pas encore réussie ne casse pas la série.
+                // Une semaine en cours pas encore réussie ne casse pas la série ; une semaine ratée peut être
+                // protégée par le joker du mois.
                 totales++;
-                serie = 0;
+                if (!utiliserJoker(serie, YearMonth.from(semaine.lundi()), jokers)) serie = 0;
             }
             semaine = semaine.suivante();
         }

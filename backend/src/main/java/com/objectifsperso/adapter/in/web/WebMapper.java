@@ -71,7 +71,7 @@ final class WebMapper {
     static ProgressionSemaineVO vo(ProgressionSemaine p) {
         return new ProgressionSemaineVO(p.debutSemaine(), p.realisees(), p.cible(), p.atteint(), p.joursRestants(),
                 p.faitAujourdhui(), p.serie().enCours(), p.serie().record(),
-                UniteSerieVO.fromValue(p.serie().unite().name())).message(p.message());
+                UniteSerieVO.fromValue(p.serie().unite().name()), p.serie().jokersRestants()).message(p.message());
     }
 
     static HistoriqueVO vo(Historique h) {

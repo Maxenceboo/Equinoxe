@@ -330,6 +330,50 @@ formly-field-primeng-radio {
 @keyframes surgit { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 @keyframes monte { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
+// ---------- Hors ligne, modèles, archives ----------
+.bandeau-hors-ligne {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1.25rem;
+  border: 1px dashed var(--ligne-forte);
+  border-radius: var(--rayon);
+  font-size: 0.8rem;
+  color: var(--discret);
+}
+
+.modeles { display: grid; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+.modele {
+  display: grid;
+  gap: 0.2rem;
+  text-align: left;
+  padding: 1rem;
+  background: transparent;
+  color: var(--texte);
+  border: 1px solid var(--ligne-forte);
+  border-radius: var(--rayon);
+  font: inherit;
+  cursor: pointer;
+  strong { font-size: 1.05rem; }
+  &:hover, &:focus-visible { border-color: var(--texte); }
+  &:disabled { opacity: 0.5; }
+}
+.vide { padding: 1rem 0 2rem; }
+.vide > p:not(.etiquette) { color: var(--discret); margin: 0; }
+
+.lien-archives { text-align: center; margin: 2rem 0 0; a { color: var(--discret); font-size: 0.8rem; } }
+.objectif.archive { .infos { display: grid; gap: 0.25rem; } }
+
+.joker {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.8rem;
+  color: var(--discret);
+  margin: -1rem 0 2rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

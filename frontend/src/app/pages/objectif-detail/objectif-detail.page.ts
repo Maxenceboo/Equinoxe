@@ -31,6 +31,17 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
         }
         <div><strong>{{ h.tauxReussite | percent: '1.0-0' }}</strong><span>semaines réussies</span></div>
       </section>
+      @if (objectif(); as o) {
+        <p class="joker">
+          <i class="pi pi-shield"></i>
+          @if (o.progression.jokersRestants > 0) {
+            Joker disponible ce mois-ci : {{ o.progression.uniteSerie === 'JOURS' ? 'un jour raté' : 'une semaine ratée' }}
+            ne cassera pas ta série.
+          } @else {
+            Joker du mois déjà utilisé, il revient le mois prochain.
+          }
+        </p>
+      }
 
       <section class="calendrier" [style.--couleur]="objectif()?.couleur">
         <div class="mois">

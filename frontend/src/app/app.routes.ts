@@ -12,6 +12,10 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./pages/accueil/accueil.page').then((m) => m.AccueilPage) },
       {
+        path: 'archives',
+        loadComponent: () => import('./pages/archives/archives.page').then((m) => m.ArchivesPage),
+      },
+      {
         path: 'objectifs/nouveau',
         loadComponent: () => import('./pages/objectif-form/objectif-form.page').then((m) => m.ObjectifFormPage),
       },

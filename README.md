@@ -108,6 +108,18 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
 - Transitions en fondu entre écrans. Toutes les animations sont coupées si le téléphone demande de les réduire.
 - **Bilan en haut de l'accueil** : objectifs tenus cette semaine et objectifs faits aujourd'hui.
 
+## Fiabilité et confort
+
+- **Joker** : un jour (objectif quotidien) ou une semaine ratée par mois ne casse pas la série. Il est utilisé
+  automatiquement et revient chaque mois (`progression.jokersRestants`).
+- **Rappels** : programmés pour 14 jours à chaque ouverture, plus un rappel de secours chaque lundi à 9 h qui
+  continue même si l'app n'est pas ouverte.
+- **Hors ligne** : la dernière liste reste affichée sans réseau ; les coches sont gardées sur le téléphone et
+  envoyées automatiquement au retour du réseau.
+- **Premier lancement** : quatre objectifs prêts à ajouter en un tap (sport, coucher, lecture, marche).
+- **Archives** : les objectifs archivés se retrouvent depuis l'accueil et peuvent être restaurés
+  (`POST /objectifs/{id}/restaurer`).
+
 ## Direction artistique
 
 À garder sur tous les écrans (règles dans `frontend/src/styles.scss` et `frontend/src/app/theme.ts`) :

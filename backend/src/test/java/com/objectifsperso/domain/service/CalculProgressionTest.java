@@ -47,11 +47,36 @@ class CalculProgressionTest {
         LocalDate auj = LUNDI;
         for (int i : new int[]{9, 8, 7, 6, 3, 2, 1}) o.valider(LUNDI.minusDays(i), DetailsSeance.AUCUN, auj);
         // pas encore fait aujourd'hui : la série d'hier (3 jours) tient toujours
+        // les jours 4 et 5 ratés : un seul est couvert par le joker d'octobre, la série repart après
         assertThat(calcul.serie(o, auj).enCours()).isEqualTo(3);
-        assertThat(calcul.serie(o, auj).record()).isEqualTo(4);
         o.valider(auj, DetailsSeance.AUCUN, auj);
         assertThat(calcul.serie(o, auj).enCours()).isEqualTo(4);
-        assertThat(calcul.serie(o, auj.plusDays(2)).enCours()).isZero();
+        // un jour raté en novembre : couvert par le joker de novembre
+        assertThat(calcul.serie(o, auj.plusDays(2)).enCours()).isEqualTo(4);
+        assertThat(calcul.serie(o, auj.plusDays(2)).jokersRestants()).isZero();
+        // deux jours ratés : la série est cassée
+        assertThat(calcul.serie(o, auj.plusDays(3)).enCours()).isZero();
+    }
+
+    @Test
+    void le_joker_du_mois_protege_une_semaine_ratee() {
+        // octobre 2026 : semaines du 5, 12 (ratée), 19 (ratée), 26 ; aujourd'hui lundi 2 novembre
+        Objectif o = sport(LocalDate.of(2026, 10, 5));
+        LocalDate auj = LUNDI;
+        for (LocalDate l : List.of(LocalDate.of(2026, 10, 5), LocalDate.of(2026, 10, 26))) {
+            o.valider(l, DetailsSeance.AUCUN, auj);
+            o.valider(l.plusDays(2), DetailsSeance.AUCUN, auj);
+            o.valider(l.plusDays(4), DetailsSeance.AUCUN, auj);
+        }
+        // deux semaines ratées le même mois : le joker n'en couvre qu'une
+        assertThat(calcul.serie(o, auj).enCours()).isEqualTo(1);
+        // une seule semaine ratée : la série tient grâce au joker
+        o.valider(LocalDate.of(2026, 10, 19), DetailsSeance.AUCUN, auj);
+        o.valider(LocalDate.of(2026, 10, 21), DetailsSeance.AUCUN, auj);
+        o.valider(LocalDate.of(2026, 10, 23), DetailsSeance.AUCUN, auj);
+        assertThat(calcul.serie(o, auj).enCours()).isEqualTo(3);
+        // novembre : joker intact
+        assertThat(calcul.serie(o, auj).jokersRestants()).isEqualTo(1);
     }
 
     @Test
@@ -79,8 +104,9 @@ class CalculProgressionTest {
         Historique h = calcul.historique(o, YearMonth.of(2026, 10), aujourdhui);
         assertThat(h.semainesTotales()).isEqualTo(3);
         assertThat(h.semainesReussies()).isEqualTo(2);
-        assertThat(h.serieSemaines()).isEqualTo(1);
-        assertThat(h.meilleureSerie()).isEqualTo(1);
+        // la semaine ratée est couverte par le joker d'octobre : la série continue
+        assertThat(h.serieSemaines()).isEqualTo(2);
+        assertThat(h.meilleureSerie()).isEqualTo(2);
         assertThat(h.tauxReussite()).isEqualTo(2.0 / 3);
         assertThat(h.validations()).allMatch(v -> v.date().getMonthValue() == 10);
     }

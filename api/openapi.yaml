@@ -143,6 +143,21 @@ paths:
         '404':
           $ref: '#/components/responses/Introuvable'
 
+  /objectifs/{id}/restaurer:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    post:
+      tags: [Objectifs]
+      operationId: restaurerObjectif
+      responses:
+        '200':
+          description: Objectif restauré
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Objectif' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
   /objectifs/{id}/validations:
     parameters:
       - $ref: '#/components/parameters/ObjectifId'
@@ -334,7 +349,7 @@ components:
 
     ProgressionSemaine:
       type: object
-      required: [debutSemaine, realisees, cible, atteint, joursRestants, faitAujourdhui, serie, meilleureSerie, uniteSerie]
+      required: [debutSemaine, realisees, cible, atteint, joursRestants, faitAujourdhui, serie, meilleureSerie, uniteSerie, jokersRestants]
       properties:
         debutSemaine: { type: string, format: date, description: Lundi de la semaine en cours }
         realisees: { type: integer }
@@ -346,6 +361,7 @@ components:
         serie: { type: integer, description: "Série en cours (flamme) : jours d'affilée pour un objectif quotidien, semaines réussies d'affilée sinon" }
         meilleureSerie: { type: integer, description: Record de série dans la même unité }
         uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
+        jokersRestants: { type: integer, description: "Jokers encore disponibles ce mois-ci : un jour ou une semaine raté qui ne casse pas la série" }
 
     UniteSerie:
       type: string

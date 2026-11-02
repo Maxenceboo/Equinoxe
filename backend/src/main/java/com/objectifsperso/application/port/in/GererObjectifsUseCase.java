@@ -20,6 +20,8 @@ public interface GererObjectifsUseCase {
 
     ObjectifAvecProgression archiver(Long utilisateurId, Long objectifId);
 
+    ObjectifAvecProgression restaurer(Long utilisateurId, Long objectifId);
+
     /** date nulle = aujourd'hui. */
     ObjectifAvecProgression valider(Long utilisateurId, Long objectifId, LocalDate date, DetailsSeance details);
 

@@ -53,6 +53,11 @@ class ObjectifsController implements ObjectifsApi {
     }
 
     @Override
+    public ResponseEntity<ObjectifVO> restaurerObjectif(Long id) {
+        return ResponseEntity.ok(WebMapper.vo(objectifs.restaurer(utilisateur.id(), id)));
+    }
+
+    @Override
     public ResponseEntity<ObjectifVO> validerObjectif(Long id, ValidationSaisieVO saisie) {
         return ResponseEntity.ok(WebMapper.vo(
                 objectifs.valider(utilisateur.id(), id, saisie.getDate(), WebMapper.details(saisie))));
