@@ -40,7 +40,7 @@ class ParcoursApiTest {
                         .content("{\"nom\":\"Sport\",\"categorie\":\"SPORT\",\"typeFrequence\":\"PAR_SEMAINE\",\"cible\":3,\"heure\":\"18:00\"}"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.progression.realisees").value(0))
-                .andExpect(jsonPath("$.couleur").value("#3b82f6"))
+                .andExpect(jsonPath("$.couleur").value("#ffffff"))
                 .andReturn().getResponse().getContentAsString();
         Integer id = JsonPath.read(cree, "$.id");
 

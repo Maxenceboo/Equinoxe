@@ -1,19 +1,12 @@
 @import 'primeicons/primeicons.css';
 
 :root {
-  --fond: #f6f7f9;
-  --texte: #1f2937;
-  --discret: #6b7280;
-  --carte: #ffffff;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fond: #111318;
-    --texte: #e5e7eb;
-    --discret: #9ca3af;
-    --carte: #1b1e25;
-  }
+  --fond: #000000;
+  --texte: #ffffff;
+  --discret: #b3b3b3;
+  --carte: #0a0a0a;
+  --bordure: #333333;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -31,7 +24,7 @@ body {
   padding: calc(env(safe-area-inset-top) + 1rem) 1rem 6rem;
 }
 
-h1 { font-size: 1.5rem; margin: 0; }
+h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
 .w-full { width: 100%; }
 .aide, small { color: var(--discret); }
 
@@ -72,8 +65,8 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
   gap: 1rem;
   padding: 1rem;
   background: var(--carte);
-  border-radius: 1rem;
-  border-left: 0.4rem solid var(--couleur);
+  border: 1px solid var(--bordure);
+  border-radius: 0.5rem;
   .infos {
     flex: 1;
     display: grid;
@@ -82,10 +75,11 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
     color: inherit;
     text-decoration: none;
   }
-  .nom { font-weight: 600; font-size: 1.1rem; }
+  .nom { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .nom::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--couleur); }
   .compteur { font-weight: 600; }
   .barre, .message { grid-column: 1 / -1; }
-  .barre { height: 0.5rem; --p-progressbar-value-background: var(--couleur); }
+  .barre { height: 0.25rem; --p-progressbar-value-background: #ffffff; --p-progressbar-background: var(--bordure); }
 }
 
 .fab {
@@ -103,18 +97,20 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
   margin-bottom: 1rem;
   div {
     background: var(--carte);
-    border-radius: 0.75rem;
+    border: 1px solid var(--bordure);
+    border-radius: 0.5rem;
     padding: 0.75rem;
     text-align: center;
     display: grid;
   }
-  strong { font-size: 1.5rem; }
+  strong { font-size: 1.75rem; font-weight: 700; }
   span { font-size: 0.8rem; color: var(--discret); }
 }
 
 .calendrier {
   background: var(--carte);
-  border-radius: 1rem;
+  border: 1px solid var(--bordure);
+  border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1rem;
   .mois { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
@@ -128,8 +124,8 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
     color: inherit;
     font: inherit;
     cursor: pointer;
-    &.fait { background: var(--couleur); color: white; }
-    &.aujourdhui { outline: 2px solid var(--couleur); }
+    &.fait { background: #ffffff; color: #000000; font-weight: 700; }
+    &.aujourdhui { outline: 1px solid #ffffff; }
     &:disabled { opacity: 0.35; cursor: default; }
   }
 }
@@ -145,14 +141,15 @@ formly-field-primeng-radio {
     align-items: center;
     gap: 0.4rem;
     padding: 0.45rem 0.85rem;
-    border: 1px solid var(--p-content-border-color, #d1d5db);
+    border: 1px solid var(--bordure);
     border-radius: 999px;
     background: var(--carte);
     cursor: pointer;
     label { margin: 0; cursor: pointer; }
     &:has(p-radiobutton[data-p-checked='true']) {
-      border-color: var(--p-primary-color);
-      background: color-mix(in srgb, var(--p-primary-color) 12%, var(--carte));
+      border-color: #ffffff;
+      background: #ffffff;
+      color: #000000;
     }
   }
 }

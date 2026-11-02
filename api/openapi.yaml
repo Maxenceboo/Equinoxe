@@ -315,7 +315,7 @@ components:
           type: string
           title: Couleur
           pattern: '^#[0-9a-fA-F]{6}$'
-          default: '#3b82f6'
+          default: '#ffffff'
 
     Objectif:
       type: object

@@ -46,7 +46,7 @@ public class Objectif {
         this.categorie = categorie;
         this.frequence = frequence;
         this.heure = heure;
-        this.couleur = couleur == null ? "#3b82f6" : couleur;
+        this.couleur = couleur == null ? "#ffffff" : couleur;
     }
 
     /** Coche l'objectif pour une date ; si elle est déjà cochée, les détails sont remplacés. */

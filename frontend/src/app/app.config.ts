@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
 import { MessageService } from 'primeng/api';
-import Aura from '@primeuix/themes/aura';
+import { ThemeNoir } from './theme';
 import { provideFormlyCore } from '@ngx-formly/core';
 import { withFormlyPrimeNG } from '@ngx-formly/primeng';
 
@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([erreurInterceptor])),
     providePrimeNG({
-      theme: { preset: Aura, options: { darkModeSelector: '.sombre' } },
+      theme: { preset: ThemeNoir, options: { darkModeSelector: '.sombre' } },
       license: PRIMEUI_LICENSE || undefined,
     }),
     provideFormlyCore([...withFormlyPrimeNG(), { validationMessages: messagesValidation }]),
