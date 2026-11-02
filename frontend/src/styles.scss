@@ -198,8 +198,21 @@ formly-field-primeng-radio {
     font-size: 0.85rem;
     font-variant-numeric: tabular-nums;
     cursor: pointer;
-    &.fait { background: var(--texte); color: var(--fond); font-weight: 800; }
-    &.aujourdhui { box-shadow: inset 0 0 0 1.5px var(--texte); }
+    position: relative;
+    // Jour coché : contour blanc
+    &.fait { box-shadow: inset 0 0 0 1.5px var(--texte); font-weight: 800; }
+    // Aujourd'hui : petit point sous le chiffre
+    &.aujourdhui::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: 18%;
+      width: 4px;
+      height: 4px;
+      margin-left: -2px;
+      border-radius: 50%;
+      background: var(--texte);
+    }
     &:disabled { background: transparent; color: #3a3a3a; cursor: default; }
   }
 }
