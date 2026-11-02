@@ -63,7 +63,7 @@ import { aujourdhui } from '../../shared/dates';
       <p-button
         class="fab"
         icon="pi pi-plus"
-        [rounded]="true"
+        
         
         size="large"
         ariaLabel="Nouvel objectif"

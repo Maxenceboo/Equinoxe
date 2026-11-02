@@ -4,7 +4,7 @@ import Aura from '@primeuix/themes/aura';
 /** Thème noir minimaliste à fort contraste : fond noir, texte et accents blancs. */
 export const ThemeNoir = definePreset(Aura, {
   primitive: {
-    borderRadius: { none: '0', xs: '4px', sm: '8px', md: '12px', lg: '14px', xl: '18px' },
+    borderRadius: { none: '0', xs: '2px', sm: '4px', md: '6px', lg: '6px', xl: '8px' },
   },
   semantic: {
     primary: {

@@ -1,6 +1,6 @@
 @import 'primeicons/primeicons.css';
 
-// Thème noir, coins arrondis, fort contraste. Une seule couleur d'accent : le blanc.
+// Thème noir, angles légèrement arrondis (6 px), fort contraste. Une seule couleur d'accent : le blanc.
 :root {
   --fond: #000000;
   --texte: #ffffff;
@@ -8,7 +8,7 @@
   --ligne: #262626;
   --ligne-forte: #4a4a4a;
   --pas: 0.5rem;
-  --rayon: 0.875rem;
+  --rayon: 6px;
   color-scheme: dark;
 }
 
@@ -46,7 +46,7 @@ formly-field .p-field > label {
 }
 
 
-.p-button { border-radius: 999px !important; }
+.p-button { border-radius: var(--rayon) !important; }
 
 .entete {
   display: flex;
@@ -142,7 +142,7 @@ formly-field-primeng-radio {
   gap: 3px;
   margin-top: 0.75rem;
   gap: 4px;
-  i { height: 0.375rem; border-radius: 999px; background: var(--ligne); }
+  i { height: 0.375rem; border-radius: 2px; background: var(--ligne); }
   i.plein { background: var(--texte); }
 }
 
@@ -151,7 +151,7 @@ formly-field-primeng-radio {
   width: 3.25rem;
   height: 3.25rem;
   border: 1.5px solid var(--texte);
-  border-radius: 50%;
+  border-radius: 8px;
   background: transparent;
   color: var(--texte);
   font-size: 1.1rem;
@@ -191,7 +191,7 @@ formly-field-primeng-radio {
   .jour {
     aspect-ratio: 1;
     border: none;
-    border-radius: 50%;
+    border-radius: var(--rayon);
     background: #111111;
     color: var(--texte);
     font: inherit;
@@ -205,4 +205,4 @@ formly-field-primeng-radio {
 }
 
 .p-dialog formly-field { margin-bottom: 1.25rem; }
-.p-dialog { border-radius: 1.25rem !important; }
+.p-dialog { border-radius: 8px !important; }
