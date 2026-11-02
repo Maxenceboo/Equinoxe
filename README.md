@@ -100,7 +100,9 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
   domaine (`CalculProgression.serie`), renvoyée dans `progression.serie`, `meilleureSerie` et `uniteSerie`.
 - **À chaque coche** : vibration légère, coche qui se trace, case de progression qui se remplit. Un petit son
   discret si le son est activé (coupé par défaut, bouton haut-parleur sur l'accueil).
-- **La flamme** grossit un instant quand la série augmente.
+- **La flamme** est un SVG animé : quand la série est en cours, sa forme ondule doucement et son cœur bouge
+  (morphing de tracés SVG). Elle grossit un instant quand la série augmente ; en célébration, quelques braises
+  montent. Immobile et grise sans série.
 - **Écran de célébration**, sobre et rare : semaine réussie (avec « Nouveau record ! » le cas échéant) et paliers
   de série quotidienne (7, 30, 100, 365 jours). Il se ferme seul après 2,5 s.
 - Transitions en fondu entre écrans. Toutes les animations sont coupées si le téléphone demande de les réduire.

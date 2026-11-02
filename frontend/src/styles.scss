@@ -333,3 +333,9 @@ formly-field-primeng-radio {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+// Flamme SVG animée : corps blanc, cœur découpé en noir, braises
+.flamme svg { overflow: visible; }
+.flamme .coeur { fill: var(--fond); stroke: none; }
+.flamme .braise { fill: var(--texte); stroke: none; opacity: 0; }
+.celebration .flamme .coeur { fill: #000; }
