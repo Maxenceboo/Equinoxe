@@ -66,7 +66,7 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
   padding: 1rem;
   background: var(--carte);
   border: 1px solid var(--bordure);
-  border-radius: 0.5rem;
+  border-radius: 0;
   .infos {
     flex: 1;
     display: grid;
@@ -76,7 +76,7 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
     text-decoration: none;
   }
   .nom { font-weight: 600; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
-  .nom::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--couleur); }
+  .nom::before { content: ''; width: 0.5rem; height: 0.5rem; border-radius: 0; background: var(--couleur); }
   .compteur { font-weight: 600; }
   .barre, .message { grid-column: 1 / -1; }
   .barre { height: 0.25rem; --p-progressbar-value-background: #ffffff; --p-progressbar-background: var(--bordure); }
@@ -98,7 +98,7 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
   div {
     background: var(--carte);
     border: 1px solid var(--bordure);
-    border-radius: 0.5rem;
+    border-radius: 0;
     padding: 0.75rem;
     text-align: center;
     display: grid;
@@ -110,7 +110,7 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
 .calendrier {
   background: var(--carte);
   border: 1px solid var(--bordure);
-  border-radius: 0.5rem;
+  border-radius: 0;
   padding: 1rem;
   margin-bottom: 1rem;
   .mois { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
@@ -119,7 +119,7 @@ formly-field input[type='color'] { height: 2.5rem; padding: 0.2rem; }
   .jour {
     aspect-ratio: 1;
     border: none;
-    border-radius: 50%;
+    border-radius: 0;
     background: transparent;
     color: inherit;
     font: inherit;
@@ -142,7 +142,7 @@ formly-field-primeng-radio {
     gap: 0.4rem;
     padding: 0.45rem 0.85rem;
     border: 1px solid var(--bordure);
-    border-radius: 999px;
+    border-radius: 0;
     background: var(--carte);
     cursor: pointer;
     label { margin: 0; cursor: pointer; }
@@ -154,3 +154,7 @@ formly-field-primeng-radio {
   }
 }
 .p-dialog formly-field { margin-bottom: 1rem; }
+
+// Tout en angles droits
+.p-radiobutton-box, .p-radiobutton-icon, .p-button, .p-dialog, .p-toast-message,
+.p-progressbar, .p-progressbar-value, input, .p-inputtext { border-radius: 0 !important; }

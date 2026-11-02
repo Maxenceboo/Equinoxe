@@ -44,8 +44,8 @@ import { aujourdhui } from '../../shared/dates';
             <small class="message">{{ o.progression.message }}</small>
           </a>
           <p-button
-            [icon]="o.progression.faitAujourdhui ? 'pi pi-check' : 'pi pi-circle'"
-            [rounded]="true"
+            [icon]="o.progression.faitAujourdhui ? 'pi pi-check' : 'pi pi-stop'"
+            
             [outlined]="!o.progression.faitAujourdhui"
             size="large"
             [ariaLabel]="o.progression.faitAujourdhui ? 'Annuler pour aujourd\\'hui' : 'Marquer comme fait'"
@@ -59,7 +59,7 @@ import { aujourdhui } from '../../shared/dates';
       <p-button
         class="fab"
         icon="pi pi-plus"
-        [rounded]="true"
+        
         size="large"
         ariaLabel="Nouvel objectif"
         routerLink="/objectifs/nouveau"
