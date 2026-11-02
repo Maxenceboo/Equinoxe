@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { firstValueFrom } from 'rxjs';
-import { RappelsService } from '../api/generated';
+import { RappelsService } from '../application/services';
 
 const CANAL = 'rappels-objectifs';
 const JOURS = 14;

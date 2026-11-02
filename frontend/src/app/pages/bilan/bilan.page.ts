@@ -1,7 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
-import { Bilan, BilanService, LigneBilan, ObjectifsService } from '../../api/generated';
+import { Bilan, LigneBilan } from '../../api/generated';
+import { BilanService, ObjectifsService } from '../../application/services';
 import { NotificationsService } from '../../core/notifications.service';
 import { aujourdhui, formatDate, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';

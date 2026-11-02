@@ -30,6 +30,7 @@
     "@ngx-formly/core": "^7.1.0",
     "@ngx-formly/primeng": "^7.1.0",
     "@primeuix/themes": "^2.0.3",
+    "@supabase/supabase-js": "^2.118.0",
     "primeicons": "^8.0.2",
     "primeng": "^21.1.10",
     "rxjs": "~7.8.0",

@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
-import { Objectif, ObjectifsService } from '../../api/generated';
+import { Objectif } from '../../api/generated';
+import { ObjectifsService } from '../../application/services';
 import { NotificationsService } from '../../core/notifications.service';
 
 @Component({

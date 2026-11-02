@@ -1,7 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Objectif, ObjectifsService, ValidationSaisie } from '../api/generated';
+import { Objectif, ValidationSaisie } from '../api/generated';
+import { ObjectifsService } from '../application/services';
 
 const CLE_CACHE = 'objectifs.cache';
 const CLE_ATTENTE = 'objectifs.attente';
@@ -23,6 +24,14 @@ export class HorsLigneService {
 
   static estHorsLigne(e: unknown): boolean {
     return e instanceof HttpErrorResponse && e.status === 0;
+  }
+
+  /** À la déconnexion : rien ne doit rester du compte précédent. */
+  oublier(): void {
+    ecrire(CLE_CACHE, null);
+    ecrire(CLE_ATTENTE, null);
+    this.enAttente.set([]);
+    this.horsLigne.set(false);
   }
 
   memoriser(objectifs: Objectif[]): void {

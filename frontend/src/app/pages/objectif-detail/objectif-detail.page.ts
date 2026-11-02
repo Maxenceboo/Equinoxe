@@ -3,15 +3,8 @@ import { DecimalPipe, PercentPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
-import {
-  BinomesService,
-  Historique,
-  Objectif,
-  ObjectifsService,
-  Partage,
-  Statistiques,
-  TypeSeance,
-} from '../../api/generated';
+import { Historique, Objectif, Partage, Statistiques, TypeSeance } from '../../api/generated';
+import { BinomesService, ObjectifsService } from '../../application/services';
 import schemas from '../../api/generated/schemas.json';
 import { estChiffre, heureLisible, nombre, unite } from '../../shared/objectifs';
 import { NotificationsService } from '../../core/notifications.service';

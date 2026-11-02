@@ -8,37 +8,36 @@ Cahier des charges : https://claude.ai/artifact/PZuVvTzm7RJPZJj7S9qzZ1
 ## Organisation
 
 ```
-api/openapi.yaml   Contrat de l'API : seule source de vérité
-backend/           Java 21 + Spring Boot 3, architecture hexagonale
-frontend/          Angular 21 + PrimeNG 21, emballé pour Android avec Capacitor
+api/openapi.yaml       Contrat des données : seule source de vérité pour les VO et les formulaires
+supabase/              Base de données, comptes et sécurité (migrations SQL), rien à héberger
+frontend/              Angular 21 + PrimeNG 21, emballé pour Android avec Capacitor
 ```
 
-### API en contract-first
+Il n'y a pas de serveur à faire tourner : l'app parle directement à Supabase (offre gratuite), qui gère la
+base PostgreSQL, les comptes (email + mot de passe) et la sécurité. Toutes les règles de l'app (flammes,
+jokers, rappels, bilan, stats, cible qui s'adapte) tournent dans l'app.
 
-- `api/openapi.yaml` décrit l'API.
-- Back : `mvn generate-sources` génère les interfaces des contrôleurs et les VO Java (suffixe `VO`)
-  dans `backend/target/generated-sources` ; les contrôleurs de `adapter/in/web` les implémentent.
-- Front : `npm run generate` génère les services Angular et les VO TypeScript dans
-  `frontend/src/app/api/generated`, plus `schemas.json`.
+### Contract-first
+
+- `api/openapi.yaml` décrit les objets échangés entre les écrans et les cas d'utilisation (Objectif,
+  ProgressionSemaine, Bilan, Statistiques…). `npm run generate` génère les VO TypeScript dans
+  `frontend/src/app/api/generated`, plus `schemas.json`. Le code généré n'est pas commité.
 - Formulaires : `SchemaFormService` construit les champs ngx-formly (rendu PrimeNG) à partir des schémas
   du contrat. Libellés (`title`), champs obligatoires, bornes, formats et choix (`enum` + `x-enum-descriptions`)
   viennent de l'OpenAPI : modifier un schéma met à jour le formulaire.
+- Base : les types des tables sont générés depuis Supabase dans `frontend/src/app/donnees/database.types.ts`
+  (`npx supabase gen types typescript --local`).
 
-Le code généré n'est pas commité, il est régénéré à chaque build.
-
-### Back hexagonal
+### Architecture hexagonale (dans le front)
 
 ```
-domain/        Modèle (Objectif, Validation, Frequence, Semaine…) et règles, sans Spring
-  service/     CalculProgression (semaine, séries, taux) et PlanificateurRappels (rappels espacés)
-application/
-  port/in      Cas d'usage (GererObjectifsUseCase, RappelsUseCase, AuthUseCase)
-  port/out     ObjectifRepository, UtilisateurRepository, Horloge, HacheurMotDePasse, EmetteurJeton
-  service/     Implémentations des cas d'usage
-adapter/
-  in/web       Contrôleurs REST (implémentent les interfaces générées) + conversion VO <-> domaine
-  out/…        JPA, BCrypt, JWT, horloge
-config/        Branchement des cas d'usage et sécurité
+src/app/domaine/       Règles, en TypeScript pur (ni Angular ni Supabase) et testées :
+                       progression et séries + joker, rappels espacés, conseil de cible, bilan, stats,
+                       heure habituelle
+src/app/application/   Cas d'utilisation (ObjectifsService, BilanService, BinomesService, RappelsService,
+                       AuthService) : chargent les données, appliquent le domaine, renvoient les VO du contrat
+src/app/donnees/       Adaptateur Supabase : client, dépôt des objectifs et des coches, types de la base
+src/app/pages, core    Écrans et services d'interface (notifications, hors ligne, célébrations…)
 ```
 
 Règle des rappels : pour N séances par semaine, l'écart idéal est de 7 / N jours (3 séances : lundi, mercredi,
@@ -46,32 +45,54 @@ vendredi). Après chaque séance cochée, les rappels restants sont recalculés 
 Pas de rappel un jour déjà coché ni quand la semaine est atteinte. Sommeil : rappel chaque soir 30 min avant
 l'heure de coucher visée.
 
+### Sécurité (Supabase)
+
+- Row Level Security sur toutes les tables : chacun ne lit et ne modifie que ses objectifs et ses coches.
+- Binôme par trois fonctions SQL (`partager_objectif`, `rejoindre_binome`, `objectifs_suivis`) : l'ami
+  n'obtient que le nom, la cible et les jours cochés de l'objectif partagé, et le début de l'email
+  (avant l'arobase). Jamais les détails, les quantités ni les autres objectifs.
+- Le code de partage ne peut pas être modifié à la main (déclencheur).
+
 ## Lancer en local
 
-Prérequis : Java 21, Maven, Node 22.
+Prérequis : Node 22 et Docker (pour le Supabase local).
 
 ```bash
-# 1. Back (port 8080, base H2 dans backend/data, rien à installer)
-cd backend
-mvn spring-boot:run
-
-# 2. Front (http://localhost:4200)
+npx supabase start     # Supabase local (http://127.0.0.1:54321), applique supabase/migrations
 cd frontend
 npm install
-npm start
+npm start              # http://localhost:4200
 ```
 
-Ouvrir http://localhost:4200, créer un compte, puis un objectif.
+`src/app/supabase.config.ts` pointe par défaut sur le Supabase local.
 
-Avec PostgreSQL au lieu de H2 : `docker compose up -d` à la racine, puis
-`mvn spring-boot:run -Dspring-boot.run.profiles=postgres`.
+## Mettre en ligne avec Supabase (gratuit)
+
+1. Créer un compte sur https://supabase.com puis un projet (offre Free, région Europe).
+2. Dans le projet : **Authentication > Sign In / Providers > Email**, désactiver « Confirm email » pour
+   pouvoir se connecter tout de suite après l'inscription (ou le laisser : l'app demande alors de cliquer
+   le lien reçu par mail).
+3. Appliquer le schéma : `npx supabase login`, `npx supabase link --project-ref <ref du projet>`, puis
+   `npx supabase db push`. (Ou copier le contenu de `supabase/migrations/*.sql` dans **SQL Editor** et
+   l'exécuter.)
+4. **Project Settings > API Keys** : copier l'URL du projet et la clé « publishable » dans
+   `frontend/src/app/supabase.config.ts`. Cette clé peut être publique : la sécurité vient des règles RLS.
+5. Rebuild l'app (`npm run build` ou `npm run android`).
+
+À savoir sur l'offre gratuite : un projet sans aucune activité pendant une semaine est mis en pause
+(on le relance d'un clic depuis le tableau de bord) ; une app utilisée chaque jour n'est pas concernée.
+
+Pour changer la base plus tard : `npx supabase migration new <nom>`, écrire le SQL, tester avec
+`npx supabase db reset` en local, puis `npx supabase db push`. Ne jamais modifier une migration déjà appliquée.
 
 ## Tests
 
 ```bash
-cd backend && mvn test        # 23 tests : règles du domaine + parcours API (dont bilan, stats, binôme)
-cd frontend && npm test       # tests unitaires du front
+cd frontend && npm test       # règles du domaine (flammes, jokers, rappels, cible, bilan, stats) + dates
 ```
+
+Les règles de sécurité de la base et le parcours complet (connexion, coches, binôme, hors ligne…) ont été
+vérifiés contre un Supabase local.
 
 ## Android
 
@@ -82,22 +103,22 @@ cd frontend
 npm run android     # build Angular, synchronise Capacitor, ouvre Android Studio
 ```
 
-Dans Android Studio, lancer l'app sur un téléphone ou un émulateur. Sur l'écran de connexion, ouvrir
-« Adresse du serveur » et mettre l'adresse de l'ordinateur qui fait tourner le back :
-`http://10.0.2.2:8080/api` pour l'émulateur, `http://<IP de l'ordinateur>:8080/api` pour un vrai téléphone
-sur le même Wi-Fi.
+Dans Android Studio, lancer l'app sur un téléphone ou un émulateur. Avec le Supabase local, mettre dans
+`supabase.config.ts` l'adresse de l'ordinateur (`http://10.0.2.2:54321` pour l'émulateur,
+`http://<IP de l'ordinateur>:54321` pour un vrai téléphone sur le même Wi-Fi) ; avec le vrai projet Supabase,
+rien à faire.
 
-Les notifications sont programmées sur le téléphone (plugin Capacitor Local Notifications) à partir de
-`GET /rappels`, à l'ouverture de l'app et après chaque changement.
+Les notifications sont programmées sur le téléphone (plugin Capacitor Local Notifications), calculées par
+le domaine à l'ouverture de l'app et après chaque changement.
 
-Pour le Play Store : passer le serveur en https, mettre `androidScheme: 'https'` dans `capacitor.config.ts`,
-générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle).
+Pour le Play Store : mettre `androidScheme: 'https'` dans `capacitor.config.ts`, générer un `.aab` signé
+depuis Android Studio (Build > Generate Signed Bundle).
 
 ## Motivation
 
 - **Flamme de série** sur chaque objectif : jours d'affilée pour un objectif quotidien, semaines réussies
   d'affilée sinon. Une journée ou une semaine en cours pas encore faite ne casse pas la série. Calculée par le
-  domaine (`CalculProgression.serie`), renvoyée dans `progression.serie`, `meilleureSerie` et `uniteSerie`.
+  domaine (`domaine/progression.ts`).
 - **À chaque coche** : vibration légère, coche qui se trace, case de progression qui se remplit. Un petit son
   discret si le son est activé (coupé par défaut, bouton haut-parleur sur l'accueil).
 - **La flamme** est un SVG animé : quand la série est en cours, sa forme ondule doucement et son cœur bouge
@@ -111,14 +132,13 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
 ## Fiabilité et confort
 
 - **Joker** : un jour (objectif quotidien) ou une semaine ratée par mois ne casse pas la série. Il est utilisé
-  automatiquement et revient chaque mois (`progression.jokersRestants`).
+  automatiquement et revient chaque mois.
 - **Rappels** : programmés pour 14 jours à chaque ouverture, plus un rappel de secours chaque lundi à 9 h qui
   continue même si l'app n'est pas ouverte.
 - **Hors ligne** : la dernière liste reste affichée sans réseau ; les coches sont gardées sur le téléphone et
   envoyées automatiquement au retour du réseau.
 - **Premier lancement** : quatre objectifs prêts à ajouter en un tap (sport, coucher, lecture, marche).
-- **Archives** : les objectifs archivés se retrouvent depuis l'accueil et peuvent être restaurés
-  (`POST /objectifs/{id}/restaurer`).
+- **Archives** : les objectifs archivés se retrouvent depuis l'accueil et peuvent être restaurés.
 
 ## Suivi et entraide
 
@@ -145,22 +165,3 @@ Le front reste sur PrimeNG 21 (avec Angular 21 et ngx-formly 7) : c'est la derni
 licence PrimeUI, donc sans bandeau « Invalid PrimeUI License ». PrimeNG 22 demande une clé (gratuite pour un
 particulier) : pour y passer un jour, il faudra monter Angular en 22, ngx-formly en 11 et ajouter la clé
 dans `providePrimeNG({ license })`.
-
-## Configuration du back
-
-| Variable | Rôle | Défaut |
-| --- | --- | --- |
-| `APP_JWT_SECRET` | Secret de signature des jetons (32 caractères min.) | valeur de dev, à changer |
-| `DB_URL`, `DB_USER`, `DB_PASSWORD` | Base PostgreSQL (profil `postgres`) | localhost |
-| `app.fuseau` | Fuseau horaire des calculs | Europe/Paris |
-
-## Base de données et migrations (Flyway)
-
-Les tables sont créées et modifiées uniquement par Flyway, à partir des fichiers SQL de
-`backend/src/main/resources/db/migration` (`V1__schema_initial.sql`, puis `V2__...`, `V3__...`).
-Au démarrage, le back applique les migrations manquantes, dans l'ordre, une seule fois ; Hibernate se contente
-de vérifier que les tables correspondent au code (`ddl-auto: validate`).
-
-Pour changer la base : ajouter un nouveau fichier `V<n>__description.sql`, ne jamais modifier une migration
-déjà appliquée. Le SQL doit rester compatible PostgreSQL (prod) et H2 (local et tests).
-Une base créée avant Flyway est reprise telle quelle comme version 1 (`baseline-on-migrate`).

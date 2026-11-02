@@ -1,17 +1,17 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
-import { InputText } from 'primeng/inputtext';
 import { Observable } from 'rxjs';
-import { AuthService, Identifiants, Session } from '../../api/generated';
+import { Identifiants } from '../../api/generated';
+import { AuthService, Session } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
 
 @Component({
   selector: 'app-connexion',
-  imports: [ReactiveFormsModule, FormsModule, FormlyForm, Button, InputText],
+  imports: [ReactiveFormsModule, FormlyForm, Button],
   template: `
     <section class="connexion">
       <h1>Mes objectifs</h1>
@@ -33,14 +33,6 @@ import { SessionService } from '../../core/session.service';
         (onClick)="modeInscription.set(!modeInscription())"
       />
 
-      <details class="serveur">
-        <summary>Adresse du serveur</summary>
-        <div class="ligne">
-          <input pInputText [(ngModel)]="adresse" [ngModelOptions]="{ standalone: true }" />
-          <p-button label="Enregistrer" [outlined]="true" (onClick)="session.changerServeur(adresse)" />
-        </div>
-        <small>Sur un téléphone, mets l'adresse IP de l'ordinateur, par exemple http://192.168.1.20:8080/api</small>
-      </details>
     </section>
   `,
 })
@@ -54,7 +46,6 @@ export class ConnexionPage {
   protected readonly champs = inject(SchemaFormService).champs('Identifiants');
   protected readonly modeInscription = signal(false);
   protected readonly enCours = signal(false);
-  protected adresse = this.session.adresseServeur();
 
   envoyer(): void {
     this.form.markAllAsTouched();
@@ -66,7 +57,7 @@ export class ConnexionPage {
     this.enCours.set(true);
     appel.subscribe({
       next: (s) => {
-        this.session.ouvrir(s.token, s.email);
+        this.session.ouvrir(s.email);
         this.router.navigate(['/']);
       },
       error: () => this.enCours.set(false),

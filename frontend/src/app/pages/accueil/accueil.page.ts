@@ -4,16 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import {
-  BinomesService,
-  CodeBinome,
-  Mesure,
-  Objectif,
-  ObjectifSaisie,
-  ObjectifSuivi,
-  ObjectifsService,
-  ValidationSaisie,
-} from '../../api/generated';
+import { CodeBinome, Mesure, Objectif, ObjectifSaisie, ObjectifSuivi, ValidationSaisie } from '../../api/generated';
+import { BinomesService, ObjectifsService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -472,7 +464,8 @@ export class AccueilPage implements OnInit, OnDestroy {
 
   async deconnecter(): Promise<void> {
     await this.notifications.toutAnnuler();
-    this.session.fermer();
+    this.horsLigne.oublier();
+    await this.session.fermer();
     this.router.navigate(['/connexion']);
   }
 }
