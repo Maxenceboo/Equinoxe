@@ -1,6 +1,7 @@
 package com.objectifsperso.adapter.in.web;
 
 import com.objectifsperso.adapter.in.web.vo.ErreurVO;
+import com.objectifsperso.domain.exception.CodeInconnuException;
 import com.objectifsperso.domain.exception.EmailDejaUtiliseException;
 import com.objectifsperso.domain.exception.IdentifiantsInvalidesException;
 import com.objectifsperso.domain.exception.ObjectifIntrouvableException;
@@ -20,6 +21,11 @@ class GestionErreurs {
     @ExceptionHandler(ObjectifIntrouvableException.class)
     ResponseEntity<ErreurVO> introuvable(ObjectifIntrouvableException e) {
         return erreur(HttpStatus.NOT_FOUND, "INTROUVABLE", e.getMessage());
+    }
+
+    @ExceptionHandler(CodeInconnuException.class)
+    ResponseEntity<ErreurVO> codeInconnu(CodeInconnuException e) {
+        return erreur(HttpStatus.NOT_FOUND, "CODE_INCONNU", e.getMessage());
     }
 
     @ExceptionHandler(EmailDejaUtiliseException.class)

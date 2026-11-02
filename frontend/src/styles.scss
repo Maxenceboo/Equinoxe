@@ -374,6 +374,120 @@ formly-field-primeng-radio {
   margin: -1rem 0 2rem;
 }
 
+// ---------- Bilan, cible qui s'adapte, chiffres, stats, binômes ----------
+.sous-etiquette { font-size: 0.75rem; color: var(--discret); margin: 1.5rem 0 0.5rem; }
+
+// Proposition de nouvelle cible : un cadre fin, sans fond, une seule à la fois
+.conseil {
+  list-style: none;
+  border: 1px solid var(--ligne-forte);
+  border-radius: var(--rayon);
+  padding: 1rem;
+  margin: 0 0 1.5rem;
+  animation: apparait 0.3s ease-out both;
+  p { margin: 0 0 0.75rem; line-height: 1.4; }
+  .etiquette { margin-bottom: 0.35rem; }
+}
+.bilan-lignes .conseil { margin: 0.75rem 0; }
+
+.objectif .quantite { display: block; margin-top: 0.35rem; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+// Case cochée affichée sans action (bilan)
+.coche.statique { display: grid; place-items: center; cursor: default; }
+
+// Cases à cocher des formulaires : contour blanc, jamais de fond plein
+formly-field .p-checkbox-box { background: transparent !important; border-color: var(--ligne-forte) !important; border-radius: 4px; }
+formly-field .p-checkbox-checked .p-checkbox-box { border-color: var(--texte) !important; }
+formly-field .p-checkbox-checked .p-checkbox-icon { color: var(--texte) !important; }
+formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font-size: 0.9rem; }
+
+.bilan-resume {
+  display: grid;
+  justify-items: start;
+  margin-bottom: 2rem;
+  > strong { font-size: 4.5rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  > strong span { color: var(--discret); font-weight: 500; }
+  > p { margin: 0.75rem 0 1.25rem; font-size: 1.05rem; }
+}
+.comparaison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--pas);
+  width: 100%;
+  div { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.75rem 1rem; display: grid; gap: 0.15rem; }
+  strong { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  small { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+}
+
+.statistiques {
+  margin-bottom: 2rem;
+  .tuiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
+    gap: var(--pas);
+    div { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.75rem; display: grid; gap: 0.15rem; }
+    strong { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    small { font-size: 0.7rem; }
+  }
+}
+.barres {
+  width: 100%;
+  height: auto;
+  display: block;
+  rect { fill: var(--ligne-forte); transform-origin: bottom; transform-box: fill-box; animation: monte-barre 0.5s ease-out both; }
+  rect.courant { fill: var(--texte); }
+  .valeur { fill: var(--discret); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .mois-court { fill: var(--discret); font-size: 10px; text-transform: capitalize; }
+}
+@keyframes monte-barre { from { transform: scaleY(0); } }
+.types {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+  li { display: grid; grid-template-columns: 7.5rem 1fr 2rem; align-items: center; gap: 0.75rem; font-size: 0.85rem; }
+  i { display: block; height: 0.375rem; border-radius: 2px; background: var(--ligne-forte); }
+  li:first-child i { background: var(--texte); }
+  strong { text-align: right; font-variant-numeric: tabular-nums; }
+}
+
+.joker.rappel { margin: 0 0 2rem; }
+
+.partage {
+  border-top: 1px solid var(--ligne);
+  padding-top: 1.25rem;
+  margin-bottom: 2rem;
+  .code { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 0.5rem; }
+  .code strong {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.25em;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    border: 1px solid var(--texte);
+    border-radius: var(--rayon);
+    padding: 0.35rem 0.6rem 0.35rem 0.85rem;
+  }
+}
+
+.binomes {
+  margin-top: 2rem;
+  .titre-section { display: flex; align-items: baseline; justify-content: space-between; }
+  .titre-section .etiquette { margin: 0; }
+  .aide { display: block; margin-top: 0.5rem; }
+}
+.binome {
+  border: 1px solid var(--ligne);
+  border-radius: var(--rayon);
+  padding: 0.9rem 1rem 0.6rem;
+  margin-top: 0.75rem;
+  .ligne-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--pas); }
+  .ligne-bas { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); margin-top: 0.5rem; }
+  .nom small { font-size: 0.85rem; }
+  .compteur { font-weight: 700; font-variant-numeric: tabular-nums; span { color: var(--discret); font-weight: 500; } }
+  .quitter { margin-top: 0.35rem; padding-left: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

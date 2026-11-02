@@ -10,5 +10,6 @@ public record ProgressionSemaine(
         int joursRestants,
         boolean faitAujourdhui,
         String message,
-        Serie serie) {
+        Serie serie,
+        Double quantiteSemaine) {
 }

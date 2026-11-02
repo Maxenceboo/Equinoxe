@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { firstValueFrom } from 'rxjs';
@@ -7,6 +8,7 @@ import { RappelsService } from '../api/generated';
 const CANAL = 'rappels-objectifs';
 const JOURS = 14;
 const ID_SECOURS = 1000;
+const ID_BILAN = 1001;
 
 /**
  * Programme sur le téléphone les rappels calculés par le serveur (répartis sur la semaine).
@@ -15,7 +17,18 @@ const ID_SECOURS = 1000;
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly rappels = inject(RappelsService);
+  private readonly router = inject(Router);
   private prete = false;
+
+  /** Toucher une notification ouvre le bon écran : le bilan, ou l'objectif concerné. */
+  ecouterOuvertures(): void {
+    if (!Capacitor.isNativePlatform()) return;
+    LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+      const extra = action.notification.extra as { route?: string; objectifId?: number } | undefined;
+      if (extra?.route) this.router.navigateByUrl(extra.route);
+      else if (extra?.objectifId) this.router.navigate(['/objectifs', extra.objectifId]);
+    });
+  }
 
   async synchroniser(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return; // navigateur : pas de notifications locales
@@ -44,6 +57,15 @@ export class NotificationsService {
             title: 'Nouvelle semaine',
             body: 'Tes objectifs t\'attendent : ouvre l\'app pour garder ta flamme.',
             schedule: { on: { weekday: 2, hour: 9, minute: 0 }, allowWhileIdle: true },
+          },
+          // Bilan du dimanche soir : ouvre l'écran de bilan
+          {
+            id: ID_BILAN,
+            channelId: CANAL,
+            title: 'Ton bilan de la semaine',
+            body: 'Regarde ce que tu as tenu cette semaine, et prépare la suivante.',
+            schedule: { on: { weekday: 1, hour: 20, minute: 0 }, allowWhileIdle: true },
+            extra: { route: '/bilan' },
           },
         ],
       });

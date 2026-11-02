@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Toast } from 'primeng/toast';
+import { NotificationsService } from './core/notifications.service';
 import { CelebrationOverlay } from './shared/celebration-overlay';
 
 @Component({
@@ -12,4 +13,8 @@ import { CelebrationOverlay } from './shared/celebration-overlay';
     <app-celebration />
   `,
 })
-export class App {}
+export class App {
+  constructor() {
+    inject(NotificationsService).ecouterOuvertures();
+  }
+}

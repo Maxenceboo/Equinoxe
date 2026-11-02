@@ -1,6 +1,14 @@
 package com.objectifsperso.config;
 
 import com.objectifsperso.application.port.in.AuthUseCase;
+import com.objectifsperso.application.port.in.BilanUseCase;
+import com.objectifsperso.application.port.in.BinomesUseCase;
+import com.objectifsperso.application.port.out.AbonnementRepository;
+import com.objectifsperso.application.service.BilanService;
+import com.objectifsperso.application.service.BinomeService;
+import com.objectifsperso.domain.service.CalculBilan;
+import com.objectifsperso.domain.service.CalculStatistiques;
+import com.objectifsperso.domain.service.ConseilCible;
 import com.objectifsperso.application.port.in.GererObjectifsUseCase;
 import com.objectifsperso.application.port.in.RappelsUseCase;
 import com.objectifsperso.application.port.out.EmetteurJeton;
@@ -22,7 +30,19 @@ class CasUsageConfig {
 
     @Bean
     GererObjectifsUseCase gererObjectifs(ObjectifRepository repository, Horloge horloge) {
-        return new ObjectifService(repository, horloge, new CalculProgression());
+        return new ObjectifService(repository, horloge, new CalculProgression(), new ConseilCible(),
+                new CalculStatistiques());
+    }
+
+    @Bean
+    BilanUseCase bilan(ObjectifRepository repository, Horloge horloge) {
+        return new BilanService(repository, horloge, new CalculBilan(new CalculProgression(), new ConseilCible()));
+    }
+
+    @Bean
+    BinomesUseCase binomes(ObjectifRepository objectifs, AbonnementRepository abonnements,
+                           UtilisateurRepository utilisateurs, Horloge horloge) {
+        return new BinomeService(objectifs, abonnements, utilisateurs, horloge, new CalculProgression());
     }
 
     @Bean

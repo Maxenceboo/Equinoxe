@@ -6,6 +6,7 @@ import { Button } from 'primeng/button';
 import { Objectif, ObjectifSaisie, ObjectifsService } from '../../api/generated';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
+import { estChiffre, saisieDe, unite } from '../../shared/objectifs';
 
 @Component({
   selector: 'app-objectif-form',
@@ -48,7 +49,19 @@ export class ObjectifFormPage implements OnInit {
     heure: {
       expressions: {
         'props.label': (f: FormlyFieldConfig) =>
-          f.model?.categorie === 'SOMMEIL' ? 'Heure de coucher visée (rappel 30 min avant)' : 'Heure du rappel',
+          f.model?.categorie === 'SOMMEIL'
+            ? 'Heure de coucher visée (rappel 30 min avant)'
+            : f.model?.rappelAuto
+              ? "Heure du rappel, en attendant de connaître ton heure habituelle"
+              : 'Heure du rappel',
+      },
+    },
+    // Le sommeil a déjà son heure (le coucher visé) : pas d'heure apprise
+    rappelAuto: { expressions: { hide: 'model.categorie === "SOMMEIL"' } },
+    objectifQuantite: {
+      expressions: {
+        hide: '!model.mesure || model.mesure === "AUCUNE"',
+        'props.label': (f: FormlyFieldConfig) => `Total visé par semaine, en ${unite(f.model?.mesure)} (facultatif)`,
       },
     },
   });
@@ -64,14 +77,7 @@ export class ObjectifFormPage implements OnInit {
       return;
     }
     this.api.lireObjectif(Number(id)).subscribe((o: Objectif) => {
-      this.model = {
-        nom: o.nom,
-        categorie: o.categorie,
-        typeFrequence: o.typeFrequence,
-        cible: o.cible,
-        heure: o.heure,
-        couleur: o.couleur,
-      };
+      this.model = saisieDe(o);
       this.pret.set(true);
     });
   }
@@ -81,6 +87,8 @@ export class ObjectifFormPage implements OnInit {
     if (this.form.invalid) return;
     const saisie = { ...this.model } as ObjectifSaisie;
     if (saisie.typeFrequence === 'QUOTIDIEN') saisie.cible = 7;
+    if (!estChiffre(saisie.mesure)) saisie.objectifQuantite = undefined;
+    if (saisie.categorie === 'SOMMEIL') saisie.rappelAuto = false;
     const id = this.id();
     const appel = id ? this.api.modifierObjectif(Number(id), saisie) : this.api.creerObjectif(saisie);
     this.enCours.set(true);

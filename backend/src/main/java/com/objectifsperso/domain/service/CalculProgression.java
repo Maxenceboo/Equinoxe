@@ -27,7 +27,8 @@ public class CalculProgression {
         int joursRestants = (int) ChronoUnit.DAYS.between(aujourdhui, semaine.dimanche()) + 1;
         boolean faitAujourdhui = objectif.estFaitLe(aujourdhui);
         return new ProgressionSemaine(semaine.lundi(), realisees, cible, atteint, joursRestants, faitAujourdhui,
-                message(realisees, cible, joursRestants, faitAujourdhui), serie(objectif, aujourdhui));
+                message(realisees, cible, joursRestants, faitAujourdhui), serie(objectif, aujourdhui),
+                objectif.mesure() == null ? null : CalculBilan.somme(objectif.validationsDe(semaine)));
     }
 
     /** Nombre de jokers par mois et par objectif. */

@@ -69,7 +69,7 @@ Avec PostgreSQL au lieu de H2 : `docker compose up -d` à la racine, puis
 ## Tests
 
 ```bash
-cd backend && mvn test        # 15 tests : règles du domaine + parcours API complet
+cd backend && mvn test        # 23 tests : règles du domaine + parcours API (dont bilan, stats, binôme)
 cd frontend && npm test       # tests unitaires du front
 ```
 
@@ -119,6 +119,15 @@ générer un `.aab` signé depuis Android Studio (Build > Generate Signed Bundle
 - **Premier lancement** : quatre objectifs prêts à ajouter en un tap (sport, coucher, lecture, marche).
 - **Archives** : les objectifs archivés se retrouvent depuis l'accueil et peuvent être restaurés
   (`POST /objectifs/{id}/restaurer`).
+
+## Suivi et entraide
+
+- **Bilan du dimanche** : le dimanche à 20 h, une notification ouvre l'écran Bilan (objectifs tenus, coches de la semaine comparées à la semaine d'avant, flamme de chaque objectif). Accessible aussi depuis l'icône graphique de l'accueil ; flèches pour revoir les semaines passées.
+- **Cible qui s'adapte** : après 4 semaines réussies d'affilée, l'app propose +1 par semaine ; après 3 semaines ratées, -1. Une seule proposition à la fois sur l'accueil, « Plus tard » la fait taire 2 semaines. Après un changement de cible, le compte repart de zéro.
+- **Rappel à l'heure habituelle** : option « Me rappeler à l'heure où je le fais d'habitude ». L'heure de chaque coche faite le jour même est gardée ; après 5 coches, le rappel passe 30 min avant la médiane des 10 dernières.
+- **Objectifs chiffrés** : km, pages ou minutes, avec un total visé par semaine facultatif. La quantité est demandée juste après la coche ; l'accueil affiche « 12 / 20 km cette semaine ».
+- **Statistiques** (page de l'objectif) : coches au total, moyenne par semaine, temps de sport noté ou total chiffré, barres des 6 derniers mois, types de séance les plus fréquents.
+- **Binôme** : « Partager avec un ami » sur la page d'un objectif donne un code à 6 caractères. L'ami le saisit dans « Rejoindre avec un code » sur l'accueil et voit la progression et la flamme (pas les détails ni l'email complet).
 
 ## Direction artistique
 

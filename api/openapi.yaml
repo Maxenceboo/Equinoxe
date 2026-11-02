@@ -12,6 +12,8 @@ tags:
   - name: Auth
   - name: Objectifs
   - name: Rappels
+  - name: Bilan
+  - name: Binomes
 security:
   - bearerAuth: []
 
@@ -219,6 +221,99 @@ paths:
         '404':
           $ref: '#/components/responses/Introuvable'
 
+  /objectifs/{id}/statistiques:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    get:
+      tags: [Objectifs]
+      operationId: statistiquesObjectif
+      responses:
+        '200':
+          description: "Totaux, évolution sur 6 mois et types de séance les plus fréquents"
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Statistiques' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /objectifs/{id}/partage:
+    parameters:
+      - $ref: '#/components/parameters/ObjectifId'
+    post:
+      tags: [Binomes]
+      operationId: partagerObjectif
+      description: Donne le code à transmettre à un ami (créé au premier appel).
+      responses:
+        '200':
+          description: Code de partage
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Partage' }
+        '404':
+          $ref: '#/components/responses/Introuvable'
+
+  /binomes:
+    get:
+      tags: [Binomes]
+      operationId: listerBinomes
+      responses:
+        '200':
+          description: Objectifs d'amis suivis
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ObjectifSuivi' }
+    post:
+      tags: [Binomes]
+      operationId: rejoindreBinome
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CodeBinome' }
+      responses:
+        '200':
+          description: Objectif de l'ami désormais suivi
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ObjectifSuivi' }
+        '404':
+          description: Code inconnu
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erreur' }
+
+  /binomes/{objectifId}:
+    delete:
+      tags: [Binomes]
+      operationId: quitterBinome
+      parameters:
+        - name: objectifId
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '204':
+          description: Ne suit plus cet objectif
+
+  /bilan:
+    get:
+      tags: [Bilan]
+      operationId: bilanSemaine
+      parameters:
+        - name: jour
+          in: query
+          required: false
+          description: "Un jour de la semaine voulue. Par défaut : la semaine en cours le dimanche, la semaine dernière sinon."
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Bilan de la semaine
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Bilan' }
+
   /rappels:
     get:
       tags: [Rappels]
@@ -331,10 +426,37 @@ components:
           title: Couleur
           pattern: '^#[0-9a-fA-F]{6}$'
           default: '#ffffff'
+        mesure:
+          $ref: '#/components/schemas/Mesure'
+        objectifQuantite:
+          type: number
+          format: double
+          title: Total visé par semaine (facultatif)
+          minimum: 0
+          maximum: 100000
+        rappelAuto:
+          type: boolean
+          title: Me rappeler à l'heure où je le fais d'habitude
+          description: "L'app apprend l'heure de tes coches (5 coches suffisent) et te rappelle 30 min avant."
+          default: false
+
+    Mesure:
+      type: string
+      title: Objectif chiffré
+      enum: [AUCUNE, KM, PAGES, MINUTES]
+      x-enum-descriptions: [Non, Kilomètres, Pages, Minutes]
+      default: AUCUNE
+
+    Suggestion:
+      type: object
+      required: [nouvelleCible, raison]
+      properties:
+        nouvelleCible: { type: integer }
+        raison: { type: string }
 
     Objectif:
       type: object
-      required: [id, nom, categorie, typeFrequence, cible, heure, couleur, archive, dateCreation, progression]
+      required: [id, nom, categorie, typeFrequence, cible, heure, couleur, archive, dateCreation, progression, mesure, rappelAuto, heureRappel]
       properties:
         id: { type: integer, format: int64 }
         nom: { type: string }
@@ -346,6 +468,13 @@ components:
         archive: { type: boolean }
         dateCreation: { type: string, format: date }
         progression: { $ref: '#/components/schemas/ProgressionSemaine' }
+        mesure: { $ref: '#/components/schemas/Mesure' }
+        objectifQuantite: { type: number, format: double }
+        rappelAuto: { type: boolean }
+        heureHabituelle: { type: string, description: "Heure habituelle de coche (HH:mm), une fois apprise" }
+        heureRappel: { type: string, description: Heure effective des rappels (HH:mm) }
+        partage: { type: boolean, description: Un code de partage existe }
+        suggestion: { $ref: '#/components/schemas/Suggestion' }
 
     ProgressionSemaine:
       type: object
@@ -362,6 +491,7 @@ components:
         meilleureSerie: { type: integer, description: Record de série dans la même unité }
         uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
         jokersRestants: { type: integer, description: "Jokers encore disponibles ce mois-ci : un jour ou une semaine raté qui ne casse pas la série" }
+        quantiteSemaine: { type: number, format: double, description: Total de la semaine pour un objectif chiffré }
 
     UniteSerie:
       type: string
@@ -419,6 +549,12 @@ components:
           description: Date de la validation (aujourd'hui si absente)
         sport: { $ref: '#/components/schemas/DetailsSport' }
         sommeil: { $ref: '#/components/schemas/DetailsSommeil' }
+        quantite:
+          type: number
+          format: double
+          title: Combien ?
+          minimum: 0
+          maximum: 100000
 
     Validation:
       type: object
@@ -427,6 +563,8 @@ components:
         date: { type: string, format: date }
         sport: { $ref: '#/components/schemas/DetailsSport' }
         sommeil: { $ref: '#/components/schemas/DetailsSommeil' }
+        quantite: { type: number, format: double }
+        heure: { type: string, description: "Heure de la coche (HH:mm), si cochée le jour même" }
 
     Historique:
       type: object
@@ -450,3 +588,94 @@ components:
         nomObjectif: { type: string }
         dateHeure: { type: string, description: 'Heure locale du téléphone, sans fuseau (AAAA-MM-JJTHH:mm)' }
         message: { type: string }
+
+    Bilan:
+      type: object
+      required: [debutSemaine, lignes, tenus, total, seances, seancesSemainePrecedente, phrase]
+      properties:
+        debutSemaine: { type: string, format: date }
+        lignes:
+          type: array
+          items: { $ref: '#/components/schemas/LigneBilan' }
+        tenus: { type: integer, description: Objectifs atteints cette semaine }
+        total: { type: integer }
+        seances: { type: integer, description: "Coches de la semaine, tous objectifs confondus" }
+        seancesSemainePrecedente: { type: integer }
+        phrase: { type: string }
+
+    LigneBilan:
+      type: object
+      required: [objectifId, nom, categorie, realisees, cible, atteint, serie, uniteSerie, mesure]
+      properties:
+        objectifId: { type: integer, format: int64 }
+        nom: { type: string }
+        categorie: { $ref: '#/components/schemas/Categorie' }
+        realisees: { type: integer }
+        cible: { type: integer }
+        atteint: { type: boolean }
+        serie: { type: integer }
+        uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
+        mesure: { $ref: '#/components/schemas/Mesure' }
+        quantite: { type: number, format: double }
+        suggestion: { $ref: '#/components/schemas/Suggestion' }
+
+    Statistiques:
+      type: object
+      required: [totalSeances, totalMinutes, mesure, moyenneParSemaine, mois, types]
+      properties:
+        totalSeances: { type: integer }
+        totalMinutes: { type: integer, description: Somme des durées notées }
+        totalQuantite: { type: number, format: double }
+        mesure: { $ref: '#/components/schemas/Mesure' }
+        moyenneParSemaine: { type: number, format: double }
+        mois:
+          type: array
+          description: "Les 6 derniers mois, du plus ancien au mois en cours"
+          items: { $ref: '#/components/schemas/StatMois' }
+        types:
+          type: array
+          description: "Types de séance, du plus fréquent au moins fréquent"
+          items: { $ref: '#/components/schemas/RepartitionType' }
+
+    StatMois:
+      type: object
+      required: [mois, seances, minutes]
+      properties:
+        mois: { type: string, description: AAAA-MM }
+        seances: { type: integer }
+        minutes: { type: integer }
+        quantite: { type: number, format: double }
+
+    RepartitionType:
+      type: object
+      required: [type, nombre]
+      properties:
+        type: { $ref: '#/components/schemas/TypeSeance' }
+        nombre: { type: integer }
+
+    Partage:
+      type: object
+      required: [code, abonnes]
+      properties:
+        code: { type: string }
+        abonnes: { type: integer, description: Amis qui suivent cet objectif }
+
+    CodeBinome:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          title: Code de ton binôme
+          minLength: 6
+          maxLength: 6
+
+    ObjectifSuivi:
+      type: object
+      required: [objectifId, nom, ami, categorie, progression]
+      properties:
+        objectifId: { type: integer, format: int64 }
+        nom: { type: string }
+        ami: { type: string, description: Nom affiché de l'ami (avant l'arobase de son email) }
+        categorie: { $ref: '#/components/schemas/Categorie' }
+        progression: { $ref: '#/components/schemas/ProgressionSemaine' }

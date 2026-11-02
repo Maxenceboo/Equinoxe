@@ -1,7 +1,6 @@
 package com.objectifsperso.application.service;
 
 import com.objectifsperso.application.port.in.GererObjectifsUseCase;
-import com.objectifsperso.application.port.in.ObjectifCommande;
 import com.objectifsperso.application.port.out.Horloge;
 import com.objectifsperso.application.port.out.ObjectifRepository;
 import com.objectifsperso.domain.exception.ObjectifIntrouvableException;
@@ -9,7 +8,11 @@ import com.objectifsperso.domain.model.DetailsSeance;
 import com.objectifsperso.domain.model.Historique;
 import com.objectifsperso.domain.model.Objectif;
 import com.objectifsperso.domain.model.ObjectifAvecProgression;
+import com.objectifsperso.domain.model.Reglages;
+import com.objectifsperso.domain.model.Statistiques;
 import com.objectifsperso.domain.service.CalculProgression;
+import com.objectifsperso.domain.service.CalculStatistiques;
+import com.objectifsperso.domain.service.ConseilCible;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -21,11 +24,16 @@ public class ObjectifService implements GererObjectifsUseCase {
     private final ObjectifRepository repository;
     private final Horloge horloge;
     private final CalculProgression calcul;
+    private final ConseilCible conseil;
+    private final CalculStatistiques statistiques;
 
-    public ObjectifService(ObjectifRepository repository, Horloge horloge, CalculProgression calcul) {
+    public ObjectifService(ObjectifRepository repository, Horloge horloge, CalculProgression calcul,
+                           ConseilCible conseil, CalculStatistiques statistiques) {
         this.repository = repository;
         this.horloge = horloge;
         this.calcul = calcul;
+        this.conseil = conseil;
+        this.statistiques = statistiques;
     }
 
     @Override
@@ -39,16 +47,14 @@ public class ObjectifService implements GererObjectifsUseCase {
     }
 
     @Override
-    public ObjectifAvecProgression creer(Long utilisateurId, ObjectifCommande c) {
-        Objectif objectif = Objectif.nouveau(utilisateurId, c.nom(), c.categorie(), c.frequence(), c.heure(),
-                c.couleur(), horloge.aujourdhui());
+    public ObjectifAvecProgression creer(Long utilisateurId, Reglages reglages) {
+        Objectif objectif = Objectif.nouveau(utilisateurId, reglages, horloge.aujourdhui());
         return avecProgression(repository.enregistrer(objectif));
     }
 
     @Override
-    public ObjectifAvecProgression modifier(Long utilisateurId, Long objectifId, ObjectifCommande c) {
-        return modifierEtEnregistrer(utilisateurId, objectifId,
-                o -> o.modifier(c.nom(), c.categorie(), c.frequence(), c.heure(), c.couleur()));
+    public ObjectifAvecProgression modifier(Long utilisateurId, Long objectifId, Reglages reglages) {
+        return modifierEtEnregistrer(utilisateurId, objectifId, o -> o.modifier(reglages, horloge.aujourdhui()));
     }
 
     @Override
@@ -62,10 +68,11 @@ public class ObjectifService implements GererObjectifsUseCase {
     }
 
     @Override
-    public ObjectifAvecProgression valider(Long utilisateurId, Long objectifId, LocalDate date, DetailsSeance details) {
-        LocalDate aujourdhui = horloge.aujourdhui();
-        LocalDate jour = date == null ? aujourdhui : date;
-        return modifierEtEnregistrer(utilisateurId, objectifId, o -> o.valider(jour, details, aujourdhui));
+    public ObjectifAvecProgression valider(Long utilisateurId, Long objectifId, LocalDate date, DetailsSeance details,
+                                           Double quantite) {
+        var maintenant = horloge.maintenant();
+        LocalDate jour = date == null ? maintenant.toLocalDate() : date;
+        return modifierEtEnregistrer(utilisateurId, objectifId, o -> o.valider(jour, details, quantite, maintenant));
     }
 
     @Override
@@ -80,6 +87,11 @@ public class ObjectifService implements GererObjectifsUseCase {
                 mois == null ? YearMonth.from(aujourdhui) : mois, aujourdhui);
     }
 
+    @Override
+    public Statistiques statistiques(Long utilisateurId, Long objectifId) {
+        return statistiques.statistiques(charger(utilisateurId, objectifId), horloge.aujourdhui());
+    }
+
     private ObjectifAvecProgression modifierEtEnregistrer(Long utilisateurId, Long objectifId, Consumer<Objectif> action) {
         Objectif objectif = charger(utilisateurId, objectifId);
         action.accept(objectif);
@@ -92,6 +104,8 @@ public class ObjectifService implements GererObjectifsUseCase {
     }
 
     private ObjectifAvecProgression avecProgression(Objectif objectif) {
-        return new ObjectifAvecProgression(objectif, calcul.progression(objectif, horloge.aujourdhui()));
+        LocalDate aujourdhui = horloge.aujourdhui();
+        return new ObjectifAvecProgression(objectif, calcul.progression(objectif, aujourdhui),
+                conseil.suggestion(objectif, aujourdhui).orElse(null));
     }
 }

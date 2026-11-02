@@ -21,6 +21,12 @@ class UtilisateurPersistenceAdapter implements UtilisateurRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<Utilisateur> trouverParId(Long id) {
+        return jpa.findById(id).map(e -> new Utilisateur(e.id, e.email, e.motDePasseHache));
+    }
+
+    @Override
     @Transactional
     public Utilisateur enregistrer(Utilisateur u) {
         UtilisateurEntity e = new UtilisateurEntity();

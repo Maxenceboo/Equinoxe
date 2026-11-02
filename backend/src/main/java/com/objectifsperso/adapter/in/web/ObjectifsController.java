@@ -4,6 +4,7 @@ import com.objectifsperso.adapter.in.web.api.ObjectifsApi;
 import com.objectifsperso.adapter.in.web.vo.HistoriqueVO;
 import com.objectifsperso.adapter.in.web.vo.ObjectifSaisieVO;
 import com.objectifsperso.adapter.in.web.vo.ObjectifVO;
+import com.objectifsperso.adapter.in.web.vo.StatistiquesVO;
 import com.objectifsperso.adapter.in.web.vo.ValidationSaisieVO;
 import com.objectifsperso.application.port.in.GererObjectifsUseCase;
 import org.springframework.http.HttpStatus;
@@ -39,12 +40,12 @@ class ObjectifsController implements ObjectifsApi {
     @Override
     public ResponseEntity<ObjectifVO> creerObjectif(ObjectifSaisieVO saisie) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(WebMapper.vo(objectifs.creer(utilisateur.id(), WebMapper.commande(saisie))));
+                .body(WebMapper.vo(objectifs.creer(utilisateur.id(), WebMapper.reglages(saisie))));
     }
 
     @Override
     public ResponseEntity<ObjectifVO> modifierObjectif(Long id, ObjectifSaisieVO saisie) {
-        return ResponseEntity.ok(WebMapper.vo(objectifs.modifier(utilisateur.id(), id, WebMapper.commande(saisie))));
+        return ResponseEntity.ok(WebMapper.vo(objectifs.modifier(utilisateur.id(), id, WebMapper.reglages(saisie))));
     }
 
     @Override
@@ -60,7 +61,8 @@ class ObjectifsController implements ObjectifsApi {
     @Override
     public ResponseEntity<ObjectifVO> validerObjectif(Long id, ValidationSaisieVO saisie) {
         return ResponseEntity.ok(WebMapper.vo(
-                objectifs.valider(utilisateur.id(), id, saisie.getDate(), WebMapper.details(saisie))));
+                objectifs.valider(utilisateur.id(), id, saisie.getDate(), WebMapper.details(saisie),
+                        saisie.getQuantite())));
     }
 
     @Override
@@ -72,5 +74,10 @@ class ObjectifsController implements ObjectifsApi {
     public ResponseEntity<HistoriqueVO> historiqueObjectif(Long id, String mois) {
         YearMonth m = mois == null ? null : YearMonth.parse(mois);
         return ResponseEntity.ok(WebMapper.vo(objectifs.historique(utilisateur.id(), id, m)));
+    }
+
+    @Override
+    public ResponseEntity<StatistiquesVO> statistiquesObjectif(Long id) {
+        return ResponseEntity.ok(WebMapper.vo(objectifs.statistiques(utilisateur.id(), id)));
     }
 }

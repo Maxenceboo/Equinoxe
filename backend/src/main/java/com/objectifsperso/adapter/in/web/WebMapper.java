@@ -1,6 +1,15 @@
 package com.objectifsperso.adapter.in.web;
 
+import com.objectifsperso.adapter.in.web.vo.BilanVO;
 import com.objectifsperso.adapter.in.web.vo.CategorieVO;
+import com.objectifsperso.adapter.in.web.vo.LigneBilanVO;
+import com.objectifsperso.adapter.in.web.vo.MesureVO;
+import com.objectifsperso.adapter.in.web.vo.ObjectifSuiviVO;
+import com.objectifsperso.adapter.in.web.vo.PartageVO;
+import com.objectifsperso.adapter.in.web.vo.RepartitionTypeVO;
+import com.objectifsperso.adapter.in.web.vo.StatMoisVO;
+import com.objectifsperso.adapter.in.web.vo.StatistiquesVO;
+import com.objectifsperso.adapter.in.web.vo.SuggestionVO;
 import com.objectifsperso.adapter.in.web.vo.DetailsSommeilVO;
 import com.objectifsperso.adapter.in.web.vo.DetailsSportVO;
 import com.objectifsperso.adapter.in.web.vo.HistoriqueVO;
@@ -16,8 +25,14 @@ import com.objectifsperso.adapter.in.web.vo.TypeSeanceVO;
 import com.objectifsperso.adapter.in.web.vo.UniteSerieVO;
 import com.objectifsperso.adapter.in.web.vo.ValidationSaisieVO;
 import com.objectifsperso.adapter.in.web.vo.ValidationVO;
-import com.objectifsperso.application.port.in.ObjectifCommande;
+import com.objectifsperso.domain.model.Bilan;
 import com.objectifsperso.domain.model.Categorie;
+import com.objectifsperso.domain.model.Mesure;
+import com.objectifsperso.domain.model.ObjectifSuivi;
+import com.objectifsperso.domain.model.Partage;
+import com.objectifsperso.domain.model.Reglages;
+import com.objectifsperso.domain.model.Statistiques;
+import com.objectifsperso.domain.model.Suggestion;
 import com.objectifsperso.domain.model.DetailsSeance;
 import com.objectifsperso.domain.model.Frequence;
 import com.objectifsperso.domain.model.Historique;
@@ -40,14 +55,25 @@ final class WebMapper {
 
     private WebMapper() { }
 
-    static ObjectifCommande commande(ObjectifSaisieVO vo) {
+    static Reglages reglages(ObjectifSaisieVO vo) {
         TypeFrequence type = TypeFrequence.valueOf(vo.getTypeFrequence().getValue());
-        return new ObjectifCommande(
+        return new Reglages(
                 vo.getNom(),
                 Categorie.valueOf(vo.getCategorie().getValue()),
                 new Frequence(type, vo.getCible()),
                 LocalTime.parse(vo.getHeure(), HEURE),
-                vo.getCouleur());
+                vo.getCouleur(),
+                mesure(vo.getMesure()),
+                vo.getObjectifQuantite(),
+                Boolean.TRUE.equals(vo.getRappelAuto()));
+    }
+
+    static Mesure mesure(MesureVO vo) {
+        return vo == null || vo == MesureVO.AUCUNE ? null : Mesure.valueOf(vo.getValue());
+    }
+
+    static MesureVO vo(Mesure m) {
+        return m == null ? MesureVO.AUCUNE : MesureVO.fromValue(m.name());
     }
 
     static DetailsSeance details(ValidationSaisieVO vo) {
@@ -65,13 +91,52 @@ final class WebMapper {
         Objectif o = oap.objectif();
         return new ObjectifVO(o.id(), o.nom(), CategorieVO.fromValue(o.categorie().name()),
                 TypeFrequenceVO.fromValue(o.frequence().type().name()), o.frequence().cible(),
-                o.heure().format(HEURE), o.couleur(), o.archive(), o.dateCreation(), vo(oap.progression()));
+                o.heure().format(HEURE), o.couleur(), o.archive(), o.dateCreation(), vo(oap.progression()),
+                vo(o.mesure()), o.rappelAuto(), o.heureRappel().format(HEURE))
+                .objectifQuantite(o.objectifQuantite())
+                .heureHabituelle(o.heureHabituelle().map(h -> h.format(HEURE)).orElse(null))
+                .partage(o.codePartage() != null)
+                .suggestion(vo(oap.suggestion()));
+    }
+
+    static SuggestionVO vo(Suggestion s) {
+        return s == null ? null : new SuggestionVO(s.nouvelleCible(), s.raison());
+    }
+
+    static BilanVO vo(Bilan b) {
+        return new BilanVO(b.debutSemaine(), b.lignes().stream().map(WebMapper::vo).toList(), b.tenus(), b.total(),
+                b.seances(), b.seancesSemainePrecedente(), b.phrase());
+    }
+
+    static LigneBilanVO vo(Bilan.Ligne l) {
+        return new LigneBilanVO(l.objectifId(), l.nom(), CategorieVO.fromValue(l.categorie().name()), l.realisees(),
+                l.cible(), l.atteint(), l.serie().enCours(), UniteSerieVO.fromValue(l.serie().unite().name()),
+                vo(l.mesure())).quantite(l.quantite()).suggestion(vo(l.suggestion()));
+    }
+
+    static StatistiquesVO vo(Statistiques s) {
+        return new StatistiquesVO(s.totalSeances(), s.totalMinutes(), vo(s.mesure()), s.moyenneParSemaine(),
+                s.mois().stream().map(m -> new StatMoisVO(m.mois().toString(), m.seances(), m.minutes())
+                        .quantite(m.quantite())).toList(),
+                s.types().stream().map(t -> new RepartitionTypeVO(TypeSeanceVO.fromValue(t.type()), t.nombre()))
+                        .toList())
+                .totalQuantite(s.totalQuantite());
+    }
+
+    static PartageVO vo(Partage p) {
+        return new PartageVO(p.code(), p.abonnes());
+    }
+
+    static ObjectifSuiviVO vo(ObjectifSuivi s) {
+        return new ObjectifSuiviVO(s.objectifId(), s.nom(), s.ami(), CategorieVO.fromValue(s.categorie().name()),
+                vo(s.progression()));
     }
 
     static ProgressionSemaineVO vo(ProgressionSemaine p) {
         return new ProgressionSemaineVO(p.debutSemaine(), p.realisees(), p.cible(), p.atteint(), p.joursRestants(),
                 p.faitAujourdhui(), p.serie().enCours(), p.serie().record(),
-                UniteSerieVO.fromValue(p.serie().unite().name()), p.serie().jokersRestants()).message(p.message());
+                UniteSerieVO.fromValue(p.serie().unite().name()), p.serie().jokersRestants()).message(p.message())
+                .quantiteSemaine(p.quantiteSemaine());
     }
 
     static HistoriqueVO vo(Historique h) {
@@ -81,7 +146,8 @@ final class WebMapper {
 
     static ValidationVO vo(Validation v) {
         DetailsSeance d = v.details();
-        ValidationVO vo = new ValidationVO(v.date());
+        ValidationVO vo = new ValidationVO(v.date()).quantite(v.quantite())
+                .heure(v.heure() == null ? null : v.heure().format(HEURE));
         if (d.typeSeance() != null || d.dureeMinutes() != null || d.ressenti() != null) {
             vo.sport(new DetailsSportVO()
                     .typeSeance(d.typeSeance() == null ? null : TypeSeanceVO.fromValue(d.typeSeance()))

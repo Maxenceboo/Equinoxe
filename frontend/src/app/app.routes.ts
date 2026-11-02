@@ -11,6 +11,7 @@ export const routes: Routes = [
     canActivate: [connecteGuard],
     children: [
       { path: '', loadComponent: () => import('./pages/accueil/accueil.page').then((m) => m.AccueilPage) },
+      { path: 'bilan', loadComponent: () => import('./pages/bilan/bilan.page').then((m) => m.BilanPage) },
       {
         path: 'archives',
         loadComponent: () => import('./pages/archives/archives.page').then((m) => m.ArchivesPage),
