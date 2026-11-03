@@ -1,13 +1,87 @@
-:root { color-scheme: dark; }
+:root {
+  color-scheme: dark;
+  --fond: #000; --texte: #fff; --gris: #8a8a8a; --trait: #262626; --carte: #0d0d0d;
+  --rayon: 6px; --largeur: 1040px;
+}
 * { box-sizing: border-box; }
-body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #000; color: #fff;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; padding: 24px; }
-main { max-width: 360px; width: 100%; }
-.logo { width: 64px; height: 64px; display: block; margin-bottom: 24px; }
-h1 { font-size: 2.25rem; letter-spacing: -0.03em; margin: 0 0 12px; }
-p { color: #8a8a8a; line-height: 1.5; margin: 0 0 32px; }
-.bouton { display: block; text-align: center; background: #fff; color: #000; text-decoration: none;
-  font-weight: 600; padding: 14px; border-radius: 6px; }
-.discret { display: block; text-align: center; color: #8a8a8a; margin-top: 16px; font-size: 0.9rem; }
-.etapes { color: #8a8a8a; line-height: 1.5; margin: 32px 0 0; padding-left: 1.2rem; font-size: 0.9rem; }
-.etapes li + li { margin-top: 8px; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fond); color: var(--texte); line-height: 1.5;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.conteneur { max-width: var(--largeur); margin: 0 auto; padding: 0 24px; }
+
+/* En-tête */
+.entete { border-bottom: 1px solid var(--trait); }
+.entete .conteneur { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.marque { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 700; letter-spacing: -0.01em; }
+.marque svg { width: 28px; height: 28px; }
+.lien-entete { text-decoration: none; font-size: 0.9rem; font-weight: 600; padding: 8px 14px;
+  border: 1px solid var(--texte); border-radius: var(--rayon); }
+
+/* Boutons */
+.bouton { display: inline-block; text-align: center; background: var(--texte); color: var(--fond); text-decoration: none;
+  font-weight: 600; padding: 14px 22px; border-radius: var(--rayon); transition: opacity .15s; }
+.bouton:hover { opacity: .85; }
+.bouton.plein { display: block; width: 100%; }
+.discret { display: block; color: var(--gris); font-size: 0.875rem; margin-top: 12px; }
+
+/* Accueil */
+.hero { padding: 96px 0 80px; }
+.hero .conteneur { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 64px; align-items: center; }
+.surtitre { color: var(--gris); font-size: 0.875rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 16px; }
+.hero h1 { font-size: clamp(2.4rem, 5.5vw, 3.75rem); line-height: 1.05; letter-spacing: -0.035em; margin: 0 0 20px; }
+.hero .intro { color: var(--gris); font-size: 1.125rem; max-width: 30rem; margin: 0 0 32px; }
+
+/* Aperçu de l'app */
+.apercu { justify-self: center; width: 100%; max-width: 320px; border: 1px solid var(--trait); border-radius: 28px;
+  padding: 28px 20px; background: var(--carte); }
+.apercu .jour { color: var(--gris); font-size: 0.8rem; margin: 0 0 4px; }
+.apercu .titre { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 20px; }
+.objectif { border: 1px solid var(--trait); border-radius: var(--rayon); padding: 14px; margin-bottom: 10px; }
+.objectif.fait { border-color: var(--texte); }
+.objectif .ligne { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.objectif .nom { font-weight: 600; }
+.objectif .compte { color: var(--gris); font-size: 0.85rem; }
+.semaine { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.semaine span { aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--trait); display: grid; place-items: center;
+  font-size: 0.65rem; color: var(--gris); }
+.semaine span.ok { border-color: var(--texte); color: var(--texte); }
+
+/* Points forts */
+.points { border-top: 1px solid var(--trait); padding: 80px 0; }
+.points h2 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 40px; max-width: 32rem; }
+.grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.point { border: 1px solid var(--trait); border-radius: var(--rayon); padding: 24px; }
+.point svg { width: 24px; height: 24px; margin-bottom: 16px; }
+.point h3 { font-size: 1.05rem; margin: 0 0 8px; }
+.point p { color: var(--gris); margin: 0; font-size: 0.95rem; }
+
+/* Appel final */
+.final { border-top: 1px solid var(--trait); padding: 80px 0; text-align: center; }
+.final h2 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 12px; }
+.final p { color: var(--gris); margin: 0 0 28px; }
+
+.pied { border-top: 1px solid var(--trait); padding: 28px 0; color: var(--gris); font-size: 0.85rem; }
+.pied .conteneur { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.pied a { text-decoration: none; }
+.pied a:hover { color: var(--texte); }
+
+/* Pages simples (téléchargement, confirmation) */
+.page-simple { min-height: 100vh; display: flex; flex-direction: column; }
+.page-simple main { flex: 1; display: grid; place-items: center; padding: 48px 24px; }
+.carte { width: 100%; max-width: 380px; }
+.carte .logo { width: 56px; height: 56px; display: block; margin-bottom: 24px; }
+.carte h1 { font-size: 2rem; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 12px; }
+.carte > p { color: var(--gris); margin: 0 0 28px; }
+.etapes { list-style: none; counter-reset: e; margin: 32px 0 0; padding: 24px 0 0; border-top: 1px solid var(--trait); }
+.etapes li { counter-increment: e; position: relative; padding-left: 40px; color: var(--gris); font-size: 0.925rem; }
+.etapes li + li { margin-top: 14px; }
+.etapes li::before { content: counter(e); position: absolute; left: 0; top: -1px; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--trait); display: grid; place-items: center; font-size: 0.8rem; color: var(--texte); }
+
+@media (max-width: 820px) {
+  .hero { padding: 56px 0 64px; }
+  .hero .conteneur { grid-template-columns: 1fr; gap: 48px; }
+  .grille { grid-template-columns: 1fr; }
+  .points, .final { padding: 56px 0; }
+}

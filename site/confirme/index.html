@@ -3,17 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
   <title>Équinoxe · Adresse confirmée</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="icon" href="../favicon.png" />
 </head>
-<body>
+<body class="page-simple">
+  <header class="entete">
+    <div class="conteneur">
+      <a class="marque" href="../"><svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg> Équinoxe</a>
+    </div>
+  </header>
+
   <main>
-    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+    <div class="carte">
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m2"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m2)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
     <h1 id="titre">Adresse confirmée</h1>
     <p id="texte">Ton compte Équinoxe est prêt. Ouvre l'app pour commencer.</p>
-    <a id="ouvrir" class="bouton" href="equinoxe://auth">Ouvrir Équinoxe</a>
+    <a id="ouvrir" class="bouton plein" href="equinoxe://auth">Ouvrir Équinoxe</a>
     <span class="discret">Sur ordinateur, connecte-toi simplement dans l'app sur ton téléphone.</span>
+    </div>
   </main>
   <script>
     // Supabase ajoute les jetons de connexion dans le fragment (#access_token=…) : on les passe à l'app,

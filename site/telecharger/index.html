@@ -3,21 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
   <title>Équinoxe · Télécharger</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="icon" href="../favicon.png" />
 </head>
-<body>
+<body class="page-simple">
+  <header class="entete">
+    <div class="conteneur">
+      <a class="marque" href="../"><svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg> Équinoxe</a>
+    </div>
+  </header>
+
   <main>
-    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+    <div class="carte">
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m2"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m2)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
     <h1>Télécharger Équinoxe</h1>
     <p id="infos">Application Android, dernière version stable.</p>
-    <a class="bouton" id="lien" href="../apk/equinoxe.apk" download>Télécharger l'APK</a>
+    <a class="bouton plein" id="lien" href="../apk/equinoxe.apk" download>Télécharger l'APK</a>
     <ol class="etapes">
       <li>Ouvre le fichier téléchargé sur ton téléphone.</li>
       <li>Si Android le demande, autorise l'installation depuis ton navigateur.</li>
       <li>Les versions suivantes s'installent par-dessus, sans perdre ton compte.</li>
     </ol>
+    </div>
   </main>
   <script>
     fetch('../apk/version.json', { cache: 'no-store' })

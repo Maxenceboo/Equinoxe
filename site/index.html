@@ -3,16 +3,92 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Équinoxe</title>
+  <title>Équinoxe · Tes objectifs, une semaine à la fois</title>
+  <meta name="description" content="Équinoxe t'aide à tenir tes objectifs perso : sport, sommeil, lecture. Un tap pour cocher, des rappels bien répartis, un binôme pour tenir." />
+  <meta name="theme-color" content="#000000" />
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="favicon.png" />
 </head>
 <body>
-  <main>
-    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
-    <h1>Équinoxe</h1>
-    <p>Le jour pour avancer, la nuit pour récupérer. Tes objectifs perso, une semaine à la fois.</p>
-    <a class="bouton" href="telecharger/">Télécharger pour Android</a>
-  </main>
+  <header class="entete">
+    <div class="conteneur">
+      <a class="marque" href="./"><svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg> Équinoxe</a>
+      <a class="lien-entete" href="telecharger/">Télécharger</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="conteneur">
+      <div>
+        <p class="surtitre">Application Android · Gratuite</p>
+        <h1>Le jour pour avancer, la nuit pour récupérer.</h1>
+        <p class="intro">Sport trois fois par semaine, coucher avant minuit, lecture le soir : fixe tes objectifs, coche-les en un tap et regarde ta semaine se remplir.</p>
+        <a class="bouton" href="telecharger/">Télécharger pour Android</a>
+        <span class="discret" id="version">Dernière version stable</span>
+      </div>
+
+      <div class="apercu" aria-hidden="true">
+        <p class="jour">Cette semaine</p>
+        <p class="titre">Tes objectifs</p>
+        <div class="objectif fait">
+          <div class="ligne"><span class="nom">Sport</span><span class="compte">3 / 3</span></div>
+          <div class="semaine"><span class="ok">L</span><span>M</span><span class="ok">M</span><span>J</span><span class="ok">V</span><span>S</span><span>D</span></div>
+        </div>
+        <div class="objectif">
+          <div class="ligne"><span class="nom">Coucher avant 23 h</span><span class="compte">4 / 5</span></div>
+          <div class="semaine"><span class="ok">L</span><span class="ok">M</span><span>M</span><span class="ok">J</span><span class="ok">V</span><span>S</span><span>D</span></div>
+        </div>
+        <div class="objectif">
+          <div class="ligne"><span class="nom">Lecture</span><span class="compte">1 / 2</span></div>
+          <div class="semaine"><span>L</span><span>M</span><span class="ok">M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="points">
+    <div class="conteneur">
+      <h2>Tout ce qu'il faut pour tenir, rien de plus.</h2>
+      <div class="grille">
+        <div class="point">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
+          <h3>Un tap pour cocher</h3>
+          <p>Tu as fait ta séance ? Une touche et c'est noté. Ta semaine et ton historique se mettent à jour tout seuls.</p>
+        </div>
+        <div class="point">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 2.5h6"/></svg>
+          <h3>Des rappels bien répartis</h3>
+          <p>Les rappels s'étalent sur la semaine selon tes habitudes, pour ne pas tout rattraper le dimanche soir.</p>
+        </div>
+        <div class="point">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="9" cy="9" r="3.5"/><circle cx="16.5" cy="10.5" r="2.5"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M15 14.5c2.6-.4 4.8 1 5.5 4"/></svg>
+          <h3>Un binôme pour tenir</h3>
+          <p>Partage un objectif avec un proche grâce à un code : vous suivez vos progrès ensemble et vous vous motivez.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="conteneur">
+      <h2>Prêt à commencer ?</h2>
+      <p>Installe Équinoxe et crée ton premier objectif en moins d'une minute.</p>
+      <a class="bouton" href="telecharger/">Télécharger pour Android</a>
+    </div>
+  </section>
+
+  <footer class="pied">
+    <div class="conteneur">
+      <span>© 2026 Équinoxe</span>
+      <a href="telecharger/">Télécharger l'app</a>
+    </div>
+  </footer>
+
+  <script>
+    fetch('apk/version.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((v) => { document.getElementById('version').textContent = 'Version ' + v.version + ' · Android 7 ou plus récent'; })
+      .catch(() => {});
+  </script>
 </body>
 </html>
