@@ -1,0 +1,68 @@
+# Publie une version stable : à chaque tag vX.Y.Z poussé (ex. git tag v1.1.0 && git push origin v1.1.0),
+# construit l'APK et l'envoie sur equinoxe-app.fr/apk/. La page equinoxe-app.fr/telecharger/ propose
+# toujours la dernière version envoyée.
+name: Version stable
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build web et copie Android
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+
+      - name: APK signé
+        working-directory: frontend/android
+        env:
+          EQUINOXE_KEYSTORE_BASE64: ${{ secrets.EQUINOXE_KEYSTORE_BASE64 }}
+          EQUINOXE_KEYSTORE_MOT_DE_PASSE: ${{ secrets.EQUINOXE_KEYSTORE_MOT_DE_PASSE }}
+        run: |
+          test -n "$EQUINOXE_KEYSTORE_BASE64" || { echo "Secret EQUINOXE_KEYSTORE_BASE64 manquant"; exit 1; }
+          export EQUINOXE_KEYSTORE="$RUNNER_TEMP/equinoxe.keystore"
+          echo "$EQUINOXE_KEYSTORE_BASE64" | base64 -d > "$EQUINOXE_KEYSTORE"
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon \
+            -PversionName="${GITHUB_REF_NAME#v}" -PversionCode="${{ github.run_number }}"
+
+      - name: Préparation
+        run: |
+          mkdir publication
+          cp frontend/android/app/build/outputs/apk/release/app-release.apk publication/equinoxe.apk
+          taille=$(stat -c %s publication/equinoxe.apk)
+          printf '{"version":"%s","date":"%s","taille":%s}\n' "${GITHUB_REF_NAME#v}" "$(date -u +%Y-%m-%d)" "$taille" > publication/version.json
+          cat publication/version.json
+
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.OVH_FTP_SERVEUR }}
+          username: ${{ secrets.OVH_FTP_UTILISATEUR }}
+          password: ${{ secrets.OVH_FTP_MOT_DE_PASSE }}
+          local-dir: ./publication/
+          server-dir: ./www/apk/
