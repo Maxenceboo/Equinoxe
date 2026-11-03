@@ -1,7 +1,8 @@
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
+import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Objectif, ObjectifSaisie } from '../../api/generated';
 import { ObjectifsService } from '../../application/services';
@@ -11,10 +12,10 @@ import { estChiffre, saisieDe, unite } from '../../shared/objectifs';
 
 @Component({
   selector: 'app-objectif-form',
-  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button],
+  imports: [ReactiveFormsModule, FormlyForm, Button],
   template: `
     <header class="entete">
-      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" [routerLink]="retour()" />
+      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
       <h1>{{ id() ? 'Modifier l\\'objectif' : 'Nouvel objectif' }}</h1>
     </header>
 
@@ -27,6 +28,7 @@ import { estChiffre, saisieDe, unite } from '../../shared/objectifs';
   `,
 })
 export class ObjectifFormPage implements OnInit {
+  protected readonly navigation = inject(NavigationService);
   readonly id = input<string>();
 
   private readonly api = inject(ObjectifsService);
@@ -67,10 +69,6 @@ export class ObjectifFormPage implements OnInit {
     },
   });
 
-  retour(): unknown[] {
-    return this.id() ? ['/objectifs', this.id()] : ['/'];
-  }
-
   ngOnInit(): void {
     const id = this.id();
     if (!id) {
@@ -96,7 +94,7 @@ export class ObjectifFormPage implements OnInit {
     appel.subscribe({
       next: (o) => {
         this.notifications.synchroniser();
-        this.router.navigate(id ? ['/objectifs', o.id] : ['/']);
+        this.router.navigate(id ? ['/objectifs', o.id] : ['/'], { replaceUrl: true });
       },
       error: () => this.enCours.set(false),
     });

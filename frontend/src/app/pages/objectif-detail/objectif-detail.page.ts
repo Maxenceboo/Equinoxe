@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { DecimalPipe, PercentPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
 import { Historique, Objectif, Partage, Statistiques, TypeSeance } from '../../api/generated';
@@ -15,7 +16,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
   imports: [RouterLink, Button, PercentPipe, DecimalPipe, Flamme],
   template: `
     <header class="entete">
-      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" routerLink="/" />
+      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
       <h1>{{ objectif()?.nom }}</h1>
       <p-button icon="pi pi-pencil" [text]="true" ariaLabel="Modifier" [routerLink]="['/objectifs', id(), 'modifier']" />
     </header>
@@ -150,6 +151,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
   `,
 })
 export class ObjectifDetailPage implements OnInit {
+  protected readonly navigation = inject(NavigationService);
   readonly id = input.required<string>();
 
   private readonly api = inject(ObjectifsService);
@@ -244,7 +246,7 @@ export class ObjectifDetailPage implements OnInit {
   archiver(): void {
     this.api.archiverObjectif(Number(this.id())).subscribe(() => {
       this.notifications.synchroniser();
-      this.router.navigate(['/']);
+      this.router.navigate(['/'], { replaceUrl: true });
     });
   }
 

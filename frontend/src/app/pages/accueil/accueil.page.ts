@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -10,8 +10,6 @@ import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
-import { SessionService } from '../../core/session.service';
-import { SonsService } from '../../core/sons.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
 import {
@@ -31,16 +29,6 @@ import {
       <div>
         <h1>Cette<br />semaine</h1>
         <small>{{ semaine }}</small>
-      </div>
-      <div class="outils">
-        <p-button icon="pi pi-chart-bar" [text]="true" ariaLabel="Bilan de la semaine" routerLink="/bilan" />
-        <p-button
-          [icon]="sons.actif() ? 'pi pi-volume-up' : 'pi pi-volume-off'"
-          [text]="true"
-          [ariaLabel]="sons.actif() ? 'Couper le son' : 'Activer le son'"
-          (onClick)="sons.basculer()"
-        />
-        <p-button icon="pi pi-sign-out" [text]="true" ariaLabel="Se déconnecter" (onClick)="deconnecter()" />
       </div>
     </header>
 
@@ -161,8 +149,6 @@ import {
       </section>
     }
 
-    <p class="lien-archives"><a routerLink="/archives">Objectifs archivés</a></p>
-
     @if (objectifs().length > 0) {
       <p-button class="fab" icon="pi pi-plus" ariaLabel="Nouvel objectif" routerLink="/objectifs/nouveau" />
     }
@@ -207,8 +193,6 @@ import {
   `,
 })
 export class AccueilPage implements OnInit, OnDestroy {
-  protected readonly session = inject(SessionService);
-  protected readonly sons = inject(SonsService);
   protected readonly horsLigne = inject(HorsLigneService);
   protected readonly creation = signal(false);
   protected readonly modeles: (ObjectifSaisie & { detail: string })[] = [
@@ -222,7 +206,6 @@ export class AccueilPage implements OnInit, OnDestroy {
   private readonly notifications = inject(NotificationsService);
   private readonly schemas = inject(SchemaFormService);
   private readonly celebration = inject(CelebrationService);
-  private readonly router = inject(Router);
 
   protected readonly semaine = libelleSemaine(new Date());
   protected readonly objectifs = signal<Objectif[]>([]);
@@ -460,12 +443,5 @@ export class AccueilPage implements OnInit, OnDestroy {
   private remplacer(maj: Objectif): void {
     this.objectifs.update((liste) => liste.map((x) => (x.id === maj.id ? maj : x)));
     this.horsLigne.memoriser(this.objectifs());
-  }
-
-  async deconnecter(): Promise<void> {
-    await this.notifications.toutAnnuler();
-    this.horsLigne.oublier();
-    await this.session.fermer();
-    this.router.navigate(['/connexion']);
   }
 }

@@ -14,7 +14,6 @@ import { nombre, saisieDe, unite } from '../../shared/objectifs';
   imports: [RouterLink, Button, Flamme],
   template: `
     <header class="entete">
-      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" routerLink="/" />
       <div>
         <h1>Bilan</h1>
         <small>{{ titre() }}</small>

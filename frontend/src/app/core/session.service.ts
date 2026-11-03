@@ -24,7 +24,7 @@ export class SessionService {
     if (Capacitor.isNativePlatform()) {
       // Lien de confirmation d'email (equinoxe://auth#access_token=…) : l'app s'ouvre déjà connectée
       void App.addListener('appUrlOpen', async ({ url }) => {
-        if (await this.ouvrirLien(url)) void this.router.navigateByUrl('/');
+        if (await this.ouvrirLien(url)) void this.router.navigateByUrl('/', { replaceUrl: true });
       });
     }
     const { data } = await this.db.auth.getSession();

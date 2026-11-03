@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Objectif } from '../../api/generated';
 import { ObjectifsService } from '../../application/services';
@@ -7,10 +7,10 @@ import { NotificationsService } from '../../core/notifications.service';
 
 @Component({
   selector: 'app-archives',
-  imports: [RouterLink, Button],
+  imports: [Button],
   template: `
     <header class="entete">
-      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" routerLink="/" />
+      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
       <h1>Archives</h1>
     </header>
 
@@ -32,6 +32,7 @@ import { NotificationsService } from '../../core/notifications.service';
   `,
 })
 export class ArchivesPage implements OnInit {
+  protected readonly navigation = inject(NavigationService);
   private readonly api = inject(ObjectifsService);
   private readonly notifications = inject(NotificationsService);
   protected readonly archives = signal<Objectif[]>([]);

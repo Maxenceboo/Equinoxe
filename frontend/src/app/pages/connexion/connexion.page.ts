@@ -66,7 +66,7 @@ export class ConnexionPage {
     appel.subscribe({
       next: (s) => {
         this.session.ouvrir(s.email);
-        this.router.navigate(['/']);
+        this.router.navigate(['/'], { replaceUrl: true });
       },
       error: () => this.enCours.set(false),
     });

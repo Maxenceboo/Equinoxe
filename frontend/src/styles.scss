@@ -179,6 +179,8 @@ formly-field-primeng-radio {
   left: 50%;
   transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+  z-index: 5;
+  .avec-onglets & { bottom: calc(env(safe-area-inset-bottom) + 4.75rem); }
   .p-button { width: 3.5rem; height: 3.5rem; }
 }
 
@@ -363,7 +365,7 @@ formly-field-primeng-radio {
 .vide { padding: 1rem 0 2rem; }
 .vide > p:not(.etiquette) { color: var(--discret); margin: 0; }
 
-.lien-archives { text-align: center; margin: 2rem 0 0; a { color: var(--discret); font-size: 0.8rem; } }
+
 .objectif.archive { .infos { display: grid; gap: 0.25rem; } }
 
 .joker {
@@ -498,3 +500,41 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
 .flamme .coeur { fill: var(--fond); stroke: none; }
 .flamme .braise { fill: var(--texte); stroke: none; opacity: 0; }
 .celebration .flamme .coeur { fill: #000; }
+
+// ---------- Navigation ----------
+.page.avec-onglets { padding-bottom: calc(env(safe-area-inset-bottom) + 10rem); }
+
+.onglets {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--fond);
+  border-top: 1px solid var(--ligne);
+  padding: 0.4rem max(0.5rem, calc((100vw - 32rem) / 2)) calc(env(safe-area-inset-bottom) + 0.4rem);
+  a {
+    display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+    padding: 0.45rem 0; border-radius: var(--rayon); border: 1px solid transparent;
+    color: var(--discret); text-decoration: none; font-size: 0.7rem; font-weight: 600;
+    -webkit-tap-highlight-color: transparent;
+    i { font-size: 1.15rem; }
+    &.actif { color: var(--texte); }
+    &:active { border-color: var(--ligne); }
+  }
+}
+
+// ---------- Compte ----------
+.reglages { list-style: none; margin: 0 0 2rem; padding: 0; border: 1px solid var(--ligne); border-radius: var(--rayon); }
+.reglages li + li { border-top: 1px solid var(--ligne); }
+.reglage {
+  width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 1rem;
+  background: none; border: 0; color: var(--texte); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+  span { flex: 1; font-weight: 600; }
+  small, .pi-chevron-right { color: var(--discret); font-size: 0.85rem; }
+}
+.deconnexion .p-button { width: 100%; }
+.confirmation {
+  border: 1px solid var(--ligne-forte); border-radius: var(--rayon); padding: 1rem;
+  p { margin: 0 0 1rem; }
+}
