@@ -53,6 +53,7 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
           }
         </section>
 
+        <p class="aide">Touche « Encourager » pour envoyer un petit mot à quelqu'un : il le verra en ouvrant l'app.</p>
         <ul class="membres">
           @for (m of f.membres; track m.id) {
             <li class="membre">
@@ -61,11 +62,10 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
                 <small>{{ resume(m) }}</small>
               </div>
               @if (!m.moi) {
-                <div class="encourager">
-                  @for (e of encouragements; track e.type) {
-                    <button type="button" class="puce" [class.envoye]="envoye() === m.id + e.type" (click)="encourager(m, e.type)">{{ e.texte }}</button>
-                  }
-                </div>
+                <button type="button" class="puce encourager" [class.envoye]="envoyes().has(m.id)" [disabled]="envoyes().has(m.id)" (click)="encourager(m)">
+                  <i class="pi" [class.pi-heart]="!envoyes().has(m.id)" [class.pi-check]="envoyes().has(m.id)"></i>
+                  {{ envoyes().has(m.id) ? 'Envoyé' : 'Encourager' }}
+                </button>
               }
             </li>
           }
@@ -128,8 +128,7 @@ export class FoyerPage implements OnInit {
   protected readonly charge = signal(false);
   protected readonly enCours = signal(false);
   protected readonly mode = signal<'creer' | 'rejoindre' | null>(null);
-  protected readonly envoye = signal<string | null>(null);
-  protected readonly encouragements = ENCOURAGEMENTS;
+  protected readonly envoyes = signal(new Set<string>());
   protected readonly avancement = computed(() => {
     const f = this.foyer();
     return f ? Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100)) : 0;
@@ -209,9 +208,11 @@ export class FoyerPage implements OnInit {
     });
   }
 
-  encourager(m: MembreFoyer, type: TypeEncouragement): void {
+  /** Un seul bouton : « Bravo » si la personne a déjà tenu un objectif cette semaine, « Courage » sinon. */
+  encourager(m: MembreFoyer): void {
+    const type: TypeEncouragement = m.tenus > 0 ? 'BRAVO' : 'COURAGE';
     this.api.encourager(m.id, type).subscribe(() => {
-      this.envoye.set(m.id + type);
+      this.envoyes.update((e) => new Set(e).add(m.id));
       this.messages.add({ severity: 'success', summary: 'Envoyé', detail: `${m.prenom} le verra en ouvrant l'app.` });
     });
   }

@@ -41,7 +41,7 @@ import {
 
     @for (e of encouragements(); track e.id) {
       <div class="encouragement-recu" role="status">
-        <span><strong>{{ e.de }}</strong> t'envoie : {{ texteEncouragement(e.type) }} !</span>
+        <span><strong>{{ e.de }}</strong> t'encourage : {{ texteEncouragement(e.type) }} !</span>
         <button type="button" class="fermer" aria-label="Fermer" (click)="lireEncouragement(e.id)"><i class="pi pi-times"></i></button>
       </div>
     }
