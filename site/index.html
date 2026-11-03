@@ -3,124 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Équinoxe · Tenir ses objectifs, en famille</title>
+  <title>Équinoxe · Tes objectifs, une semaine à la fois</title>
   <meta name="description" content="Une petite app pour tenir le sport, le coucher, la lecture, seul ou en famille. Gratuite, sans pub, sur Android." />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="favicon.png" />
   <style>
-    :root { --marge: clamp(24px, 9vw, 150px); --noir: #000; --blanc: #fff; --gris: #8a8a8a; --gris-fonce: #2a2a2a; --rayon: 6px;
+    :root { --marge: clamp(24px, 9vw, 150px); --noir: #000; --blanc: #fff; --gris: #8a8a8a; --rayon: 6px;
       --police: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
     body { margin: 0; background: var(--noir); color: var(--blanc); font-family: var(--police); -webkit-font-smoothing: antialiased;
       transition: background-color .6s ease, color .6s ease; overflow-x: hidden; }
     body.jour { background: var(--blanc); color: var(--noir); }
     a { color: inherit; }
-    .grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 var(--marge); }
+    img { display: block; max-width: 100%; }
+    figure { margin: 0; }
 
-    /* Logo + lune de lecture */
     .marque { position: fixed; top: 22px; left: var(--marge); z-index: 10; display: flex; align-items: center; gap: 10px;
-      font-weight: 700; letter-spacing: .02em; text-decoration: none; font-size: 15px; mix-blend-mode: difference; color: #fff; }
+      font-weight: 700; text-decoration: none; font-size: 15px; mix-blend-mode: difference; color: #fff; }
     .marque svg { width: 22px; height: 22px; }
     .lune-lecture { position: fixed; top: 20px; right: var(--marge); z-index: 10; width: 26px; height: 26px; mix-blend-mode: difference; }
 
-    /* 1. Accroche */
-    .accroche { min-height: 100svh; position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 28px; padding: 0 var(--marge) 16vh; }
-    .accroche h1 { margin: 0; font-size: clamp(44px, 7.5vw, 128px); line-height: .9; letter-spacing: -.045em; font-weight: 800; max-width: 14ch; }
-    .accroche h1 span { display: inline-block; opacity: 0; transform: translateY(.25em); animation: monte .7s cubic-bezier(.2,.7,.2,1) forwards; }
-    .accroche h1 span:nth-child(2) { animation-delay: .12s } .accroche h1 span:nth-child(3) { animation-delay: .24s } .accroche h1 span:nth-child(4) { animation-delay: .36s }
-    .accroche p { margin: 0; max-width: 34ch; color: var(--gris); font-size: clamp(16px, 1.4vw, 20px); line-height: 1.4;
-      opacity: 0; animation: apparait 1s .9s forwards; }
-    .croissant { position: absolute; top: 9vh; right: var(--marge); width: 16vw; max-width: 240px; opacity: .9; }
-    .fil { position: absolute; left: var(--marge); bottom: 0; width: 1px; height: 0; background: var(--blanc); animation: fil 1.6s 1.2s ease-out forwards; }
-    @keyframes monte { to { opacity: 1; transform: none; } }
-    @keyframes apparait { to { opacity: 1; } }
-    @keyframes fil { to { height: 10vh; } }
+    /* Téléphone avec une vraie capture */
+    .tel { border: 1px solid #333; border-radius: 36px; padding: 10px; background: #0a0a0a; width: 100%; }
+    .tel img { border-radius: 27px; width: 100%; height: auto; aspect-ratio: 390 / 844; object-fit: cover; }
 
-    /* 2. Pourquoi */
-    .pourquoi { padding: 30vh var(--marge) 20vh; }
-    .pourquoi .lignes { grid-column: 1 / 13; }
-    .pourquoi p { margin: 0 0 .5em; font-size: clamp(26px, 3.6vw, 56px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; max-width: 26ch;
-      color: var(--gris-fonce); transition: color .5s ease; }
-    .pourquoi p.vue { color: var(--blanc); }
-        .inverse { grid-column: 1 / 13; margin-top: 30vh !important; }
+    /* Accroche */
+    .accroche { min-height: 100svh; padding: 110px var(--marge) 60px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 6vw; align-items: center; }
+    .accroche h1 { margin: 0; font-size: clamp(44px, 6.4vw, 108px); line-height: .98; letter-spacing: -.045em; font-weight: 800; }
+    .accroche p { margin: 26px 0 38px; color: var(--gris); font-size: clamp(17px, 1.4vw, 21px); line-height: 1.45; max-width: 30ch; }
+    .accroche .tel { max-width: 330px; justify-self: end; animation: monte 1s .2s cubic-bezier(.2,.7,.2,1) both; }
+    .accroche h1, .accroche p, .accroche .actions { animation: monte .8s cubic-bezier(.2,.7,.2,1) both; }
+    .accroche p { animation-delay: .1s } .accroche .actions { animation-delay: .2s }
+    @keyframes monte { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
 
-    /* 3. Produit */
-    .produit { position: relative; height: 520vh; }
-    .scene { position: sticky; top: 0; height: 100svh; display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 var(--marge); align-items: center; }
-    .telephone { grid-column: 1 / 6; justify-self: start; width: min(300px, 70vw); aspect-ratio: 9 / 19; border: 1px solid #3a3a3a; border-radius: 34px;
-      padding: 18px 16px; position: relative; overflow: hidden; background: #050505; }
-    .ecran { position: absolute; inset: 18px 16px; opacity: 0; transition: opacity .25s ease; }
-    .ecran.actif { opacity: 1; }
-    .phrase { grid-column: 7 / 13; position: relative; min-height: 3em; }
-    .phrase p { position: absolute; inset: 0 auto auto 0; margin: 0; font-size: clamp(26px, 3.2vw, 52px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
-      opacity: 0; transform: translateY(16px); transition: opacity .25s ease, transform .25s ease; }
-    .phrase p.actif { opacity: 1; transform: none; }
-    .etape-num { position: absolute; top: -2.5em; left: 0; font-size: 13px; color: var(--gris); letter-spacing: .2em; }
-
-    /* Mini interface dans le téléphone */
-    .ui-titre { font-size: 22px; font-weight: 800; margin: 26px 0 4px; letter-spacing: -.02em; }
-    .ui-sous { font-size: 11px; color: var(--gris); margin: 0 0 22px; }
-    .ui-obj { padding: 14px 0; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 12px; }
-    .ui-obj b { flex: 1; font-size: 15px; }
-    .ui-case { width: 38px; height: 38px; border: 1.5px solid #fff; border-radius: 8px; display: grid; place-items: center; transition: background .3s; }
-    .ui-case.ok { background: #fff; }
-    .ui-case.ok::after { content: ""; width: 12px; height: 7px; border: solid #000; border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg) translate(1px,-2px); }
-    .ui-jours { display: flex; gap: 5px; margin-top: 18px; }
-    .ui-jours i { flex: 1; height: 5px; border-radius: 99px; border: 1px solid #444; }
-    .ui-jours i.p { background: #fff; border-color: #fff; }
-    .ui-jours i.j { border-style: dashed; border-color: #fff; }
-    .notif { margin-top: 40px; border: 1px solid #fff; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.35; }
-    .notif small { display: block; color: var(--gris); font-size: 10px; margin-bottom: 4px; letter-spacing: .08em; }
-    .bouclier { margin-top: 18px; font-size: 13px; display: flex; gap: 8px; align-items: center; }
-    .grosse-lune { width: 120px; height: 120px; margin: 50px auto 14px; display: block; }
-    .centre { text-align: center; font-size: 13px; color: var(--gris); }
-    .jauge { height: 8px; border: 1px solid #555; border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
-    .jauge span { display: block; height: 100%; background: #fff; width: 40%; transition: width 1.2s cubic-bezier(.2,.7,.2,1); }
-    .ecran.actif .jauge span { width: 88%; }
-    .membre { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-bottom: 1px solid #222; }
-    .membre em { font-style: normal; color: var(--gris); }
-
-    /* 4. Engagements */
-    .engagements { padding: 20vh var(--marge) 26vh; row-gap: 10vh; }
-    .eng { position: relative; opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
-    .eng.vue { opacity: 1; transform: none; }
-    .eng { grid-column: 1 / 13; display: grid; grid-template-columns: 1fr 1fr; gap: 0 4vw; align-items: start; border-top: 1px solid #222; padding-top: 4vh; }
-    .num { grid-column: 1 / 3; font-size: 13px; letter-spacing: .2em; color: var(--gris); display: block; margin-bottom: 14px; }
-    .eng h2 { position: relative; margin: 0; font-size: clamp(26px, 3vw, 48px); letter-spacing: -.025em; line-height: 1.1; font-weight: 800; }
-    .eng p { position: relative; margin: 0; max-width: 30ch; font-size: clamp(17px, 1.5vw, 22px); line-height: 1.45; color: var(--gris); }
-    
-
-    /* 5. Bascule */
-    .bascule { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--marge); }
-    .bascule h2 { margin: 0; font-size: clamp(40px, 6.5vw, 110px); letter-spacing: -.04em; line-height: 1; font-weight: 800; }
-    .bascule .sous { margin: 28px 0 44px; font-size: clamp(17px, 1.5vw, 22px); color: #555; }
-    .bouton { align-self: flex-start; display: inline-block; background: var(--noir); color: var(--blanc); text-decoration: none; font-weight: 700;
-      font-size: 19px; padding: 22px 38px; border-radius: var(--rayon); transition: transform .15s ease; }
+    .bouton { display: inline-block; background: var(--blanc); color: var(--noir); text-decoration: none; font-weight: 700;
+      font-size: 17px; padding: 18px 30px; border-radius: var(--rayon); transition: transform .15s ease; }
     .bouton:hover { transform: translateY(-2px); }
-    .version { margin-top: 14px; font-size: 13px; color: #777; }
+    body.jour .bouton { background: var(--noir); color: var(--blanc); }
+    .version { display: block; margin-top: 14px; font-size: 13px; color: #777; }
+
+    /* Trois écrans */
+    .ecrans { padding: 14vh var(--marge); display: grid; grid-template-columns: repeat(3, 1fr); gap: 4vw; }
+    .ecran { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
+    .ecran:nth-child(2) { transition-delay: .12s; margin-top: 8vh; }
+    .ecran:nth-child(3) { transition-delay: .24s; margin-top: 16vh; }
+    .ecran.vu { opacity: 1; transform: none; }
+    .ecran h2 { margin: 26px 0 0; font-size: clamp(20px, 1.8vw, 28px); letter-spacing: -.02em; font-weight: 700; }
+
+    /* En bref */
+    .faits { padding: 6vh var(--marge) 16vh; display: flex; flex-wrap: wrap; gap: 14px; }
+    .faits span { border: 1px solid #333; border-radius: 999px; padding: 12px 22px; font-size: 15px; color: #ccc; }
+
+    /* Bascule */
+    .bascule { min-height: 90svh; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--marge); }
+    .bascule h2 { margin: 0 0 40px; font-size: clamp(40px, 6vw, 100px); letter-spacing: -.04em; line-height: 1; font-weight: 800; }
     footer { padding: 28px var(--marge); display: flex; justify-content: space-between; font-size: 13px; color: #777; }
     footer a { text-decoration: none; }
 
     @media (max-width: 760px) {
-      .accroche { padding-bottom: 22vh; }
-      .croissant { width: 40vw; top: 14vh; }
-      .inverse { margin-top: 16vh !important; }
-      .produit { height: auto; }
-      .scene { position: static; height: auto; display: block; padding: 0 var(--marge); }
-      .telephone, .phrase { display: none; }
-      .pile { display: grid !important; gap: 14vh; padding: 10vh 0; }
-      .eng { grid-template-columns: 1fr; gap: 14px; }
-      .bouton { align-self: stretch; text-align: center; }
+      .accroche { grid-template-columns: 1fr; padding-top: 96px; gap: 48px; }
+      .accroche .tel { justify-self: start; max-width: 78vw; }
+      .ecrans { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 16px; padding-top: 6vh; padding-bottom: 6vh; scrollbar-width: none; }
+      .ecrans::-webkit-scrollbar { display: none; }
+      .ecran { flex: 0 0 72vw; scroll-snap-align: start; opacity: 1; transform: none; margin-top: 0 !important; }
+      .bouton { display: block; text-align: center; }
     }
-    .pile { display: none; }
-    .pile .bloc > p { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 0 0 22px; }
-    .pile .telephone { display: block; position: relative; margin: 0; }
-    .pile .ecran { opacity: 1; }
-
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .001s !important; animation-delay: 0s !important; transition-duration: .001s !important; }
-      html { scroll-behavior: auto; }
     }
   </style>
 </head>
@@ -135,133 +84,54 @@
     <circle cx="13" cy="13" r="12" fill="#fff" mask="url(#phase)"/>
   </svg>
 
-  <!-- 1. Accroche -->
   <section class="accroche">
-    <svg class="croissant" viewBox="0 0 100 100" aria-hidden="true"><mask id="c"><rect width="100" height="100" fill="#fff"/><circle cx="43" cy="50" r="44" fill="#000"/></mask><circle cx="50" cy="50" r="44" fill="#fff" mask="url(#c)"/></svg>
-    <h1><span>On l'a faite</span> <span>pour tenir</span> <span>nos bonnes</span> <span>résolutions.</span></h1>
-    <p>Équinoxe est une petite app pour le sport, le coucher, la lecture, ou ce que tu veux. Tu coches quand c'est fait, seul ou en famille.</p>
-    <span class="fil" aria-hidden="true"></span>
-  </section>
-
-  <!-- 2. Pourquoi -->
-  <section class="pourquoi grille">
-    <div class="lignes">
-      <p class="revele">Chaque début d'année, on se fixait des choses à la maison : courir, lire, se coucher plus tôt.</p>
-      <p class="revele">Trois semaines plus tard, plus personne n'en parlait.</p>
-      <p class="revele">On oubliait un jour, puis deux, et on finissait par laisser tomber.</p>
-    </div>
-    <p class="revele inverse">Alors on a fait une app où rater un jour n'est pas grave, et où on voit les autres avancer.</p>
-  </section>
-
-  <!-- 3. Produit -->
-  <section class="produit" aria-label="L'app en action">
-    <div class="scene">
-      <div class="telephone" aria-hidden="true">
-        <div class="ecran" data-e="0">
-          <p class="ui-titre">18:00</p><p class="ui-sous">mardi 4 novembre</p>
-          <div class="notif"><small>ÉQUINOXE</small>Sport : c'est l'heure habituelle. Un tap quand c'est fait.</div>
-        </div>
-        <div class="ecran" data-e="1">
-          <p class="ui-titre">Cette semaine</p><p class="ui-sous">2 sur 3 tenus</p>
-          <div class="ui-obj"><b>Sport</b><span class="ui-case ok"></span></div>
-          <div class="ui-obj"><b>Me coucher tôt</b><span class="ui-case ok"></span></div>
-          <div class="ui-obj"><b>Lire</b><span class="ui-case"></span></div>
-        </div>
-        <div class="ecran" data-e="2">
-          <p class="ui-titre">Me coucher tôt</p><p class="ui-sous">série : 19 jours</p>
-          <div class="ui-jours"><i class="p"></i><i class="j"></i><i class="p"></i><i class="p"></i><i class="p"></i><i></i><i></i></div>
-          <p class="bouclier"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg> Joker utilisé mardi. La série continue.</p>
-        </div>
-        <div class="ecran" data-e="3">
-          <p class="ui-titre">Dimanche</p><p class="ui-sous">semaine tenue</p>
-          <svg class="grosse-lune" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff"/></svg>
-          <p class="centre">Pleine lune · +50 points</p>
-        </div>
-        <div class="ecran" data-e="4">
-          <p class="ui-titre">Les Martin</p><p class="ui-sous">cette semaine, ensemble</p>
-          <div class="jauge"><span></span></div><p class="ui-sous">22 / 25 coches · soirée film vendredi</p>
-          <div class="membre"><span>Sophie</span><em>8 coches</em></div>
-          <div class="membre"><span>Léa</span><em>7 coches</em></div>
-          <div class="membre"><span>Marc</span><em>7 coches</em></div>
-        </div>
+    <div>
+      <h1>Tes objectifs, une semaine à la fois.</h1>
+      <p>Sport, sommeil, lecture. Tu coches quand c'est fait, seul ou en famille.</p>
+      <div class="actions">
+        <a class="bouton" href="telecharger/">Télécharger pour Android</a>
+        <span class="version" data-version></span>
       </div>
-      <div class="phrase" aria-live="polite">
-        <span class="etape-num" id="etape-num">01 / 05</span>
-        <p data-e="0">Le rappel arrive à l'heure où tu le fais d'habitude.</p>
-        <p data-e="1">Quand c'est fait, tu coches.</p>
-        <p data-e="2">Tu as raté mardi ? Un joker par mois protège ta série.</p>
-        <p data-e="3">Le dimanche, tu vois ta semaine se remplir.</p>
-        <p data-e="4">Et celle de ta famille, sur une jauge commune.</p>
-      </div>
-      <div class="pile" id="pile"></div>
     </div>
+    <div class="tel"><img src="images/semaine.webp" alt="L'écran Semaine de l'app" width="390" height="844" /></div>
   </section>
 
-  <!-- 4. Engagements -->
-  <section class="engagements grille">
-    <article class="eng"><span class="num" aria-hidden="true">01</span><h2>Ça se compte à la semaine</h2><p>Si tu vises trois séances, tu les fais quand tu peux : lundi, jeudi ou dimanche, c'est pareil.</p></article>
-    <article class="eng"><span class="num" aria-hidden="true">02</span><h2>Un seul rappel par jour</h2><p>L'app regarde à quelle heure tu coches et cale le rappel dessus. Si tu n'as rien coché depuis trois jours, elle te fait signe une fois.</p></article>
-    <article class="eng"><span class="num" aria-hidden="true">03</span><h2>C'est plus facile à plusieurs</h2><p>Crée un groupe avec ta famille ou tes amis. Chaque coche fait monter la jauge du groupe, et vous choisissez ensemble ce que vous gagnez en fin de semaine.</p></article>
+  <section class="ecrans" aria-label="L'app en images">
+    <figure class="ecran"><div class="tel"><img src="images/assistant.webp" alt="Créer un objectif en trois questions" loading="lazy" width="390" height="844" /></div><h2>Trois questions pour commencer</h2></figure>
+    <figure class="ecran"><div class="tel"><img src="images/groupe.webp" alt="Un groupe familial et sa jauge commune" loading="lazy" width="390" height="844" /></div><h2>Une jauge pour la famille</h2></figure>
+    <figure class="ecran"><div class="tel"><img src="images/badges.webp" alt="Le profil avec le niveau et les badges" loading="lazy" width="390" height="844" /></div><h2>Des badges à gagner</h2></figure>
   </section>
 
-  <!-- 5. Bascule -->
+  <section class="faits" aria-label="En bref">
+    <span>Gratuit</span><span>Sans pub</span><span>Un rappel par jour</span><span>Un joker par mois</span><span>Android 7 ou plus</span>
+  </section>
+
   <section class="bascule" id="bascule">
-    <h2>Ça prend une minute pour commencer.</h2>
-    <p class="sous">Gratuit, sans publicité, sur Android.</p>
-    <a class="bouton" href="telecharger/">Télécharger l'app</a>
-    <span class="version" id="version"></span>
+    <h2>Ça prend une minute.</h2>
+    <div>
+      <a class="bouton" href="telecharger/">Télécharger l'app</a>
+      <span class="version" data-version></span>
+    </div>
   </section>
 
   <footer><span>© 2026 Équinoxe</span><a href="telecharger/">Télécharger</a></footer>
 
   <script>
-    // Lune de lecture : se remplit avec le défilement
     const ombre = document.getElementById('ombre');
     const majLune = () => {
       const max = document.documentElement.scrollHeight - innerHeight;
-      const t = max > 0 ? Math.min(1, scrollY / max) : 0;
-      ombre.setAttribute('cx', String(13 - t * 26));
+      ombre.setAttribute('cx', String(13 - (max > 0 ? Math.min(1, scrollY / max) : 0) * 26));
     };
     addEventListener('scroll', majLune, { passive: true }); majLune();
 
-    // Apparitions
-    const vu = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('vue')), { rootMargin: '0px 0px -45% 0px' });
-    document.querySelectorAll('.revele, .eng').forEach((el) => vu.observe(el));
+    const vu = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('vu')), { threshold: .2 });
+    document.querySelectorAll('.ecran').forEach((el) => vu.observe(el));
 
-    // Bascule jour
-    new IntersectionObserver(([e]) => document.body.classList.toggle('jour', e.isIntersecting), { threshold: .35 }).observe(document.getElementById('bascule'));
-
-    // Produit : étapes au défilement (grand écran) ou pile verticale (téléphone)
-    const produit = document.querySelector('.produit');
-    const ecrans = [...document.querySelectorAll('.telephone .ecran')];
-    const phrases = [...document.querySelectorAll('.phrase p')];
-    const num = document.getElementById('etape-num');
-    const afficher = (i) => {
-      ecrans.forEach((el, k) => el.classList.toggle('actif', k === i));
-      phrases.forEach((el, k) => el.classList.toggle('actif', k === i));
-      num.textContent = '0' + (i + 1) + ' / 05';
-    };
-    let courant = -1;
-    const majEtape = () => {
-      const r = produit.getBoundingClientRect();
-      const t = Math.min(.999, Math.max(0, -r.top / (r.height - innerHeight)));
-      const i = Math.floor(t * ecrans.length);
-      if (i !== courant) { courant = i; afficher(i); }
-    };
-    addEventListener('scroll', majEtape, { passive: true }); majEtape();
-
-    const pile = document.getElementById('pile');
-    ecrans.forEach((el, i) => {
-      const bloc = document.createElement('div'); bloc.className = 'bloc';
-      const p = document.createElement('p'); p.textContent = phrases[i].textContent;
-      const tel = document.createElement('div'); tel.className = 'telephone';
-      tel.appendChild(el.cloneNode(true));
-      bloc.append(p, tel); pile.appendChild(bloc);
-    });
+    new IntersectionObserver(([e]) => document.body.classList.toggle('jour', e.isIntersecting), { threshold: .4 }).observe(document.getElementById('bascule'));
 
     fetch('apk/version.json', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((v) => { document.getElementById('version').textContent = 'Version ' + v.version + ' · Android 7 ou plus récent'; })
+      .then((v) => document.querySelectorAll('[data-version]').forEach((el) => { el.textContent = 'Version ' + v.version + ' · gratuite'; }))
       .catch(() => {});
   </script>
 </body>
