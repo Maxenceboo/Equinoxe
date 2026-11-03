@@ -10,11 +10,14 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a routerLink="/" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" [replaceUrl]="true">
         <i class="pi pi-calendar"></i><span>Semaine</span>
       </a>
+      <a routerLink="/foyer" routerLinkActive="actif" [replaceUrl]="true">
+        <i class="pi pi-home"></i><span>Foyer</span>
+      </a>
       <a routerLink="/bilan" routerLinkActive="actif" [replaceUrl]="true">
         <i class="pi pi-chart-bar"></i><span>Bilan</span>
       </a>
-      <a routerLink="/compte" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" [replaceUrl]="true">
-        <i class="pi pi-user"></i><span>Compte</span>
+      <a routerLink="/profil" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" [replaceUrl]="true">
+        <i class="pi pi-user"></i><span>Profil</span>
       </a>
     </nav>
   `,

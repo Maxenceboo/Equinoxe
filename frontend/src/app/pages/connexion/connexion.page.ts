@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Observable } from 'rxjs';
-import { Identifiants } from '../../api/generated';
+import { Identifiants, RejoindreFoyer } from '../../api/generated';
 import { AuthService, Session } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
@@ -25,6 +25,14 @@ import { SessionService } from '../../core/session.service';
       <h1>Équinoxe</h1>
       <p class="sous-titre">Le jour pour avancer, la nuit pour récupérer.</p>
 
+      @if (modeCode()) {
+        <p class="aide">Entre le code à 6 chiffres donné par un parent, et ton prénom. Pas besoin d'email.</p>
+        <form [formGroup]="formCode" (ngSubmit)="entrerAvecCode()">
+          <formly-form [form]="formCode" [fields]="champsCode" [model]="modelCode" />
+          <p-button type="submit" label="Entrer" [loading]="enCours()" styleClass="w-full" />
+        </form>
+        <p-button label="J'ai un compte avec email" [text]="true" (onClick)="modeCode.set(false)" />
+      } @else {
       <form [formGroup]="form" (ngSubmit)="envoyer()">
         <formly-form [form]="form" [fields]="champs" [model]="model" />
         <p-button
@@ -41,6 +49,10 @@ import { SessionService } from '../../core/session.service';
         (onClick)="modeInscription.set(!modeInscription())"
       />
 
+      <div class="separateur"><span>ou</span></div>
+      <p-button label="J'ai un code de famille" icon="pi pi-home" [outlined]="true" styleClass="w-full" (onClick)="modeCode.set(true)" />
+      }
+
     </section>
   `,
 })
@@ -53,6 +65,26 @@ export class ConnexionPage {
   protected readonly model: Partial<Identifiants> = {};
   protected readonly champs = inject(SchemaFormService).champs('Identifiants');
   protected readonly modeInscription = signal(false);
+  protected readonly modeCode = signal(false);
+  protected readonly formCode = new FormGroup({});
+  protected readonly modelCode: Partial<RejoindreFoyer> = {};
+  protected readonly champsCode = inject(SchemaFormService).champs('RejoindreFoyer', {
+    code: { props: { attributes: { inputmode: 'numeric', autocomplete: 'off' } } },
+  });
+
+  entrerAvecCode(): void {
+    this.formCode.markAllAsTouched();
+    if (this.formCode.invalid) return;
+    const { code, prenom } = this.modelCode as RejoindreFoyer;
+    this.enCours.set(true);
+    this.auth.rejoindreSansCompte(code, prenom).subscribe({
+      next: () => {
+        this.session.ouvrir(null, true);
+        this.router.navigate(['/'], { replaceUrl: true });
+      },
+      error: () => this.enCours.set(false),
+    });
+  }
   protected readonly enCours = signal(false);
 
   envoyer(): void {

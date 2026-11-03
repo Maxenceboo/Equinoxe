@@ -69,6 +69,7 @@ class Erreurs {
     return defer(() => from(f())).pipe(
       catchError((e: unknown) => {
         const erreur = versErreurHttp(e);
+        if (erreur.status !== 0 && !(e as { code?: string })?.code) console.error(e);
         if (erreur.status === 0) {
           // Pas de réseau : les écrans gèrent eux-mêmes le mode hors ligne
         } else if (erreur.status === 401 && !options.silencieux) {
@@ -143,6 +144,14 @@ export class ObjectifsService {
 
   listerObjectifs(archives = false): Observable<Objectif[]> {
     return this.erreurs.appel(async () => (await this.depot.lister(archives)).map((o) => versObjectif(o)));
+  }
+
+  /** Dernier jour coché (jusqu'à aujourd'hui), tous objectifs actifs confondus. */
+  derniereCoche(): Observable<string | null> {
+    return this.erreurs.appel(async () => {
+      const jours = (await this.depot.lister(false)).flatMap((o) => o.coches.map((c) => c.jour)).filter((j) => j <= aujourdhui());
+      return jours.length ? jours.reduce((a, b) => (a > b ? a : b)) : null;
+    }, { silencieux: true });
   }
 
   lireObjectif(id: number): Observable<Objectif> {

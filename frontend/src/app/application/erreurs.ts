@@ -20,7 +20,7 @@ export function versErreurHttp(e: unknown): HttpErrorResponse {
   if (e instanceof HttpErrorResponse) return e;
   const err = (e ?? {}) as { message?: string; code?: string; status?: number; name?: string };
   const message = err.message ?? '';
-  if (e instanceof TypeError || /fetch|network|Load failed|NetworkError/i.test(message) || err.name === 'AuthRetryableFetchError') {
+  if (/fetch|network|Load failed|NetworkError/i.test(message) || err.name === 'AuthRetryableFetchError') {
     return new HttpErrorResponse({ status: 0, statusText: 'Hors ligne' });
   }
   const code = err.code ?? '';

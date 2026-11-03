@@ -11,7 +11,7 @@ async function monter() {
   TestBed.configureTestingModule({
     providers: [
       provideRouter(
-        ['', 'bilan', 'compte', 'compte/archives', 'connexion', 'objectifs/nouveau', 'objectifs/:id', 'objectifs/:id/modifier'].map(
+        ['', 'bilan', 'foyer', 'profil', 'profil/archives', 'connexion', 'objectifs/nouveau', 'objectifs/:id', 'objectifs/:id/modifier'].map(
           (path) => ({ path, component: Vide }),
         ),
       ),
@@ -34,7 +34,7 @@ describe('écran parent', () => {
   it('remonte de la modification au détail, du détail à la semaine', () => {
     expect(parent('/objectifs/4/modifier')).toBe('/objectifs/4');
     expect(parent('/objectifs/4')).toBe('/');
-    expect(parent('/compte/archives')).toBe('/compte');
+    expect(parent('/profil/archives')).toBe('/profil');
   });
 });
 

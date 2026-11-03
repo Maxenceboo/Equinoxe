@@ -4,8 +4,9 @@ import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { CodeBinome, Mesure, Objectif, ObjectifSaisie, ObjectifSuivi, ValidationSaisie } from '../../api/generated';
-import { BinomesService, ObjectifsService } from '../../application/services';
+import { CodeBinome, Encouragement, Foyer, Mesure, Objectif, ObjectifSaisie, ObjectifSuivi, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
+import { ENCOURAGEMENTS } from '../foyer/foyer.page';
+import { BinomesService, FoyerService, ObjectifsService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -30,7 +31,44 @@ import {
         <h1>Cette<br />semaine</h1>
         <small>{{ semaine }}</small>
       </div>
+      @if (profil(); as p) {
+        <a class="niveau-puce" routerLink="/profil" [attr.aria-label]="'Niveau ' + p.nomNiveau + ', ' + p.points + ' points'">
+          <strong>{{ p.nomNiveau }}</strong>
+          <small>{{ p.points }} pts</small>
+        </a>
+      }
     </header>
+
+    @for (e of encouragements(); track e.id) {
+      <div class="encouragement-recu" role="status">
+        <span><strong>{{ e.de }}</strong> t'envoie : {{ texteEncouragement(e.type) }} !</span>
+        <button type="button" class="fermer" aria-label="Fermer" (click)="lireEncouragement(e.id)"><i class="pi pi-times"></i></button>
+      </div>
+    }
+
+    @if (charge()) {
+      @if (foyer(); as f) {
+        <a class="foyer-bande" routerLink="/foyer">
+          <div class="foyer-bande-haut">
+            <span class="etiquette">{{ f.nom }}</span>
+            <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches</span>
+          </div>
+          <div class="jauge"><span [style.width.%]="avancementFoyer()"></span></div>
+          @if (f.recompense) {
+            <small>{{ f.cochesSemaine >= f.objectifSemaine ? 'Gagné : ' : 'À la clé : ' }}{{ f.recompense }}</small>
+          }
+        </a>
+      } @else if (objectifs().length > 0) {
+        <a class="foyer-bande discret" routerLink="/foyer">
+          <span><i class="pi pi-home"></i> Fais-le en famille : crée ou rejoins un Foyer</span>
+          <i class="pi pi-chevron-right"></i>
+        </a>
+      }
+    }
+
+    @if (jokerSauveur(); as o) {
+      <p class="bandeau-joker"><i class="pi pi-shield"></i> Ton joker a protégé ta série « {{ o.nom }} ». Elle continue !</p>
+    }
 
     @if (objectifs().length > 0) {
       <section class="bilan" aria-label="Bilan de la semaine">
@@ -85,7 +123,12 @@ import {
           <a class="infos" [routerLink]="['/objectifs', o.id]">
             <div class="ligne-haut">
               <span class="nom">{{ o.nom }}</span>
-              <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
+              <span class="serie-et-jokers">
+                @if (o.progression.serie > 0 && o.progression.jokersRestants > 0) {
+                  <span class="jokers" [attr.aria-label]="o.progression.jokersRestants + ' joker(s) en réserve'"><i class="pi pi-shield"></i>{{ o.progression.jokersRestants }}</span>
+                }
+                <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
+              </span>
             </div>
             <div class="segments" aria-hidden="true">
               @for (plein of segments(o); track $index) {
@@ -240,6 +283,46 @@ export class AccueilPage implements OnInit, OnDestroy {
   protected readonly uniteDe = (m: Mesure | undefined) => unite(m);
   protected readonly quantite = quantiteSemaine;
 
+  // Récompenses et Foyer
+  private readonly profilApi = inject(ProfilService);
+  private readonly foyerApi = inject(FoyerService);
+  protected readonly profil = signal<Profil | null>(null);
+  protected readonly foyer = signal<Foyer | null>(null);
+  protected readonly encouragements = signal<Encouragement[]>([]);
+  protected readonly avancementFoyer = computed(() => {
+    const f = this.foyer();
+    return f ? Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100)) : 0;
+  });
+  protected readonly jokerSauveur = computed(() => this.objectifs().find((o) => o.progression.jokerUtilise) ?? null);
+
+  protected texteEncouragement(type: TypeEncouragement): string {
+    return ENCOURAGEMENTS.find((e) => e.type === type)?.texte ?? type;
+  }
+
+  lireEncouragement(id: number): void {
+    this.encouragements.update((l) => l.filter((e) => e.id !== id));
+    this.foyerApi.marquerVus([id]).subscribe();
+  }
+
+  private chargerRecompenses(apresCoche = false): void {
+    const avant = this.profil();
+    this.profilApi.profil().subscribe((p) => {
+      this.profil.set(p);
+      if (apresCoche && avant && p.niveau > avant.niveau) {
+        setTimeout(() => this.celebration.celebrer({
+          titre: 'Nouveau niveau !',
+          sousTitre: `Tu passes ${p.nomNiveau}. Continue comme ça.`,
+          nombre: String(p.points),
+          legende: 'points',
+        }), 2700);
+      }
+    });
+    this.foyerApi.foyer().subscribe((f) => {
+      this.foyer.set(f);
+      if (!apresCoche) this.encouragements.set(f?.encouragements ?? []);
+    });
+  }
+
   private readonly auRetourDuReseau = () => this.synchroniserPuisCharger();
 
   ngOnInit(): void {
@@ -255,6 +338,7 @@ export class AccueilPage implements OnInit, OnDestroy {
   private async synchroniserPuisCharger(): Promise<void> {
     await this.horsLigne.envoyer();
     this.chargerBinomes();
+    this.chargerRecompenses();
     this.api.listerObjectifs(false).subscribe({
       next: (liste) => {
         this.objectifs.set(liste);
@@ -318,6 +402,7 @@ export class AccueilPage implements OnInit, OnDestroy {
       next: (maj) => {
         this.remplacer(maj);
         this.notifications.synchroniser();
+        this.chargerRecompenses(true);
         if (!cocher) return;
         const fete = this.feterSiBesoin(o, maj);
         // Objectif chiffré : on demande la quantité juste après la coche (après la célébration s'il y en a une)

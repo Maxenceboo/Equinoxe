@@ -3,12 +3,24 @@ import { Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { firstValueFrom } from 'rxjs';
-import { RappelsService } from '../application/services';
+import { ObjectifsService, RappelsService } from '../application/services';
+import { ajouterJours } from '../domaine/jours';
 
 const CANAL = 'rappels-objectifs';
 const JOURS = 14;
 const ID_SECOURS = 1000;
 const ID_BILAN = 1001;
+const ID_RELANCE = 1002;
+/** Après ces jours sans coche, une seule relance douce. */
+export const JOURS_AVANT_RELANCE = 3;
+
+/** Date de la relance douce : 18 h, 3 jours après la dernière coche ; aucune si elle est déjà passée. */
+export function dateRelance(derniereCoche: string | null, maintenant: Date): Date | null {
+  if (!derniereCoche) return null;
+  const [a, m, j] = ajouterJours(derniereCoche, JOURS_AVANT_RELANCE).split('-').map(Number);
+  const quand = new Date(a, m - 1, j, 18, 0);
+  return quand > maintenant ? quand : null;
+}
 
 /**
  * Programme sur le téléphone les rappels calculés par le serveur (répartis sur la semaine).
@@ -17,6 +29,7 @@ const ID_BILAN = 1001;
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly rappels = inject(RappelsService);
+  private readonly objectifs = inject(ObjectifsService);
   private readonly router = inject(Router);
   private prete = false;
 
@@ -35,6 +48,8 @@ export class NotificationsService {
     try {
       if (!(await this.preparer())) return;
       const liste = await firstValueFrom(this.rappels.prochainsRappels(JOURS));
+      const derniere = await firstValueFrom(this.objectifs.derniereCoche());
+      const relance = dateRelance(derniere, new Date());
       const enAttente = await LocalNotifications.getPending();
       if (enAttente.notifications.length) {
         await LocalNotifications.cancel({ notifications: enAttente.notifications.map((n) => ({ id: n.id })) });
@@ -58,6 +73,16 @@ export class NotificationsService {
             body: 'Tes objectifs t\'attendent : ouvre l\'app pour garder ta flamme.',
             schedule: { on: { weekday: 2, hour: 9, minute: 0 }, allowWhileIdle: true },
           },
+          // Relance douce, une seule fois, après 3 jours sans coche
+          ...(relance
+            ? [{
+                id: ID_RELANCE,
+                channelId: CANAL,
+                title: 'Ta série t\'attend',
+                body: 'Pas de souci, ça arrive. Un tap suffit pour repartir.',
+                schedule: { at: relance, allowWhileIdle: true },
+              }]
+            : []),
           // Bilan du dimanche soir : ouvre l'écran de bilan
           {
             id: ID_BILAN,

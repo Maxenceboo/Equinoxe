@@ -5,14 +5,15 @@ import { Capacitor } from '@capacitor/core';
 import { filter } from 'rxjs';
 
 /** Écrans principaux, accessibles par la barre d'onglets. */
-export const ONGLETS = ['/', '/bilan', '/compte'] as const;
+export const ONGLETS = ['/', '/foyer', '/bilan', '/profil'] as const;
 
 /** Écran logique « au-dessus » d'une adresse, quand on n'a pas d'historique (ouverture par notification…). */
 export function parent(url: string): string {
   const chemin = url.split(/[?#]/)[0];
   const modifier = chemin.match(/^\/objectifs\/(\d+)\/modifier$/);
   if (modifier) return `/objectifs/${modifier[1]}`;
-  if (chemin === '/compte/archives') return '/compte';
+  if (chemin === '/profil/archives') return '/profil';
+  if (chemin === '/objectifs/nouveau/avance') return '/objectifs/nouveau';
   return '/';
 }
 

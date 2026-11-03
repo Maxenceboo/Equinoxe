@@ -12,14 +12,20 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./pages/accueil/accueil.page').then((m) => m.AccueilPage) },
       { path: 'bilan', loadComponent: () => import('./pages/bilan/bilan.page').then((m) => m.BilanPage) },
-      { path: 'compte', loadComponent: () => import('./pages/compte/compte.page').then((m) => m.ComptePage) },
+      { path: 'foyer', loadComponent: () => import('./pages/foyer/foyer.page').then((m) => m.FoyerPage) },
+      { path: 'profil', loadComponent: () => import('./pages/profil/profil.page').then((m) => m.ProfilPage) },
       {
-        path: 'compte/archives',
+        path: 'profil/archives',
         loadComponent: () => import('./pages/archives/archives.page').then((m) => m.ArchivesPage),
       },
-      { path: 'archives', redirectTo: 'compte/archives' },
+      { path: 'compte', redirectTo: 'profil' },
+      { path: 'archives', redirectTo: 'profil/archives' },
       {
         path: 'objectifs/nouveau',
+        loadComponent: () => import('./pages/assistant/assistant.page').then((m) => m.AssistantPage),
+      },
+      {
+        path: 'objectifs/nouveau/avance',
         loadComponent: () => import('./pages/objectif-form/objectif-form.page').then((m) => m.ObjectifFormPage),
       },
       {
