@@ -1,4 +1,6 @@
-# Publie le dossier site/ sur GitHub Pages (page de confirmation d'email, page d'accueil).
+# Envoie le dossier site/ sur l'hébergement OVH (equinoxe-app.fr) par FTP à chaque modification.
+# Secrets à créer dans GitHub (Settings > Secrets and variables > Actions) :
+#   OVH_FTP_SERVEUR (ex. ftp.cluster0XX.hosting.ovh.net), OVH_FTP_UTILISATEUR, OVH_FTP_MOT_DE_PASSE
 name: Site
 
 on:
@@ -9,24 +11,20 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: site
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  ovh:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploiement.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          path: site
-      - id: deploiement
-        uses: actions/deploy-pages@v4
+          server: ${{ secrets.OVH_FTP_SERVEUR }}
+          username: ${{ secrets.OVH_FTP_UTILISATEUR }}
+          password: ${{ secrets.OVH_FTP_MOT_DE_PASSE }}
+          local-dir: ./site/
+          server-dir: ./www/
