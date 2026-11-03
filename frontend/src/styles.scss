@@ -726,3 +726,4 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   &.choisie { border-color: var(--texte); .etat { color: var(--texte); } }
   &:disabled { opacity: 0.4; cursor: default; }
 }
+.membre-infos .lien-details { align-self: flex-start; padding: 0.3rem 0 0; }

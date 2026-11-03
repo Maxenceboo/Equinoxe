@@ -196,6 +196,7 @@ export type Database = {
       rejoindre_foyer: { Args: { p_code: string; p_parent?: boolean; p_prenom: string }; Returns: number }
       est_membre: { Args: { p_foyer: number }; Returns: boolean }
       est_parent: { Args: { p_foyer: number }; Returns: boolean }
+      nommer_parent: { Args: { p_foyer: number; p_membre: string }; Returns: undefined }
       objectifs_suivis: {
         Args: Record<PropertyKey, never>;
         Returns: {

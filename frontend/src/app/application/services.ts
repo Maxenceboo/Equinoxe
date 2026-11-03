@@ -465,6 +465,14 @@ export class FoyerService {
     });
   }
 
+  /** Un parent du groupe nomme un autre membre parent. */
+  nommerParent(foyerId: number, membre: string): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { error } = await this.db.rpc('nommer_parent', { p_foyer: foyerId, p_membre: membre });
+      if (error) throw error;
+    });
+  }
+
   encourager(foyerId: number, a: string, type: TypeEncouragement): Observable<void> {
     return this.erreurs.appel(async () => {
       const { error } = await this.db.from('encouragement').insert({ foyer_id: foyerId, a, type });

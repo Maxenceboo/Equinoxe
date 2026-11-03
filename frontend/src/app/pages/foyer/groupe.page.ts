@@ -54,7 +54,10 @@ import { SchemaFormService } from '../../core/schema-form.service';
           <li class="membre">
             <div class="membre-infos">
               <span class="nom">{{ m.prenom }}{{ m.moi ? ' (toi)' : '' }}</span>
-              <small>{{ resume(m) }}</small>
+              <small>{{ m.parent ? 'Parent · ' : '' }}{{ resume(m) }}</small>
+              @if (f.parent && !m.parent && !m.moi) {
+                <button type="button" class="lien-details" (click)="nommerParent(f, m)">Nommer parent</button>
+              }
             </div>
             @if (!m.moi) {
               <button type="button" class="puce encourager" [class.envoye]="envoyes().has(m.id)" [disabled]="envoyes().has(m.id)" (click)="encourager(f, m)">
@@ -149,6 +152,13 @@ export class GroupePage implements OnInit {
     this.api.encourager(f.id, m.id, type).subscribe(() => {
       this.envoyes.update((e) => new Set(e).add(m.id));
       this.messages.add({ severity: 'success', summary: 'Envoyé', detail: `${m.prenom} le verra en ouvrant l'app.` });
+    });
+  }
+
+  nommerParent(f: Foyer, m: MembreFoyer): void {
+    this.api.nommerParent(f.id, m.id).subscribe(() => {
+      this.messages.add({ severity: 'success', summary: 'C\'est fait', detail: `${m.prenom} peut maintenant régler la récompense.` });
+      this.charger();
     });
   }
 
