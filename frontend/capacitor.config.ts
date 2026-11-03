@@ -10,7 +10,15 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
     cleartext: true,
   },
+  // Fond noir derrière la page, y compris sous les barres système
+  backgroundColor: '#000000',
   plugins: {
+    // Barres système : icônes claires sur fond noir, marges gérées en CSS (safe-area)
+    SystemBars: {
+      style: 'DARK',
+      insetsHandling: 'css',
+      initialViewportFitValueHint: 'cover',
+    },
     LocalNotifications: {
       iconColor: '#ffffff',
     },
