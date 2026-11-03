@@ -48,16 +48,12 @@ import { SchemaFormService } from '../../core/schema-form.service';
       </section>
 
       <h2 class="titre-section">Membres</h2>
-      <p class="aide">Touche « Encourager » pour envoyer un petit mot à quelqu'un : il le verra en ouvrant l'app.</p>
       <ul class="membres">
         @for (m of f.membres; track m.id) {
           <li class="membre">
             <div class="membre-infos">
               <span class="nom">{{ m.prenom }}{{ m.moi ? ' (toi)' : '' }}</span>
               <small>{{ m.parent ? 'Parent · ' : '' }}{{ resume(m) }}</small>
-              @if (f.parent && !m.parent && !m.moi) {
-                <button type="button" class="lien-details" (click)="nommerParent(f, m)">Nommer parent</button>
-              }
             </div>
             @if (!m.moi) {
               <button type="button" class="puce encourager" [class.envoye]="envoyes().has(m.id)" [disabled]="envoyes().has(m.id)" (click)="encourager(f, m)">
@@ -71,7 +67,7 @@ import { SchemaFormService } from '../../core/schema-form.service';
 
       <div class="encart">
         <p><strong>Inviter quelqu'un</strong></p>
-        <p class="aide">Donne ce code. Dans l'onglet Proches, il suffit de toucher « Créer ou rejoindre un groupe ». Sans compte, choisir « J'ai un code de groupe » à l'ouverture de l'app.</p>
+        <p class="aide">À entrer dans Proches, « Créer ou rejoindre un groupe ».</p>
         <p class="code-foyer" aria-label="Code du groupe">{{ f.code.slice(0, 3) }} {{ f.code.slice(3) }}</p>
         <p-button label="Partager le code" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(f)" />
       </div>
@@ -82,6 +78,16 @@ import { SchemaFormService } from '../../core/schema-form.service';
           <formly-form [form]="formReglages" [fields]="champsReglages" [model]="modelReglages" />
           <p-button type="submit" label="Enregistrer" [outlined]="true" [loading]="enCours()" />
         </form>
+
+        @if (nonParents(f).length > 0) {
+          <p class="sous-etiquette">Nommer un autre parent</p>
+          <p class="aide">Un parent peut changer la récompense et l'objectif du groupe.</p>
+          <ul class="reglages">
+            @for (m of nonParents(f); track m.id) {
+              <li><button type="button" class="reglage" (click)="nommerParent(f, m)"><span>{{ m.prenom }}</span><small>Nommer parent</small></button></li>
+            }
+          </ul>
+        }
       }
 
       <p-button class="quitter-foyer" label="Quitter ce groupe" [text]="true" severity="secondary" (onClick)="quitter(f)" />
@@ -125,6 +131,10 @@ export class GroupePage implements OnInit {
       },
       error: () => this.charge.set(true),
     });
+  }
+
+  protected nonParents(f: Foyer): MembreFoyer[] {
+    return f.membres.filter((m) => !m.parent && !m.moi);
   }
 
   protected resume(m: MembreFoyer): string {

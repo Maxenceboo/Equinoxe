@@ -46,19 +46,11 @@ import {
       </div>
     }
 
-    @if (charge()) {
-      @for (f of foyers(); track f.id) {
-        <a class="foyer-bande" [routerLink]="['/foyer', f.id]">
-          <div class="foyer-bande-haut">
-            <span class="etiquette">{{ f.nom }}</span>
-            <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches</span>
-          </div>
-          <div class="jauge"><span [style.width.%]="avancementFoyer(f)"></span></div>
-          @if (f.recompense) {
-            <small>{{ f.cochesSemaine >= f.objectifSemaine ? 'Gagné : ' : 'À la clé : ' }}{{ f.recompense }}</small>
-          }
-        </a>
-      }
+    @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
+      <p class="bandeau-hors-ligne">
+        <i class="pi pi-wifi"></i>
+        Hors ligne. {{ horsLigne.enAttente().length }} action(s) enregistrée(s) sur le téléphone, envoyée(s) au retour du réseau.
+      </p>
     }
 
     @if (jokerSauveur(); as o) {
@@ -76,24 +68,6 @@ import {
           <span>fait(s) aujourd'hui</span>
         </div>
       </section>
-    }
-
-    @if (suggestion(); as o) {
-      <section class="conseil" aria-label="Proposition de nouvelle cible">
-        <p class="etiquette">{{ o.nom }}</p>
-        <p>{{ o.suggestion?.raison }}</p>
-        <div class="actions">
-          <p-button label="Plus tard" [text]="true" (onClick)="plusTard(o)" />
-          <p-button [label]="'Passer à ' + o.suggestion?.nouvelleCible + ' par semaine'" (onClick)="accepter(o)" />
-        </div>
-      </section>
-    }
-
-    @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
-      <p class="bandeau-hors-ligne">
-        <i class="pi pi-wifi"></i>
-        Hors ligne. {{ horsLigne.enAttente().length }} action(s) enregistrée(s) sur le téléphone, envoyée(s) au retour du réseau.
-      </p>
     }
 
     @if (charge() && objectifs().length === 0) {
@@ -159,8 +133,35 @@ import {
     </ul>
 
     @if (objectifs().length > 0) {
-      <p-button class="fab" icon="pi pi-plus" ariaLabel="Nouvel objectif" routerLink="/objectifs/nouveau" />
+      <a class="ajouter-objectif" routerLink="/objectifs/nouveau"><i class="pi pi-plus"></i> Nouvel objectif</a>
     }
+
+    @if (suggestion(); as o) {
+      <section class="conseil" aria-label="Proposition de nouvelle cible">
+        <p class="etiquette">{{ o.nom }}</p>
+        <p>{{ o.suggestion?.raison }}</p>
+        <div class="actions">
+          <p-button label="Plus tard" [text]="true" (onClick)="plusTard(o)" />
+          <p-button [label]="'Passer à ' + o.suggestion?.nouvelleCible + ' par semaine'" (onClick)="accepter(o)" />
+        </div>
+      </section>
+    }
+
+    @if (charge()) {
+      @for (f of foyers(); track f.id) {
+        <a class="foyer-bande" [routerLink]="['/foyer', f.id]">
+          <div class="foyer-bande-haut">
+            <span class="etiquette">{{ f.nom }}</span>
+            <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches</span>
+          </div>
+          <div class="jauge"><span [style.width.%]="avancementFoyer(f)"></span></div>
+          @if (f.recompense) {
+            <small>{{ f.cochesSemaine >= f.objectifSemaine ? 'Gagné : ' : 'À la clé : ' }}{{ f.recompense }}</small>
+          }
+        </a>
+      }
+    }
+
 
     <p-dialog
       [header]="enDetail()?.nom ?? ''"

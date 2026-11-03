@@ -16,7 +16,7 @@ import { Flamme } from '../../shared/flamme';
     <section class="binomes" aria-label="Amis">
       <h2 class="titre-section">Amis</h2>
       @for (b of binomes(); track b.objectifId) {
-        <div class="binome">
+        <div class="binome" (click)="ouvert.set(ouvert() === b.objectifId ? null : b.objectifId)">
           <div class="ligne-haut">
             <span class="nom">{{ b.nom }} <small>· {{ b.ami }}</small></span>
             <app-flamme [valeur]="b.progression.serie" [unite]="b.progression.uniteSerie" />
@@ -30,7 +30,9 @@ import { Flamme } from '../../shared/flamme';
             <small>{{ etat(b) }}</small>
             <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
           </div>
-          <button type="button" class="lien-details quitter" (click)="quitter(b)">Ne plus suivre</button>
+          @if (ouvert() === b.objectifId) {
+            <button type="button" class="lien-details quitter" (click)="quitter(b); $event.stopPropagation()">Ne plus suivre {{ b.ami }}</button>
+          }
         </div>
       } @empty {
         <p class="aide">Un ami hors de la famille ? Partage un objectif depuis sa page, ou entre le code qu'il t'a donné : vous verrez vos flammes.</p>
@@ -61,6 +63,8 @@ export class Amis implements OnInit {
   private readonly api = inject(BinomesService);
   protected readonly binomes = signal<ObjectifSuivi[]>([]);
   protected readonly rejoindre = signal(false);
+  /** Ami dont on montre l'action « Ne plus suivre » (cachée par défaut pour éviter un tap malheureux). */
+  protected readonly ouvert = signal<number | null>(null);
   protected formCode = new FormGroup({});
   protected modelCode: Partial<CodeBinome> = {};
   protected readonly champsCode = inject(SchemaFormService).champs('CodeBinome', {

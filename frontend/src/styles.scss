@@ -200,8 +200,8 @@ formly-field-primeng-radio {
 
 .fab {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  /* En bas à droite, aligné sur la colonne de contenu : ne cache plus le texte des objectifs */
+  right: max(1.25rem, calc((100vw - 32rem) / 2 + 1.25rem));
   bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
   z-index: 5;
   .avec-onglets & { bottom: calc(env(safe-area-inset-bottom) + 4.75rem); }
@@ -718,7 +718,7 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 }
 .liste-palettes { list-style: none; padding: 0; margin: 0 0 2rem; }
 .ligne-palette {
-  width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0.75rem; margin: 0 -0.75rem; box-sizing: content-box;
+  width: 100%; display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0.75rem;
   background: none; color: var(--texte); border: 1px solid transparent; border-radius: var(--rayon); font: inherit; cursor: pointer; text-align: left;
   .disque { width: 2.25rem; height: 2.25rem; border-radius: 50%; flex: none; }
   strong { flex: 1; font-weight: 600; }
@@ -727,3 +727,11 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   &:disabled { opacity: 0.4; cursor: default; }
 }
 .membre-infos .lien-details { align-self: flex-start; padding: 0.3rem 0 0; }
+
+
+.ajouter-objectif {
+  display: flex; align-items: center; gap: 0.9rem; padding: 1.1rem 0; margin-bottom: 2rem; border-bottom: 1px solid var(--ligne);
+  color: var(--discret); text-decoration: none; font-weight: 600;
+  .pi { width: 3.25rem; height: 3.25rem; display: grid; place-items: center; border: 1.5px dashed var(--ligne-forte); border-radius: 8px; color: var(--texte); }
+}
+.binome { cursor: pointer; }
