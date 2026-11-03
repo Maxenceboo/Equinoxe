@@ -1,10 +1,12 @@
 /**
- * Projet Supabase utilisé par l'app.
- * - En local (npx supabase start) : les valeurs ci-dessous marchent telles quelles.
- * - En vrai : Supabase > ton projet > Project Settings > API Keys, puis copier l'URL du projet et la clé
- *   « publishable » (elle peut être publique : la sécurité vient des règles RLS de la base).
+ * Projet Supabase utilisé par l'app (projet « Equinoxe », région Europe).
+ * La clé « publishable » peut être publique : la sécurité vient des règles RLS de la base.
+ *
+ * Pour travailler en local (npx supabase start), remplacer par :
+ *   url: 'http://127.0.0.1:54321',
+ *   cle: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
  */
 export const SUPABASE = {
-  url: 'http://127.0.0.1:54321',
-  cle: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH',
+  url: 'https://rdfvwiaswbtemptfzjul.supabase.co',
+  cle: 'sb_publishable_7RK_0G4Aiaue88Y5ZzDvXQ_0Y79aZQ-',
 };
