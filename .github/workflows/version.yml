@@ -1,11 +1,13 @@
-# Publie une version stable : à chaque tag vX.Y.Z poussé (ex. git tag v1.1.0 && git push origin v1.1.0),
-# construit l'APK et l'envoie sur equinoxe-app.fr/apk/. La page equinoxe-app.fr/telecharger/ propose
-# toujours la dernière version envoyée.
+# Publie une version stable : à chaque changement de version.txt sur main (ex. 1.0.0 -> 1.1.0),
+# construit l'APK signé et l'envoie sur equinoxe-app.fr/apk/. La page equinoxe-app.fr/telecharger/
+# propose toujours la dernière version envoyée.
 name: Version stable
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+    paths: ['version.txt']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -38,6 +40,9 @@ jobs:
           npm run build
           npx cap sync android
 
+      - name: Numéro de version
+        run: echo "VERSION=$(tr -d '[:space:]' < version.txt)" >> "$GITHUB_ENV"
+
       - name: APK signé
         working-directory: frontend/android
         env:
@@ -49,14 +54,14 @@ jobs:
           echo "$EQUINOXE_KEYSTORE_BASE64" | base64 -d > "$EQUINOXE_KEYSTORE"
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon \
-            -PversionName="${GITHUB_REF_NAME#v}" -PversionCode="${{ github.run_number }}"
+            -PversionName="$VERSION" -PversionCode="${{ github.run_number }}"
 
       - name: Préparation
         run: |
           mkdir publication
           cp frontend/android/app/build/outputs/apk/release/app-release.apk publication/equinoxe.apk
           taille=$(stat -c %s publication/equinoxe.apk)
-          printf '{"version":"%s","date":"%s","taille":%s}\n' "${GITHUB_REF_NAME#v}" "$(date -u +%Y-%m-%d)" "$taille" > publication/version.json
+          printf '{"version":"%s","date":"%s","taille":%s}\n' "$VERSION" "$(date -u +%Y-%m-%d)" "$taille" > publication/version.json
           cat publication/version.json
 
       - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
