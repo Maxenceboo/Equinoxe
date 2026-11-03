@@ -1,0 +1,57 @@
+# Construit l'APK Android à chaque push sur main (ou à la demande depuis l'onglet Actions).
+# L'APK se télécharge dans l'onglet Actions du dépôt, en bas de la page du run (« equinoxe-apk »).
+name: APK Android
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Build web (génère aussi les types depuis l'OpenAPI)
+        run: npm run build
+
+      - name: Copie dans le projet Android
+        run: npx cap sync android
+
+      - name: APK
+        working-directory: frontend/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: equinoxe-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
