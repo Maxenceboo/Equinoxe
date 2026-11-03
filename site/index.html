@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Équinoxe · Tenir. Pas tout réussir.</title>
-  <meta name="description" content="Équinoxe compte ce que tu fais, pas ce que tu promets. Objectifs à la semaine, un rappel à ton heure, des groupes pour tenir à plusieurs. Gratuit, sans pub, Android." />
+  <title>Équinoxe · Tenir ses objectifs, en famille</title>
+  <meta name="description" content="Une petite app pour tenir le sport, le coucher, la lecture, seul ou en famille. Gratuite, sans pub, sur Android." />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="favicon.png" />
   <style>
-    :root { --noir: #000; --blanc: #fff; --gris: #8a8a8a; --gris-fonce: #2a2a2a; --rayon: 6px;
+    :root { --marge: clamp(24px, 9vw, 150px); --noir: #000; --blanc: #fff; --gris: #8a8a8a; --gris-fonce: #2a2a2a; --rayon: 6px;
       --police: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -16,45 +16,44 @@
       transition: background-color .6s ease, color .6s ease; overflow-x: hidden; }
     body.jour { background: var(--blanc); color: var(--noir); }
     a { color: inherit; }
-    .grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 6vw; }
+    .grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 var(--marge); }
 
     /* Logo + lune de lecture */
-    .marque { position: fixed; top: 22px; left: 6vw; z-index: 10; display: flex; align-items: center; gap: 10px;
+    .marque { position: fixed; top: 22px; left: var(--marge); z-index: 10; display: flex; align-items: center; gap: 10px;
       font-weight: 700; letter-spacing: .02em; text-decoration: none; font-size: 15px; mix-blend-mode: difference; color: #fff; }
     .marque svg { width: 22px; height: 22px; }
-    .lune-lecture { position: fixed; top: 20px; right: 6vw; z-index: 10; width: 26px; height: 26px; mix-blend-mode: difference; }
+    .lune-lecture { position: fixed; top: 20px; right: var(--marge); z-index: 10; width: 26px; height: 26px; mix-blend-mode: difference; }
 
     /* 1. Accroche */
-    .accroche { min-height: 100svh; position: relative; display: flex; align-items: flex-end; padding: 0 6vw 14vh; }
-    .accroche h1 { margin: 0; font-size: clamp(56px, 11vw, 190px); line-height: .9; letter-spacing: -.045em; font-weight: 800; max-width: 11ch; }
+    .accroche { min-height: 100svh; position: relative; display: flex; flex-direction: column; justify-content: flex-end; gap: 28px; padding: 0 var(--marge) 16vh; }
+    .accroche h1 { margin: 0; font-size: clamp(44px, 7.5vw, 128px); line-height: .9; letter-spacing: -.045em; font-weight: 800; max-width: 14ch; }
     .accroche h1 span { display: inline-block; opacity: 0; transform: translateY(.25em); animation: monte .7s cubic-bezier(.2,.7,.2,1) forwards; }
     .accroche h1 span:nth-child(2) { animation-delay: .12s } .accroche h1 span:nth-child(3) { animation-delay: .24s } .accroche h1 span:nth-child(4) { animation-delay: .36s }
-    .accroche p { position: absolute; right: 6vw; bottom: 14vh; margin: 0; max-width: 22ch; color: var(--gris); font-size: clamp(16px, 1.4vw, 20px); line-height: 1.4;
+    .accroche p { margin: 0; max-width: 34ch; color: var(--gris); font-size: clamp(16px, 1.4vw, 20px); line-height: 1.4;
       opacity: 0; animation: apparait 1s .9s forwards; }
-    .croissant { position: absolute; top: 8vh; right: -6vw; width: 38vw; max-width: 560px; opacity: .9; }
-    .fil { position: absolute; left: 6vw; bottom: 0; width: 1px; height: 0; background: var(--blanc); animation: fil 1.6s 1.2s ease-out forwards; }
+    .croissant { position: absolute; top: 9vh; right: var(--marge); width: 16vw; max-width: 240px; opacity: .9; }
+    .fil { position: absolute; left: var(--marge); bottom: 0; width: 1px; height: 0; background: var(--blanc); animation: fil 1.6s 1.2s ease-out forwards; }
     @keyframes monte { to { opacity: 1; transform: none; } }
     @keyframes apparait { to { opacity: 1; } }
     @keyframes fil { to { height: 10vh; } }
 
     /* 2. Pourquoi */
-    .pourquoi { padding: 30vh 0 20vh; }
-    .pourquoi .lignes { grid-column: 1 / 12; }
-    .pourquoi p { margin: 0; font-size: clamp(38px, 7.4vw, 128px); font-weight: 800; letter-spacing: -.04em; line-height: 1;
+    .pourquoi { padding: 30vh var(--marge) 20vh; }
+    .pourquoi .lignes { grid-column: 1 / 13; }
+    .pourquoi p { margin: 0 0 .5em; font-size: clamp(26px, 3.6vw, 56px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15; max-width: 26ch;
       color: var(--gris-fonce); transition: color .5s ease; }
     .pourquoi p.vue { color: var(--blanc); }
-    .pourquoi p:nth-child(3), .pourquoi p:nth-child(4) { padding-left: 8vw; }
-    .inverse { grid-column: 6 / 13; margin-top: 70vh !important; font-size: clamp(30px, 4.6vw, 80px) !important; }
+        .inverse { grid-column: 1 / 13; margin-top: 30vh !important; }
 
     /* 3. Produit */
     .produit { position: relative; height: 520vh; }
-    .scene { position: sticky; top: 0; height: 100svh; display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 6vw; align-items: center; }
-    .telephone { grid-column: 2 / 6; justify-self: center; width: min(300px, 70vw); aspect-ratio: 9 / 19; border: 1px solid #3a3a3a; border-radius: 34px;
+    .scene { position: sticky; top: 0; height: 100svh; display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 var(--marge); align-items: center; }
+    .telephone { grid-column: 1 / 6; justify-self: start; width: min(300px, 70vw); aspect-ratio: 9 / 19; border: 1px solid #3a3a3a; border-radius: 34px;
       padding: 18px 16px; position: relative; overflow: hidden; background: #050505; }
     .ecran { position: absolute; inset: 18px 16px; opacity: 0; transition: opacity .25s ease; }
     .ecran.actif { opacity: 1; }
     .phrase { grid-column: 7 / 13; position: relative; min-height: 3em; }
-    .phrase p { position: absolute; inset: 0 auto auto 0; margin: 0; font-size: clamp(30px, 4.4vw, 76px); font-weight: 800; letter-spacing: -.035em; line-height: 1;
+    .phrase p { position: absolute; inset: 0 auto auto 0; margin: 0; font-size: clamp(26px, 3.2vw, 52px); font-weight: 700; letter-spacing: -.025em; line-height: 1.15;
       opacity: 0; transform: translateY(16px); transition: opacity .25s ease, transform .25s ease; }
     .phrase p.actif { opacity: 1; transform: none; }
     .etape-num { position: absolute; top: -2.5em; left: 0; font-size: 13px; color: var(--gris); letter-spacing: .2em; }
@@ -83,46 +82,39 @@
     .membre em { font-style: normal; color: var(--gris); }
 
     /* 4. Engagements */
-    .engagements { padding: 24vh 0 30vh; row-gap: 22vh; }
+    .engagements { padding: 20vh var(--marge) 26vh; row-gap: 10vh; }
     .eng { position: relative; opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
     .eng.vue { opacity: 1; transform: none; }
-    .eng:nth-child(1) { grid-column: 1 / 8; }
-    .eng:nth-child(2) { grid-column: 7 / 12; margin-top: 10vh; }
-    .eng:nth-child(3) { grid-column: 1 / 13; }
-    .num { font-size: clamp(120px, 20vw, 340px); font-weight: 800; line-height: .8; letter-spacing: -.06em; color: transparent;
-      -webkit-text-stroke: 1px #4a4a4a; display: block; margin-bottom: -.32em; }
-    .eng h2 { position: relative; margin: 0 0 18px; font-size: clamp(32px, 4.6vw, 78px); letter-spacing: -.04em; line-height: .95; font-weight: 800; }
+    .eng { grid-column: 1 / 13; display: grid; grid-template-columns: 1fr 1fr; gap: 0 4vw; align-items: start; border-top: 1px solid #222; padding-top: 4vh; }
+    .num { grid-column: 1 / 3; font-size: 13px; letter-spacing: .2em; color: var(--gris); display: block; margin-bottom: 14px; }
+    .eng h2 { position: relative; margin: 0; font-size: clamp(26px, 3vw, 48px); letter-spacing: -.025em; line-height: 1.1; font-weight: 800; }
     .eng p { position: relative; margin: 0; max-width: 30ch; font-size: clamp(17px, 1.5vw, 22px); line-height: 1.45; color: var(--gris); }
-    .eng:nth-child(3) h2 { max-width: 14ch; }
-    .eng:nth-child(3) p { margin-left: auto; margin-top: -2.4em; }
+    
 
     /* 5. Bascule */
-    .bascule { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 6vw; }
-    .bascule h2 { margin: 0; font-size: clamp(52px, 10vw, 176px); letter-spacing: -.05em; line-height: .9; font-weight: 800; }
+    .bascule { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--marge); }
+    .bascule h2 { margin: 0; font-size: clamp(40px, 6.5vw, 110px); letter-spacing: -.04em; line-height: 1; font-weight: 800; }
     .bascule .sous { margin: 28px 0 44px; font-size: clamp(17px, 1.5vw, 22px); color: #555; }
     .bouton { align-self: flex-start; display: inline-block; background: var(--noir); color: var(--blanc); text-decoration: none; font-weight: 700;
       font-size: 19px; padding: 22px 38px; border-radius: var(--rayon); transition: transform .15s ease; }
     .bouton:hover { transform: translateY(-2px); }
     .version { margin-top: 14px; font-size: 13px; color: #777; }
-    footer { padding: 28px 6vw; display: flex; justify-content: space-between; font-size: 13px; color: #777; }
+    footer { padding: 28px var(--marge); display: flex; justify-content: space-between; font-size: 13px; color: #777; }
     footer a { text-decoration: none; }
 
     @media (max-width: 760px) {
       .accroche { padding-bottom: 22vh; }
-      .accroche p { left: 6vw; right: auto; bottom: 10vh; }
-      .croissant { width: 70vw; right: -22vw; top: 12vh; }
-      .pourquoi p:nth-child(3), .pourquoi p:nth-child(4) { padding-left: 0; }
-      .inverse { grid-column: 3 / 13; margin-top: 40vh !important; }
+      .croissant { width: 40vw; top: 14vh; }
+      .inverse { margin-top: 16vh !important; }
       .produit { height: auto; }
-      .scene { position: static; height: auto; display: block; padding: 0 6vw; }
+      .scene { position: static; height: auto; display: block; padding: 0 var(--marge); }
       .telephone, .phrase { display: none; }
       .pile { display: grid !important; gap: 14vh; padding: 10vh 0; }
-      .eng:nth-child(1), .eng:nth-child(2), .eng:nth-child(3) { grid-column: 1 / 13; margin-top: 0; }
-      .eng:nth-child(3) p { margin: 0; }
+      .eng { grid-template-columns: 1fr; gap: 14px; }
       .bouton { align-self: stretch; text-align: center; }
     }
     .pile { display: none; }
-    .pile .bloc > p { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1; margin: 0 0 22px; }
+    .pile .bloc > p { font-size: 26px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; margin: 0 0 22px; }
     .pile .telephone { display: block; position: relative; margin: 0; }
     .pile .ecran { opacity: 1; }
 
@@ -146,21 +138,19 @@
   <!-- 1. Accroche -->
   <section class="accroche">
     <svg class="croissant" viewBox="0 0 100 100" aria-hidden="true"><mask id="c"><rect width="100" height="100" fill="#fff"/><circle cx="43" cy="50" r="44" fill="#000"/></mask><circle cx="50" cy="50" r="44" fill="#fff" mask="url(#c)"/></svg>
-    <h1><span>Tenir.</span> <span>Pas</span> <span>tout</span> <span>réussir.</span></h1>
-    <p>Équinoxe compte ce que tu fais, pas ce que tu promets.</p>
+    <h1><span>On l'a faite</span> <span>pour tenir</span> <span>nos bonnes</span> <span>résolutions.</span></h1>
+    <p>Équinoxe est une petite app pour le sport, le coucher, la lecture, ou ce que tu veux. Tu coches quand c'est fait, seul ou en famille.</p>
     <span class="fil" aria-hidden="true"></span>
   </section>
 
   <!-- 2. Pourquoi -->
   <section class="pourquoi grille">
     <div class="lignes">
-      <p class="revele">Lundi, on promet tout.</p>
-      <p class="revele">Jeudi, on lâche.</p>
-      <p class="revele">Pas par paresse.</p>
-      <p class="revele">Parce qu'un jour raté efface tout.</p>
-      <p class="revele">Et que personne ne regarde.</p>
+      <p class="revele">Chaque début d'année, on se fixait des choses à la maison : courir, lire, se coucher plus tôt.</p>
+      <p class="revele">Trois semaines plus tard, plus personne n'en parlait.</p>
+      <p class="revele">On oubliait un jour, puis deux, et on finissait par laisser tomber.</p>
     </div>
-    <p class="revele inverse">On a construit l'inverse.</p>
+    <p class="revele inverse">Alors on a fait une app où rater un jour n'est pas grave, et où on voit les autres avancer.</p>
   </section>
 
   <!-- 3. Produit -->
@@ -197,11 +187,11 @@
       </div>
       <div class="phrase" aria-live="polite">
         <span class="etape-num" id="etape-num">01 / 05</span>
-        <p data-e="0">18 h. Un rappel. Un seul.</p>
-        <p data-e="1">Un tap. C'est noté.</p>
-        <p data-e="2">Mardi raté ? Le joker garde ta série.</p>
-        <p data-e="3">Dimanche. Semaine tenue.</p>
-        <p data-e="4">Ta fille a coché aussi.</p>
+        <p data-e="0">Le rappel arrive à l'heure où tu le fais d'habitude.</p>
+        <p data-e="1">Quand c'est fait, tu coches.</p>
+        <p data-e="2">Tu as raté mardi ? Un joker par mois protège ta série.</p>
+        <p data-e="3">Le dimanche, tu vois ta semaine se remplir.</p>
+        <p data-e="4">Et celle de ta famille, sur une jauge commune.</p>
       </div>
       <div class="pile" id="pile"></div>
     </div>
@@ -209,16 +199,16 @@
 
   <!-- 4. Engagements -->
   <section class="engagements grille">
-    <article class="eng"><span class="num" aria-hidden="true">01</span><h2>On compte en semaines.</h2><p>Trois séances, c'est trois séances. Peu importe le jour. Un jour raté ne casse rien.</p></article>
-    <article class="eng"><span class="num" aria-hidden="true">02</span><h2>On ne te harcèle pas.</h2><p>Un rappel, à ton heure. Il apprend quand tu le fais vraiment. Puis il se tait.</p></article>
-    <article class="eng"><span class="num" aria-hidden="true">03</span><h2>On tient à plusieurs.</h2><p>Famille, amis, collègues. Une jauge commune. Une récompense choisie ensemble. Un « Encourager », pas une messagerie.</p></article>
+    <article class="eng"><span class="num" aria-hidden="true">01</span><h2>Ça se compte à la semaine</h2><p>Si tu vises trois séances, tu les fais quand tu peux : lundi, jeudi ou dimanche, c'est pareil.</p></article>
+    <article class="eng"><span class="num" aria-hidden="true">02</span><h2>Un seul rappel par jour</h2><p>L'app regarde à quelle heure tu coches et cale le rappel dessus. Si tu n'as rien coché depuis trois jours, elle te fait signe une fois.</p></article>
+    <article class="eng"><span class="num" aria-hidden="true">03</span><h2>C'est plus facile à plusieurs</h2><p>Crée un groupe avec ta famille ou tes amis. Chaque coche fait monter la jauge du groupe, et vous choisissez ensemble ce que vous gagnez en fin de semaine.</p></article>
   </section>
 
   <!-- 5. Bascule -->
   <section class="bascule" id="bascule">
-    <h2>Ce soir,<br />une coche.</h2>
-    <p class="sous">Gratuit. Sans pub. Android. Une minute pour commencer.</p>
-    <a class="bouton" href="telecharger/">Commencer ce soir</a>
+    <h2>Ça prend une minute pour commencer.</h2>
+    <p class="sous">Gratuit, sans publicité, sur Android.</p>
+    <a class="bouton" href="telecharger/">Télécharger l'app</a>
     <span class="version" id="version"></span>
   </section>
 
