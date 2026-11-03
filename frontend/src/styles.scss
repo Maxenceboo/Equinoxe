@@ -255,7 +255,7 @@ formly-field-primeng-radio {
   grid-template-columns: 1fr 1fr;
   gap: var(--pas);
   margin-bottom: 1.5rem;
-  div { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.75rem 1rem; display: grid; gap: 0.15rem; }
+  div { display: grid; gap: 0.15rem; }
   strong { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
   strong span { color: var(--discret); font-weight: 500; }
   div > span { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--discret); }
@@ -418,7 +418,7 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   grid-template-columns: 1fr 1fr;
   gap: var(--pas);
   width: 100%;
-  div { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.75rem 1rem; display: grid; gap: 0.15rem; }
+  div { display: grid; gap: 0.15rem; }
   strong { font-size: 1.6rem; font-weight: 800; font-variant-numeric: tabular-nums; }
   small { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
 }
@@ -429,7 +429,7 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(6rem, 1fr));
     gap: var(--pas);
-    div { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.75rem; display: grid; gap: 0.15rem; }
+    div { display: grid; gap: 0.15rem; }
     strong { font-size: 1.4rem; font-weight: 800; font-variant-numeric: tabular-nums; }
     small { font-size: 0.7rem; }
   }
@@ -481,9 +481,8 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   .aide { display: block; margin-top: 0.5rem; }
 }
 .binome {
-  border: 1px solid var(--ligne);
-  border-radius: var(--rayon);
-  padding: 0.9rem 1rem 0.6rem;
+  border-bottom: 1px solid var(--ligne);
+  padding: 0.9rem 0 0.6rem;
   margin-top: 0.75rem;
   .ligne-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--pas); }
   .ligne-bas { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); margin-top: 0.5rem; }
@@ -526,10 +525,10 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
 }
 
 // ---------- Compte ----------
-.reglages { list-style: none; margin: 0 0 2rem; padding: 0; border: 1px solid var(--ligne); border-radius: var(--rayon); }
+.reglages { list-style: none; margin: 0 0 2rem; padding: 0; }
 .reglages li + li { border-top: 1px solid var(--ligne); }
 .reglage {
-  width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 1rem;
+  width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 1rem 0;
   background: none; border: 0; color: var(--texte); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
   span { flex: 1; font-weight: 600; }
   small, .pi-chevron-right { color: var(--discret); font-size: 0.85rem; }
@@ -543,7 +542,7 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
 // ---------- Récompenses ----------
 .niveau-puce {
   display: flex; flex-direction: column; align-items: flex-end; gap: 0.1rem; text-decoration: none; color: var(--texte);
-  border: 1px solid var(--ligne-forte); border-radius: var(--rayon); padding: 0.45rem 0.7rem;
+  padding: 0.2rem 0;
   strong { font-size: 0.85rem; } small { margin: 0; font-size: 0.75rem; }
 }
 .jauge {
@@ -551,7 +550,7 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   span { display: block; height: 100%; background: var(--texte); border-radius: 999px; transition: width 0.4s ease; }
   &.grande { height: 0.85rem; }
 }
-.niveau { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 1rem; margin-bottom: 2rem;
+.niveau { margin-bottom: 2rem;
   .niveau-ligne { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.75rem; strong { font-size: 1.25rem; } span { color: var(--discret); } }
   small { display: block; margin-top: 0.75rem; font-size: 0.85rem; line-height: 1.4; }
 }
@@ -559,36 +558,36 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 .badges { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
 .badge {
   width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 0.9rem 0.4rem;
-  background: none; border: 1px solid var(--ligne); border-radius: var(--rayon); color: var(--discret); font: inherit; font-size: 0.8rem; cursor: pointer;
+  background: none; border: 0; border-radius: var(--rayon); color: var(--discret); font: inherit; font-size: 0.8rem; cursor: pointer;
   app-badge-icone { width: 2.6rem; height: 2.6rem; }
-  &.obtenu { color: var(--texte); border-color: var(--ligne-forte); }
+  &.obtenu { color: var(--texte); }
 }
 .badge-detail { text-align: center; app-badge-icone { width: 4rem; height: 4rem; margin-bottom: 0.5rem; } p { margin: 0 0 0.5rem; } }
-.encart { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 1rem; margin-bottom: 2rem; p { margin: 0 0 0.5rem; } .aide { margin-bottom: 1rem; } }
+.encart { margin-bottom: 2rem; p { margin: 0 0 0.5rem; } .aide { margin-bottom: 1rem; } }
 .bandeau-joker, .encouragement-recu {
-  display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--ligne-forte); border-radius: var(--rayon);
-  padding: 0.75rem 0.9rem; margin: 0 0 1rem; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 0.6rem; border-radius: var(--rayon);
+  padding: 0; margin: 0 0 1.25rem; font-size: 0.9rem;
 }
-.encouragement-recu { border-color: var(--texte); justify-content: space-between; }
+.encouragement-recu { border: 1px solid var(--texte); padding: 0.75rem 0.9rem; justify-content: space-between; }
 .fermer { background: none; border: 0; color: var(--discret); padding: 0.5rem; margin: -0.5rem; cursor: pointer; min-width: 2.5rem; min-height: 2.5rem; }
 .serie-et-jokers { display: inline-flex; align-items: center; gap: 0.6rem; }
 .jokers { display: inline-flex; align-items: center; gap: 0.2rem; color: var(--discret); font-size: 0.8rem; i { font-size: 0.8rem; } }
 
 // ---------- Foyer ----------
 .foyer-bande {
-  display: block; text-decoration: none; color: var(--texte); border: 1px solid var(--ligne); border-radius: var(--rayon);
-  padding: 0.9rem; margin: 0 0 1.25rem;
+  display: block; text-decoration: none; color: var(--texte);
+  margin: 0 0 1.5rem;
   .foyer-bande-haut { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; font-size: 0.85rem; .etiquette { margin: 0; } }
   small { display: block; margin-top: 0.6rem; font-size: 0.85rem; }
   &.discret { display: flex; justify-content: space-between; align-items: center; color: var(--discret); font-size: 0.9rem; i { margin-right: 0.35rem; } }
 }
-.foyer-jauge { border: 1px solid var(--ligne-forte); border-radius: var(--rayon); padding: 1.1rem; margin-bottom: 2rem;
+.foyer-jauge { margin-bottom: 2rem;
   .foyer-chiffres { margin: 0.25rem 0 0.75rem; strong { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; } span { color: var(--discret); } }
   .recompense { margin: 1rem 0 0; display: flex; gap: 0.5rem; align-items: center; }
   .aide { margin: 1rem 0 0; }
 }
-.membres { list-style: none; padding: 0; margin: 0 0 2rem; display: flex; flex-direction: column; gap: 0.6rem; }
-.membre { border: 1px solid var(--ligne); border-radius: var(--rayon); padding: 0.9rem; display: flex; align-items: center; gap: 0.75rem;
+.membres { list-style: none; padding: 0; margin: 0 0 2rem; display: flex; flex-direction: column; }
+.membre { border-bottom: 1px solid var(--ligne); padding: 0.9rem 0; display: flex; align-items: center; gap: 0.75rem;
   .membre-infos { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; .nom { font-weight: 600; } small { font-size: 0.85rem; } }
   .encourager { flex-shrink: 0; display: inline-flex; align-items: center; gap: 0.4rem; &:disabled { cursor: default; color: var(--discret); } }
 }
