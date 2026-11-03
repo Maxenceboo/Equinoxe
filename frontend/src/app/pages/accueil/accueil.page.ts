@@ -4,9 +4,9 @@ import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { CodeBinome, Encouragement, Foyer, Mesure, Objectif, ObjectifSaisie, ObjectifSuivi, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
+import { Encouragement, Foyer, Mesure, Objectif, ObjectifSaisie, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
 import { ENCOURAGEMENTS } from '../foyer/foyer.page';
-import { BinomesService, FoyerService, ObjectifsService, ProfilService } from '../../application/services';
+import { FoyerService, ObjectifsService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -57,11 +57,6 @@ import {
           @if (f.recompense) {
             <small>{{ f.cochesSemaine >= f.objectifSemaine ? 'Gagné : ' : 'À la clé : ' }}{{ f.recompense }}</small>
           }
-        </a>
-      } @else if (objectifs().length > 0) {
-        <a class="foyer-bande discret" routerLink="/foyer">
-          <span><i class="pi pi-home"></i> Fais-le en famille : crée ou rejoins un Foyer</span>
-          <i class="pi pi-chevron-right"></i>
         </a>
       }
     }
@@ -163,35 +158,6 @@ import {
       }
     </ul>
 
-    @if (objectifs().length > 0 || binomes().length > 0) {
-      <section class="binomes" aria-label="Binômes">
-        <div class="titre-section">
-          <p class="etiquette">Binômes</p>
-          <button type="button" class="lien-details" (click)="ouvrirRejoindre()">Rejoindre avec un code</button>
-        </div>
-        @for (b of binomes(); track b.objectifId) {
-          <div class="binome">
-            <div class="ligne-haut">
-              <span class="nom">{{ b.nom }} <small>· {{ b.ami }}</small></span>
-              <app-flamme [valeur]="b.progression.serie" [unite]="b.progression.uniteSerie" />
-            </div>
-            <div class="segments" aria-hidden="true">
-              @for (plein of segmentsDe(b.progression.realisees, b.progression.cible); track $index) {
-                <i [class.plein]="plein"></i>
-              }
-            </div>
-            <div class="ligne-bas">
-              <small>{{ etatBinome(b) }}</small>
-              <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
-            </div>
-            <button type="button" class="lien-details quitter" (click)="quitter(b)">Ne plus suivre</button>
-          </div>
-        } @empty {
-          <small class="aide">Fais-le à deux : partage un objectif depuis sa page, ou entre le code d'un ami.</small>
-        }
-      </section>
-    }
-
     @if (objectifs().length > 0) {
       <p-button class="fab" icon="pi pi-plus" ariaLabel="Nouvel objectif" routerLink="/objectifs/nouveau" />
     }
@@ -216,23 +182,6 @@ import {
       </form>
     </p-dialog>
 
-    <p-dialog
-      header="Rejoindre un binôme"
-      [visible]="rejoindre()"
-      (visibleChange)="!$event && rejoindre.set(false)"
-      [modal]="true"
-      [dismissableMask]="true"
-      [style]="{ width: 'min(30rem, 95vw)' }"
-    >
-      <p class="aide">Demande à ton ami le code affiché sur la page de son objectif. Tu verras sa progression et sa flamme, lui verra que tu le suis.</p>
-      <form [formGroup]="formCode" (ngSubmit)="envoyerCode()">
-        <formly-form [form]="formCode" [fields]="champsCode" [model]="modelCode" />
-        <div class="actions">
-          <p-button label="Annuler" [text]="true" (onClick)="rejoindre.set(false)" />
-          <p-button type="submit" label="Suivre" />
-        </div>
-      </form>
-    </p-dialog>
   `,
 })
 export class AccueilPage implements OnInit, OnDestroy {
@@ -245,7 +194,6 @@ export class AccueilPage implements OnInit, OnDestroy {
     { nom: 'Marcher 30 min', categorie: 'SPORT', typeFrequence: 'QUOTIDIEN', cible: 7, heure: '12:30', detail: 'Tous les jours, rappel à 12 h 30' },
   ];
   private readonly api = inject(ObjectifsService);
-  private readonly binomesApi = inject(BinomesService);
   private readonly notifications = inject(NotificationsService);
   private readonly schemas = inject(SchemaFormService);
   private readonly celebration = inject(CelebrationService);
@@ -269,15 +217,6 @@ export class AccueilPage implements OnInit, OnDestroy {
   protected readonly suggestion = computed(
     () => this.objectifs().find((o) => o.suggestion && !this.ecartees().has(o.id) && !suggestionEcartee(o)) ?? null,
   );
-
-  // Binômes
-  protected readonly binomes = signal<ObjectifSuivi[]>([]);
-  protected readonly rejoindre = signal(false);
-  protected formCode = new FormGroup({});
-  protected modelCode: Partial<CodeBinome> = {};
-  protected readonly champsCode = this.schemas.champs('CodeBinome', {
-    code: { props: { placeholder: 'ABC234', attributes: { autocapitalize: 'characters', autocomplete: 'off' } } },
-  });
 
   protected readonly chiffre = estChiffre;
   protected readonly uniteDe = (m: Mesure | undefined) => unite(m);
@@ -337,7 +276,6 @@ export class AccueilPage implements OnInit, OnDestroy {
   /** Envoie d'abord les coches faites hors ligne, puis recharge la liste (ou affiche la dernière connue). */
   private async synchroniserPuisCharger(): Promise<void> {
     await this.horsLigne.envoyer();
-    this.chargerBinomes();
     this.chargerRecompenses();
     this.api.listerObjectifs(false).subscribe({
       next: (liste) => {
@@ -357,9 +295,6 @@ export class AccueilPage implements OnInit, OnDestroy {
     });
   }
 
-  private chargerBinomes(): void {
-    this.binomesApi.listerBinomes().subscribe({ next: (l) => this.binomes.set(l), error: () => undefined });
-  }
 
   creerDepuisModele(m: ObjectifSaisie & { detail: string }): void {
     const { detail, ...saisie } = m;
@@ -492,37 +427,10 @@ export class AccueilPage implements OnInit, OnDestroy {
     });
   }
 
-  ouvrirRejoindre(): void {
-    this.formCode = new FormGroup({});
-    this.modelCode = {};
-    this.rejoindre.set(true);
-  }
-
-  envoyerCode(): void {
-    this.formCode.markAllAsTouched();
-    const code = this.modelCode.code?.trim().toUpperCase();
-    if (this.formCode.invalid || !code) return;
-    this.binomesApi.rejoindreBinome({ code }).subscribe((b) => {
-      this.binomes.update((l) => (l.some((x) => x.objectifId === b.objectifId) ? l : [...l, b]));
-      this.rejoindre.set(false);
-    });
-  }
-
   protected aideDetails(): string {
     return estChiffre(this.enDetail()?.mesure)
       ? "Combien aujourd'hui ? Les détails sont facultatifs."
       : 'Détails de la séance du jour, tout est facultatif.';
-  }
-
-  protected etatBinome(b: ObjectifSuivi): string {
-    if (b.progression.faitAujourdhui) return "Fait aujourd'hui";
-    return b.progression.atteint ? 'Semaine réussie' : "Pas encore aujourd'hui";
-  }
-
-  quitter(b: ObjectifSuivi): void {
-    this.binomesApi.quitterBinome(b.objectifId).subscribe(() =>
-      this.binomes.update((l) => l.filter((x) => x.objectifId !== b.objectifId)),
-    );
   }
 
   private remplacer(maj: Objectif): void {

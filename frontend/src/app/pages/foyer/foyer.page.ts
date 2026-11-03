@@ -6,6 +6,7 @@ import { Button } from 'primeng/button';
 import { CreationFoyer, Foyer, MembreFoyer, ReglagesFoyer, RejoindreFoyer, TypeEncouragement } from '../../api/generated';
 import { FoyerService } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
+import { Amis } from './amis';
 
 export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'BRAVO', texte: 'Bravo' },
@@ -14,19 +15,21 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'MERCI', texte: 'Merci' },
 ];
 
-/** Le Foyer : la jauge commune de la semaine, la récompense, les membres et les encouragements. */
+/** L'onglet Proches : la famille (Foyer) puis les amis. Foyer : la jauge commune de la semaine, la récompense, les membres et les encouragements. */
 @Component({
   selector: 'app-foyer',
-  imports: [ReactiveFormsModule, FormlyForm, Button],
+  imports: [ReactiveFormsModule, FormlyForm, Button, Amis],
   template: `
+    <header class="entete">
+      <div>
+        <h1>Proches</h1>
+        <small>Tenir ses objectifs, c'est plus facile à plusieurs</small>
+      </div>
+    </header>
+
     @if (charge()) {
       @if (foyer(); as f) {
-        <header class="entete">
-          <div>
-            <h1>{{ f.nom }}</h1>
-            <small>{{ f.membres.length }} membre(s) · on avance ensemble</small>
-          </div>
-        </header>
+        <h2 class="titre-section">Famille · {{ f.nom }} <span>{{ f.membres.length }} membre(s)</span></h2>
 
         <section class="foyer-jauge" aria-label="Objectif commun de la semaine">
           <p class="etiquette">Cette semaine, ensemble</p>
@@ -50,7 +53,6 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
           }
         </section>
 
-        <h2 class="titre-section">Membres</h2>
         <ul class="membres">
           @for (m of f.membres; track m.id) {
             <li class="membre">
@@ -86,13 +88,7 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
 
         <p-button class="quitter-foyer" label="Quitter le Foyer" [text]="true" severity="secondary" (onClick)="quitter()" />
       } @else {
-        <header class="entete">
-          <div>
-            <h1>Foyer</h1>
-            <small>Tenir ses objectifs, c'est plus facile à plusieurs</small>
-          </div>
-        </header>
-
+        <h2 class="titre-section">Famille</h2>
         <p class="aide">Réunis la famille : chaque coche fait avancer une jauge commune, et les parents choisissent la récompense de la semaine.</p>
 
         <div class="choix-foyer">
@@ -118,6 +114,8 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
           </form>
         }
       }
+
+      <app-amis />
     }
   `,
 })

@@ -130,8 +130,8 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           </p>
         }
 
-        <section class="partage" aria-label="Binôme">
-          <p class="etiquette">Binôme</p>
+        <section class="partage" aria-label="Ami">
+          <p class="etiquette">Faire avec un ami</p>
           @if (partage(); as p) {
             <p class="aide">Donne ce code à un ami : il verra ta progression et ta flamme (pas tes détails).</p>
             <div class="code">
@@ -203,7 +203,7 @@ export class ObjectifDetailPage implements OnInit {
   }
 
   async partagerCode(code: string): Promise<void> {
-    const texte = `Suis mon objectif « ${this.objectif()?.nom} » dans l'app Objectifs perso avec le code ${code}`;
+    const texte = `Suis mon objectif « ${this.objectif()?.nom} » sur Équinoxe avec le code ${code}`;
     try {
       if (navigator.share) {
         await navigator.share({ text: texte });

@@ -11,7 +11,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         <i class="pi pi-calendar"></i><span>Semaine</span>
       </a>
       <a routerLink="/foyer" routerLinkActive="actif" [replaceUrl]="true">
-        <i class="pi pi-home"></i><span>Foyer</span>
+        <i class="pi pi-users"></i><span>Proches</span>
       </a>
       <a routerLink="/bilan" routerLinkActive="actif" [replaceUrl]="true">
         <i class="pi pi-chart-bar"></i><span>Bilan</span>
