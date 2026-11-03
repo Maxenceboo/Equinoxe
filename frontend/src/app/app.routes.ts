@@ -19,6 +19,7 @@ export const routes: Routes = [
         path: 'profil/archives',
         loadComponent: () => import('./pages/archives/archives.page').then((m) => m.ArchivesPage),
       },
+      { path: 'profil/boutique', loadComponent: () => import('./pages/boutique/boutique.page').then((m) => m.BoutiquePage) },
       { path: 'compte', redirectTo: 'profil' },
       { path: 'archives', redirectTo: 'profil/archives' },
       {

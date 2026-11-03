@@ -12,7 +12,7 @@ export function parent(url: string): string {
   const chemin = url.split(/[?#]/)[0];
   const modifier = chemin.match(/^\/objectifs\/(\d+)\/modifier$/);
   if (modifier) return `/objectifs/${modifier[1]}`;
-  if (chemin === '/profil/archives') return '/profil';
+  if (chemin === '/profil/archives' || chemin === '/profil/boutique') return '/profil';
   if (/^\/foyer\/\d+$/.test(chemin)) return '/foyer';
   if (chemin === '/objectifs/nouveau/avance') return '/objectifs/nouveau';
   return '/';
