@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Équinoxe · Adresse confirmée</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="icon" href="../favicon.png" />
+</head>
+<body>
+  <main>
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+    <h1 id="titre">Adresse confirmée</h1>
+    <p id="texte">Ton compte Équinoxe est prêt. Ouvre l'app pour commencer.</p>
+    <a id="ouvrir" class="bouton" href="equinoxe://auth">Ouvrir Équinoxe</a>
+    <span class="discret">Sur ordinateur, connecte-toi simplement dans l'app sur ton téléphone.</span>
+  </main>
+  <script>
+    // Supabase ajoute les jetons de connexion dans le fragment (#access_token=…) : on les passe à l'app,
+    // qui s'ouvre alors déjà connectée. Ils ne quittent jamais l'appareil.
+    var fragment = location.hash;
+    var params = new URLSearchParams(fragment.slice(1));
+    if (params.get('error')) {
+      document.getElementById('titre').textContent = 'Lien expiré';
+      document.getElementById('texte').textContent =
+        "Ce lien n'est plus valable. Reconnecte-toi dans l'app : si ton adresse n'est pas confirmée, un nouveau mail te sera envoyé.";
+      document.getElementById('ouvrir').setAttribute('href', 'equinoxe://auth');
+    } else if (fragment) {
+      document.getElementById('ouvrir').setAttribute('href', 'equinoxe://auth' + fragment);
+      if (/Android/i.test(navigator.userAgent)) location.href = 'equinoxe://auth' + fragment;
+    }
+  </script>
+</body>
+</html>

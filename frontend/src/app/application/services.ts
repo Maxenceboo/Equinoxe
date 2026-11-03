@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Observable, defer, from, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { SUPABASE } from '../supabase.config';
 import type {
   Bilan,
   CodeBinome,
@@ -261,7 +262,11 @@ export class AuthService {
 
   inscription(identifiants: Identifiants): Observable<Session> {
     return this.erreurs.appel(async () => {
-      const { data, error } = await this.db.auth.signUp({ email: identifiants.email, password: identifiants.motDePasse });
+      const { data, error } = await this.db.auth.signUp({
+        email: identifiants.email,
+        password: identifiants.motDePasse,
+        options: { emailRedirectTo: SUPABASE.confirmation },
+      });
       if (error) throw error;
       if (!data.session) throw { code: 'email_not_confirmed', message: '' };
       return { token: data.session.access_token, email: data.session.user.email ?? identifiants.email };

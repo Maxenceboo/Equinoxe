@@ -9,4 +9,6 @@
 export const SUPABASE = {
   url: 'https://rdfvwiaswbtemptfzjul.supabase.co',
   cle: 'sb_publishable_7RK_0G4Aiaue88Y5ZzDvXQ_0Y79aZQ-',
+  /** Page ouverte par le lien de l'email de confirmation : elle confirme et propose d'ouvrir l'app. */
+  confirmation: 'https://maxenceboo.github.io/Equinoxe/confirme/',
 };
