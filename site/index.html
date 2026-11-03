@@ -3,88 +3,272 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Équinoxe · Tes objectifs, une semaine à la fois</title>
-  <meta name="description" content="Équinoxe t'aide à tenir tes objectifs perso : sport, sommeil, lecture. Un tap pour cocher, des rappels bien répartis, un binôme pour tenir." />
+  <title>Équinoxe · Tenir. Pas tout réussir.</title>
+  <meta name="description" content="Équinoxe compte ce que tu fais, pas ce que tu promets. Objectifs à la semaine, un rappel à ton heure, des groupes pour tenir à plusieurs. Gratuit, sans pub, Android." />
   <meta name="theme-color" content="#000000" />
-  <link rel="stylesheet" href="style.css?v=3" />
   <link rel="icon" href="favicon.png" />
+  <style>
+    :root { --noir: #000; --blanc: #fff; --gris: #8a8a8a; --gris-fonce: #2a2a2a; --rayon: 6px;
+      --police: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--noir); color: var(--blanc); font-family: var(--police); -webkit-font-smoothing: antialiased;
+      transition: background-color .6s ease, color .6s ease; overflow-x: hidden; }
+    body.jour { background: var(--blanc); color: var(--noir); }
+    a { color: inherit; }
+    .grille { display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 6vw; }
+
+    /* Logo + lune de lecture */
+    .marque { position: fixed; top: 22px; left: 6vw; z-index: 10; display: flex; align-items: center; gap: 10px;
+      font-weight: 700; letter-spacing: .02em; text-decoration: none; font-size: 15px; mix-blend-mode: difference; color: #fff; }
+    .marque svg { width: 22px; height: 22px; }
+    .lune-lecture { position: fixed; top: 20px; right: 6vw; z-index: 10; width: 26px; height: 26px; mix-blend-mode: difference; }
+
+    /* 1. Accroche */
+    .accroche { min-height: 100svh; position: relative; display: flex; align-items: flex-end; padding: 0 6vw 14vh; }
+    .accroche h1 { margin: 0; font-size: clamp(56px, 11vw, 190px); line-height: .9; letter-spacing: -.045em; font-weight: 800; max-width: 11ch; }
+    .accroche h1 span { display: inline-block; opacity: 0; transform: translateY(.25em); animation: monte .7s cubic-bezier(.2,.7,.2,1) forwards; }
+    .accroche h1 span:nth-child(2) { animation-delay: .12s } .accroche h1 span:nth-child(3) { animation-delay: .24s } .accroche h1 span:nth-child(4) { animation-delay: .36s }
+    .accroche p { position: absolute; right: 6vw; bottom: 14vh; margin: 0; max-width: 22ch; color: var(--gris); font-size: clamp(16px, 1.4vw, 20px); line-height: 1.4;
+      opacity: 0; animation: apparait 1s .9s forwards; }
+    .croissant { position: absolute; top: 8vh; right: -6vw; width: 38vw; max-width: 560px; opacity: .9; }
+    .fil { position: absolute; left: 6vw; bottom: 0; width: 1px; height: 0; background: var(--blanc); animation: fil 1.6s 1.2s ease-out forwards; }
+    @keyframes monte { to { opacity: 1; transform: none; } }
+    @keyframes apparait { to { opacity: 1; } }
+    @keyframes fil { to { height: 10vh; } }
+
+    /* 2. Pourquoi */
+    .pourquoi { padding: 30vh 0 20vh; }
+    .pourquoi .lignes { grid-column: 1 / 12; }
+    .pourquoi p { margin: 0; font-size: clamp(38px, 7.4vw, 128px); font-weight: 800; letter-spacing: -.04em; line-height: 1;
+      color: var(--gris-fonce); transition: color .5s ease; }
+    .pourquoi p.vue { color: var(--blanc); }
+    .pourquoi p:nth-child(3), .pourquoi p:nth-child(4) { padding-left: 8vw; }
+    .inverse { grid-column: 6 / 13; margin-top: 70vh !important; font-size: clamp(30px, 4.6vw, 80px) !important; }
+
+    /* 3. Produit */
+    .produit { position: relative; height: 520vh; }
+    .scene { position: sticky; top: 0; height: 100svh; display: grid; grid-template-columns: repeat(12, 1fr); gap: 0 2vw; padding: 0 6vw; align-items: center; }
+    .telephone { grid-column: 2 / 6; justify-self: center; width: min(300px, 70vw); aspect-ratio: 9 / 19; border: 1px solid #3a3a3a; border-radius: 34px;
+      padding: 18px 16px; position: relative; overflow: hidden; background: #050505; }
+    .ecran { position: absolute; inset: 18px 16px; opacity: 0; transition: opacity .25s ease; }
+    .ecran.actif { opacity: 1; }
+    .phrase { grid-column: 7 / 13; position: relative; min-height: 3em; }
+    .phrase p { position: absolute; inset: 0 auto auto 0; margin: 0; font-size: clamp(30px, 4.4vw, 76px); font-weight: 800; letter-spacing: -.035em; line-height: 1;
+      opacity: 0; transform: translateY(16px); transition: opacity .25s ease, transform .25s ease; }
+    .phrase p.actif { opacity: 1; transform: none; }
+    .etape-num { position: absolute; top: -2.5em; left: 0; font-size: 13px; color: var(--gris); letter-spacing: .2em; }
+
+    /* Mini interface dans le téléphone */
+    .ui-titre { font-size: 22px; font-weight: 800; margin: 26px 0 4px; letter-spacing: -.02em; }
+    .ui-sous { font-size: 11px; color: var(--gris); margin: 0 0 22px; }
+    .ui-obj { padding: 14px 0; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 12px; }
+    .ui-obj b { flex: 1; font-size: 15px; }
+    .ui-case { width: 38px; height: 38px; border: 1.5px solid #fff; border-radius: 8px; display: grid; place-items: center; transition: background .3s; }
+    .ui-case.ok { background: #fff; }
+    .ui-case.ok::after { content: ""; width: 12px; height: 7px; border: solid #000; border-width: 0 0 2.5px 2.5px; transform: rotate(-45deg) translate(1px,-2px); }
+    .ui-jours { display: flex; gap: 5px; margin-top: 18px; }
+    .ui-jours i { flex: 1; height: 5px; border-radius: 99px; border: 1px solid #444; }
+    .ui-jours i.p { background: #fff; border-color: #fff; }
+    .ui-jours i.j { border-style: dashed; border-color: #fff; }
+    .notif { margin-top: 40px; border: 1px solid #fff; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.35; }
+    .notif small { display: block; color: var(--gris); font-size: 10px; margin-bottom: 4px; letter-spacing: .08em; }
+    .bouclier { margin-top: 18px; font-size: 13px; display: flex; gap: 8px; align-items: center; }
+    .grosse-lune { width: 120px; height: 120px; margin: 50px auto 14px; display: block; }
+    .centre { text-align: center; font-size: 13px; color: var(--gris); }
+    .jauge { height: 8px; border: 1px solid #555; border-radius: 99px; overflow: hidden; margin: 10px 0 6px; }
+    .jauge span { display: block; height: 100%; background: #fff; width: 40%; transition: width 1.2s cubic-bezier(.2,.7,.2,1); }
+    .ecran.actif .jauge span { width: 88%; }
+    .membre { display: flex; justify-content: space-between; font-size: 13px; padding: 10px 0; border-bottom: 1px solid #222; }
+    .membre em { font-style: normal; color: var(--gris); }
+
+    /* 4. Engagements */
+    .engagements { padding: 24vh 0 30vh; row-gap: 22vh; }
+    .eng { position: relative; opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+    .eng.vue { opacity: 1; transform: none; }
+    .eng:nth-child(1) { grid-column: 1 / 8; }
+    .eng:nth-child(2) { grid-column: 7 / 12; margin-top: 10vh; }
+    .eng:nth-child(3) { grid-column: 1 / 13; }
+    .num { font-size: clamp(120px, 20vw, 340px); font-weight: 800; line-height: .8; letter-spacing: -.06em; color: transparent;
+      -webkit-text-stroke: 1px #4a4a4a; display: block; margin-bottom: -.32em; }
+    .eng h2 { position: relative; margin: 0 0 18px; font-size: clamp(32px, 4.6vw, 78px); letter-spacing: -.04em; line-height: .95; font-weight: 800; }
+    .eng p { position: relative; margin: 0; max-width: 30ch; font-size: clamp(17px, 1.5vw, 22px); line-height: 1.45; color: var(--gris); }
+    .eng:nth-child(3) h2 { max-width: 14ch; }
+    .eng:nth-child(3) p { margin-left: auto; margin-top: -2.4em; }
+
+    /* 5. Bascule */
+    .bascule { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding: 0 6vw; }
+    .bascule h2 { margin: 0; font-size: clamp(52px, 10vw, 176px); letter-spacing: -.05em; line-height: .9; font-weight: 800; }
+    .bascule .sous { margin: 28px 0 44px; font-size: clamp(17px, 1.5vw, 22px); color: #555; }
+    .bouton { align-self: flex-start; display: inline-block; background: var(--noir); color: var(--blanc); text-decoration: none; font-weight: 700;
+      font-size: 19px; padding: 22px 38px; border-radius: var(--rayon); transition: transform .15s ease; }
+    .bouton:hover { transform: translateY(-2px); }
+    .version { margin-top: 14px; font-size: 13px; color: #777; }
+    footer { padding: 28px 6vw; display: flex; justify-content: space-between; font-size: 13px; color: #777; }
+    footer a { text-decoration: none; }
+
+    @media (max-width: 760px) {
+      .accroche { padding-bottom: 22vh; }
+      .accroche p { left: 6vw; right: auto; bottom: 10vh; }
+      .croissant { width: 70vw; right: -22vw; top: 12vh; }
+      .pourquoi p:nth-child(3), .pourquoi p:nth-child(4) { padding-left: 0; }
+      .inverse { grid-column: 3 / 13; margin-top: 40vh !important; }
+      .produit { height: auto; }
+      .scene { position: static; height: auto; display: block; padding: 0 6vw; }
+      .telephone, .phrase { display: none; }
+      .pile { display: grid !important; gap: 14vh; padding: 10vh 0; }
+      .eng:nth-child(1), .eng:nth-child(2), .eng:nth-child(3) { grid-column: 1 / 13; margin-top: 0; }
+      .eng:nth-child(3) p { margin: 0; }
+      .bouton { align-self: stretch; text-align: center; }
+    }
+    .pile { display: none; }
+    .pile .bloc > p { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1; margin: 0 0 22px; }
+    .pile .telephone { display: block; position: relative; margin: 0; }
+    .pile .ecran { opacity: 1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001s !important; animation-delay: 0s !important; transition-duration: .001s !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
 </head>
 <body>
-  <header class="entete">
-    <div class="conteneur">
-      <a class="marque" href="./"><svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg> Équinoxe</a>
-      <a class="lien-entete" href="telecharger/">Télécharger</a>
+  <a class="marque" href="./" aria-label="Équinoxe, accueil">
+    <svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+    Équinoxe
+  </a>
+  <svg class="lune-lecture" viewBox="0 0 26 26" aria-hidden="true">
+    <defs><mask id="phase"><rect width="26" height="26" fill="#fff"/><circle id="ombre" cx="13" cy="13" r="12" fill="#000"/></mask></defs>
+    <circle cx="13" cy="13" r="12" fill="none" stroke="#fff" stroke-width="1"/>
+    <circle cx="13" cy="13" r="12" fill="#fff" mask="url(#phase)"/>
+  </svg>
+
+  <!-- 1. Accroche -->
+  <section class="accroche">
+    <svg class="croissant" viewBox="0 0 100 100" aria-hidden="true"><mask id="c"><rect width="100" height="100" fill="#fff"/><circle cx="43" cy="50" r="44" fill="#000"/></mask><circle cx="50" cy="50" r="44" fill="#fff" mask="url(#c)"/></svg>
+    <h1><span>Tenir.</span> <span>Pas</span> <span>tout</span> <span>réussir.</span></h1>
+    <p>Équinoxe compte ce que tu fais, pas ce que tu promets.</p>
+    <span class="fil" aria-hidden="true"></span>
+  </section>
+
+  <!-- 2. Pourquoi -->
+  <section class="pourquoi grille">
+    <div class="lignes">
+      <p class="revele">Lundi, on promet tout.</p>
+      <p class="revele">Jeudi, on lâche.</p>
+      <p class="revele">Pas par paresse.</p>
+      <p class="revele">Parce qu'un jour raté efface tout.</p>
+      <p class="revele">Et que personne ne regarde.</p>
     </div>
-  </header>
+    <p class="revele inverse">On a construit l'inverse.</p>
+  </section>
 
-  <section class="hero">
-    <div class="conteneur">
-      <div>
-        <p class="surtitre">Application Android · Gratuite</p>
-        <h1>Le jour pour avancer, la nuit pour récupérer.</h1>
-        <p class="intro">Sport trois fois par semaine, coucher avant minuit, lecture le soir : fixe tes objectifs, coche-les en un tap et regarde ta semaine se remplir.</p>
-        <a class="bouton" href="telecharger/">Télécharger pour Android</a>
-        <span class="discret" id="version">Dernière version stable</span>
+  <!-- 3. Produit -->
+  <section class="produit" aria-label="L'app en action">
+    <div class="scene">
+      <div class="telephone" aria-hidden="true">
+        <div class="ecran" data-e="0">
+          <p class="ui-titre">18:00</p><p class="ui-sous">mardi 4 novembre</p>
+          <div class="notif"><small>ÉQUINOXE</small>Sport : c'est l'heure habituelle. Un tap quand c'est fait.</div>
+        </div>
+        <div class="ecran" data-e="1">
+          <p class="ui-titre">Cette semaine</p><p class="ui-sous">2 sur 3 tenus</p>
+          <div class="ui-obj"><b>Sport</b><span class="ui-case ok"></span></div>
+          <div class="ui-obj"><b>Me coucher tôt</b><span class="ui-case ok"></span></div>
+          <div class="ui-obj"><b>Lire</b><span class="ui-case"></span></div>
+        </div>
+        <div class="ecran" data-e="2">
+          <p class="ui-titre">Me coucher tôt</p><p class="ui-sous">série : 19 jours</p>
+          <div class="ui-jours"><i class="p"></i><i class="j"></i><i class="p"></i><i class="p"></i><i class="p"></i><i></i><i></i></div>
+          <p class="bouclier"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg> Joker utilisé mardi. La série continue.</p>
+        </div>
+        <div class="ecran" data-e="3">
+          <p class="ui-titre">Dimanche</p><p class="ui-sous">semaine tenue</p>
+          <svg class="grosse-lune" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff"/></svg>
+          <p class="centre">Pleine lune · +50 points</p>
+        </div>
+        <div class="ecran" data-e="4">
+          <p class="ui-titre">Les Martin</p><p class="ui-sous">cette semaine, ensemble</p>
+          <div class="jauge"><span></span></div><p class="ui-sous">22 / 25 coches · soirée film vendredi</p>
+          <div class="membre"><span>Sophie</span><em>8 coches</em></div>
+          <div class="membre"><span>Léa</span><em>7 coches</em></div>
+          <div class="membre"><span>Marc</span><em>7 coches</em></div>
+        </div>
       </div>
-
-      <div class="apercu" aria-hidden="true">
-        <p class="jour">Cette semaine</p>
-        <p class="titre">Tes objectifs</p>
-        <div class="objectif fait">
-          <div class="ligne"><span class="nom">Sport</span><span class="compte">3 / 3</span></div>
-          <div class="semaine"><span class="ok">L</span><span>M</span><span class="ok">M</span><span>J</span><span class="ok">V</span><span>S</span><span>D</span></div>
-        </div>
-        <div class="objectif">
-          <div class="ligne"><span class="nom">Coucher avant 23 h</span><span class="compte">4 / 5</span></div>
-          <div class="semaine"><span class="ok">L</span><span class="ok">M</span><span>M</span><span class="ok">J</span><span class="ok">V</span><span>S</span><span>D</span></div>
-        </div>
-        <div class="objectif">
-          <div class="ligne"><span class="nom">Lecture</span><span class="compte">1 / 2</span></div>
-          <div class="semaine"><span>L</span><span>M</span><span class="ok">M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
-        </div>
+      <div class="phrase" aria-live="polite">
+        <span class="etape-num" id="etape-num">01 / 05</span>
+        <p data-e="0">18 h. Un rappel. Un seul.</p>
+        <p data-e="1">Un tap. C'est noté.</p>
+        <p data-e="2">Mardi raté ? Le joker garde ta série.</p>
+        <p data-e="3">Dimanche. Semaine tenue.</p>
+        <p data-e="4">Ta fille a coché aussi.</p>
       </div>
+      <div class="pile" id="pile"></div>
     </div>
   </section>
 
-  <section class="points">
-    <div class="conteneur">
-      <h2>Tout ce qu'il faut pour tenir, rien de plus.</h2>
-      <div class="grille">
-        <div class="point">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
-          <h3>Un tap pour cocher</h3>
-          <p>Tu as fait ta séance ? Une touche et c'est noté. Ta semaine et ton historique se mettent à jour tout seuls.</p>
-        </div>
-        <div class="point">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 2.5h6"/></svg>
-          <h3>Des rappels bien répartis</h3>
-          <p>Les rappels s'étalent sur la semaine selon tes habitudes, pour ne pas tout rattraper le dimanche soir.</p>
-        </div>
-        <div class="point">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><circle cx="9" cy="9" r="3.5"/><circle cx="16.5" cy="10.5" r="2.5"/><path d="M3 19c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M15 14.5c2.6-.4 4.8 1 5.5 4"/></svg>
-          <h3>Un binôme pour tenir</h3>
-          <p>Partage un objectif avec un proche grâce à un code : vous suivez vos progrès ensemble et vous vous motivez.</p>
-        </div>
-      </div>
-    </div>
+  <!-- 4. Engagements -->
+  <section class="engagements grille">
+    <article class="eng"><span class="num" aria-hidden="true">01</span><h2>On compte en semaines.</h2><p>Trois séances, c'est trois séances. Peu importe le jour. Un jour raté ne casse rien.</p></article>
+    <article class="eng"><span class="num" aria-hidden="true">02</span><h2>On ne te harcèle pas.</h2><p>Un rappel, à ton heure. Il apprend quand tu le fais vraiment. Puis il se tait.</p></article>
+    <article class="eng"><span class="num" aria-hidden="true">03</span><h2>On tient à plusieurs.</h2><p>Famille, amis, collègues. Une jauge commune. Une récompense choisie ensemble. Un « Encourager », pas une messagerie.</p></article>
   </section>
 
-  <section class="final">
-    <div class="conteneur">
-      <h2>Prêt à commencer ?</h2>
-      <p>Installe Équinoxe et crée ton premier objectif en moins d'une minute.</p>
-      <a class="bouton" href="telecharger/">Télécharger pour Android</a>
-    </div>
+  <!-- 5. Bascule -->
+  <section class="bascule" id="bascule">
+    <h2>Ce soir,<br />une coche.</h2>
+    <p class="sous">Gratuit. Sans pub. Android. Une minute pour commencer.</p>
+    <a class="bouton" href="telecharger/">Commencer ce soir</a>
+    <span class="version" id="version"></span>
   </section>
 
-  <footer class="pied">
-    <div class="conteneur">
-      <span>© 2026 Équinoxe</span>
-      <a href="telecharger/">Télécharger l'app</a>
-    </div>
-  </footer>
+  <footer><span>© 2026 Équinoxe</span><a href="telecharger/">Télécharger</a></footer>
 
   <script>
+    // Lune de lecture : se remplit avec le défilement
+    const ombre = document.getElementById('ombre');
+    const majLune = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const t = max > 0 ? Math.min(1, scrollY / max) : 0;
+      ombre.setAttribute('cx', String(13 - t * 26));
+    };
+    addEventListener('scroll', majLune, { passive: true }); majLune();
+
+    // Apparitions
+    const vu = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && e.target.classList.add('vue')), { rootMargin: '0px 0px -45% 0px' });
+    document.querySelectorAll('.revele, .eng').forEach((el) => vu.observe(el));
+
+    // Bascule jour
+    new IntersectionObserver(([e]) => document.body.classList.toggle('jour', e.isIntersecting), { threshold: .35 }).observe(document.getElementById('bascule'));
+
+    // Produit : étapes au défilement (grand écran) ou pile verticale (téléphone)
+    const produit = document.querySelector('.produit');
+    const ecrans = [...document.querySelectorAll('.telephone .ecran')];
+    const phrases = [...document.querySelectorAll('.phrase p')];
+    const num = document.getElementById('etape-num');
+    const afficher = (i) => {
+      ecrans.forEach((el, k) => el.classList.toggle('actif', k === i));
+      phrases.forEach((el, k) => el.classList.toggle('actif', k === i));
+      num.textContent = '0' + (i + 1) + ' / 05';
+    };
+    let courant = -1;
+    const majEtape = () => {
+      const r = produit.getBoundingClientRect();
+      const t = Math.min(.999, Math.max(0, -r.top / (r.height - innerHeight)));
+      const i = Math.floor(t * ecrans.length);
+      if (i !== courant) { courant = i; afficher(i); }
+    };
+    addEventListener('scroll', majEtape, { passive: true }); majEtape();
+
+    const pile = document.getElementById('pile');
+    ecrans.forEach((el, i) => {
+      const bloc = document.createElement('div'); bloc.className = 'bloc';
+      const p = document.createElement('p'); p.textContent = phrases[i].textContent;
+      const tel = document.createElement('div'); tel.className = 'telephone';
+      tel.appendChild(el.cloneNode(true));
+      bloc.append(p, tel); pile.appendChild(bloc);
+    });
+
     fetch('apk/version.json', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((v) => { document.getElementById('version').textContent = 'Version ' + v.version + ' · Android 7 ou plus récent'; })
