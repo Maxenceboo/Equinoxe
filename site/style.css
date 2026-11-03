@@ -85,3 +85,20 @@ a { color: inherit; }
   .grille { grid-template-columns: 1fr; }
   .points, .final { padding: 56px 0; }
 }
+
+/* Guide d'installation */
+.qr { display: none; align-items: center; gap: 16px; margin-top: 24px; padding: 16px; border: 1px solid var(--trait); border-radius: var(--rayon); }
+.qr img { border-radius: 4px; flex: none; }
+.qr p { margin: 0; color: var(--gris); font-size: 0.9rem; }
+@media (hover: hover) and (pointer: fine) { .qr { display: flex; } }
+.sous-titre { font-size: 1.1rem; margin: 40px 0 0; }
+.etapes { margin-top: 16px; padding-top: 0; border-top: 0; }
+.etapes li { display: flex; flex-direction: column; gap: 6px; }
+.etapes li strong { color: var(--texte); font-weight: 600; }
+.etapes li + li { margin-top: 24px; }
+.etapes b { color: var(--texte); font-weight: 600; }
+.maquette { margin: 6px 0; padding: 16px; border-radius: 14px; background: #1c1c1e; border: 1px solid var(--trait); }
+.maquette .m-titre { margin: 0 0 14px; color: #e5e5e5; font-size: 0.85rem; line-height: 1.45; }
+.maquette .m-actions { display: flex; justify-content: flex-end; gap: 20px; font-size: 0.85rem; font-weight: 600; color: #a8c7fa; }
+.maquette .m-cible { outline: 1px solid var(--texte); outline-offset: 4px; border-radius: 4px; color: var(--texte); }
+.note { color: var(--gris); font-size: 0.875rem; margin: 32px 0 0; padding-top: 20px; border-top: 1px solid var(--trait); }

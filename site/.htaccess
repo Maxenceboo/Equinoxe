@@ -4,3 +4,8 @@ AddType application/vnd.android.package-archive .apk
     Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>
+<IfModule mod_headers.c>
+  <Files "version.json">
+    Header set Access-Control-Allow-Origin "*"
+  </Files>
+</IfModule>

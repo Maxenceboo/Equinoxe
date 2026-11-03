@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
   <title>Équinoxe · Télécharger</title>
-  <link rel="stylesheet" href="../style.css?v=2" />
+  <link rel="stylesheet" href="../style.css?v=3" />
   <link rel="icon" href="../favicon.png" />
 </head>
 <body class="page-simple">
@@ -21,11 +21,32 @@
     <h1>Télécharger Équinoxe</h1>
     <p id="infos">Application Android, dernière version stable.</p>
     <a class="bouton plein" id="lien" href="../apk/equinoxe.apk" download>Télécharger l'APK</a>
+    <div class="qr">
+      <img src="qr.svg" alt="QR code vers cette page" width="112" height="112" />
+      <p>Tu es sur un ordinateur ? Scanne ce code avec l'appareil photo du téléphone.</p>
+    </div>
+
+    <h2 class="sous-titre">Installer en 3 étapes</h2>
     <ol class="etapes">
-      <li>Ouvre le fichier téléchargé sur ton téléphone.</li>
-      <li>Si Android le demande, autorise l'installation depuis ton navigateur.</li>
-      <li>Les versions suivantes s'installent par-dessus, sans perdre ton compte.</li>
+      <li>
+        <strong>Ouvre le fichier téléchargé</strong>
+        <span>Appuie sur la notification « equinoxe.apk », ou retrouve-le dans tes Téléchargements.</span>
+      </li>
+      <li>
+        <strong>Android affiche un avertissement : c'est normal</strong>
+        <span>Équinoxe ne vient pas du Play Store, alors Android demande ton accord une seule fois.</span>
+        <div class="maquette" aria-hidden="true">
+          <p class="m-titre">Pour votre sécurité, votre téléphone n'est pas autorisé à installer des applications inconnues provenant de cette source.</p>
+          <div class="m-actions"><span>Annuler</span><span class="m-cible">Paramètres</span></div>
+        </div>
+        <span>Appuie sur <b>Paramètres</b>, active <b>Autoriser cette source</b>, puis reviens en arrière.</span>
+      </li>
+      <li>
+        <strong>Appuie sur Installer</strong>
+        <span>Si Play Protect affiche un message, choisis <b>Installer quand même</b>. C'est terminé.</span>
+      </li>
     </ol>
+    <p class="note">Les versions suivantes se font depuis l'app, avec le bouton « Mettre à jour ». Tes objectifs et ton compte sont gardés.</p>
     </div>
   </main>
   <script>
