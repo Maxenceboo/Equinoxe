@@ -143,7 +143,7 @@ export class ProfilPage implements OnInit {
   private readonly notifications = inject(NotificationsService);
   private readonly router = inject(Router);
 
-  protected readonly profil = signal<Profil | null>(null);
+  protected readonly profil = signal<Profil | null>(inject(ProfilService).dernier());
   protected readonly enDetail = signal<Badge | null>(null);
   protected readonly confirmation = signal(false);
   protected readonly securisation = signal(false);

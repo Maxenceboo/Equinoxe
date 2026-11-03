@@ -32,9 +32,9 @@ import {
         <small>{{ semaine }}</small>
       </div>
       @if (profil(); as p) {
-        <a class="niveau-puce" routerLink="/profil" [attr.aria-label]="'Niveau ' + p.nomNiveau + ', ' + p.points + ' points'">
-          <strong>{{ p.nomNiveau }}</strong>
-          <small>{{ p.points }} pts</small>
+        <a class="niveau-puce" routerLink="/profil/boutique" [attr.aria-label]="p.solde + ' points à dépenser, ouvrir la boutique'">
+          <strong>{{ p.solde }}</strong>
+          <small>pts à dépenser</small>
         </a>
       }
     </header>
@@ -226,7 +226,7 @@ export class AccueilPage implements OnInit, OnDestroy {
   // Récompenses et Foyer
   private readonly profilApi = inject(ProfilService);
   private readonly foyerApi = inject(FoyerService);
-  protected readonly profil = signal<Profil | null>(null);
+  protected readonly profil = this.profilApi.dernier;
   protected readonly foyers = signal<Foyer[]>([]);
   protected readonly encouragements = signal<Encouragement[]>([]);
   protected avancementFoyer(f: Foyer): number {
@@ -246,7 +246,7 @@ export class AccueilPage implements OnInit, OnDestroy {
   private chargerRecompenses(apresCoche = false): void {
     const avant = this.profil();
     this.profilApi.profil().subscribe((p) => {
-      this.profil.set(p);
+      // le signal partagé est déjà mis à jour par le service
       if (apresCoche && avant && p.niveau > avant.niveau) {
         setTimeout(() => this.celebration.celebrer({
           titre: 'Nouveau niveau !',

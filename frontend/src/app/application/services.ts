@@ -1,9 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Observable, defer, from, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { SUPABASE } from '../supabase.config';
 import type {
   Badge,
@@ -340,10 +340,12 @@ export class ProfilService {
   private readonly depot = inject(DepotObjectifs);
   private readonly erreurs = inject(Erreurs);
   private readonly db = inject(SupabaseService).client;
+  /** Dernier profil connu : les écrans l'affichent tout de suite, puis il se met à jour en fond. */
+  readonly dernier = signal<Profil | null>(null);
 
   profil(): Observable<Profil> {
     return this.erreurs.appel(async () => {
-      const moi = (await this.db.auth.getUser()).data.user?.id ?? '';
+      const moi = (await this.db.auth.getSession()).data.session?.user.id ?? '';
       const [objectifs, membre, achats] = await Promise.all([
         this.depot.listerTout(),
         // Mon prénom dans mon premier groupe (la table montre aussi les autres membres)
@@ -354,7 +356,7 @@ export class ProfilService {
         jokers: achats.jokers,
         palettes: achats.palettes as CodePalette[],
       });
-    }, { silencieux: true });
+    }, { silencieux: true }).pipe(tap((p) => this.dernier.set(p)));
   }
 }
 
@@ -427,7 +429,7 @@ export class FoyerService {
   /** Encouragements reçus et pas encore vus, avec le prénom de l'expéditeur. */
   encouragementsRecus(): Observable<Encouragement[]> {
     return this.erreurs.appel(async () => {
-      const moi = (await this.db.auth.getUser()).data.user?.id ?? '';
+      const moi = (await this.db.auth.getSession()).data.session?.user.id ?? '';
       const { data, error } = await this.db.from('encouragement').select('id, de, foyer_id, type').eq('vu', false).eq('a', moi);
       if (error) throw error;
       if (data.length === 0) return [];
@@ -490,8 +492,8 @@ export class FoyerService {
 
   quitter(id: number): Observable<void> {
     return this.erreurs.appel(async () => {
-      const { data } = await this.db.auth.getUser();
-      const { error } = await this.db.from('foyer_membre').delete().eq('foyer_id', id).eq('utilisateur_id', data.user?.id ?? '');
+      const moi = (await this.db.auth.getSession()).data.session?.user.id ?? '';
+      const { error } = await this.db.from('foyer_membre').delete().eq('foyer_id', id).eq('utilisateur_id', moi);
       if (error) throw error;
     });
   }

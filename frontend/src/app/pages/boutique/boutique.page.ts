@@ -77,7 +77,7 @@ export class BoutiquePage implements OnInit {
   private readonly celebration = inject(CelebrationService);
   private readonly messages = inject(MessageService);
 
-  protected readonly profil = signal<Profil | null>(null);
+  protected readonly profil = signal<Profil | null>(inject(ProfilService).dernier());
   protected readonly objectifs = signal<Objectif[]>([]);
   protected readonly choixJoker = signal(false);
   protected readonly coutJoker = COUT_JOKER;
