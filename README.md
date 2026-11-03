@@ -1,6 +1,6 @@
-# Mes objectifs
+# Équinoxe
 
-App pour tenir des objectifs perso (ex. sport 3 fois par semaine, se coucher tôt) : on coche en un tap,
+Équinoxe (le jour où jour et nuit s'équilibrent), une app pour tenir des objectifs perso (ex. sport 3 fois par semaine, se coucher tôt) : on coche en un tap,
 on voit sa semaine et son historique, et les rappels sont répartis tout seuls sur la semaine.
 
 Cahier des charges : https://claude.ai/artifact/PZuVvTzm7RJPZJj7S9qzZ1

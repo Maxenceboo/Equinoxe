@@ -14,8 +14,16 @@ import { SessionService } from '../../core/session.service';
   imports: [ReactiveFormsModule, FormlyForm, Button],
   template: `
     <section class="connexion">
-      <h1>Mes objectifs</h1>
-      <p class="sous-titre">Tiens tes objectifs perso, une semaine à la fois.</p>
+      <svg class="logo" viewBox="0 0 100 100" aria-hidden="true">
+        <mask id="logo-creux">
+          <rect width="100" height="100" fill="#fff" />
+          <circle cx="50" cy="42" r="27" fill="#000" />
+        </mask>
+        <circle cx="50" cy="52" r="32" fill="#fff" mask="url(#logo-creux)" />
+        <circle cx="50" cy="58" r="11" fill="#fff" />
+      </svg>
+      <h1>Équinoxe</h1>
+      <p class="sous-titre">Le jour pour avancer, la nuit pour récupérer.</p>
 
       <form [formGroup]="form" (ngSubmit)="envoyer()">
         <formly-form [form]="form" [fields]="champs" [model]="model" />

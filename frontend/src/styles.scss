@@ -109,6 +109,7 @@ formly-field-primeng-radio {
 // ---------- Connexion ----------
 .connexion {
   padding-top: 18vh;
+  .logo { width: 4rem; height: 4rem; margin-left: -0.6rem; display: block; }
   h1 { font-size: 2.75rem; }
   .sous-titre { color: var(--discret); margin: 0.75rem 0 3rem; }
   .serveur { margin-top: 3rem; color: var(--discret); font-size: 0.85rem; }

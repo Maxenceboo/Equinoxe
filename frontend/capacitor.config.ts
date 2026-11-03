@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.objectifsperso.app',
-  appName: 'Mes objectifs',
+  appName: 'Équinoxe',
   webDir: 'dist/frontend/browser',
   server: {
     // En développement le serveur est en http : l'app doit l'être aussi (sinon contenu mixte bloqué).
@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   },
   plugins: {
     LocalNotifications: {
-      iconColor: '#10b981',
+      iconColor: '#ffffff',
     },
   },
 };
