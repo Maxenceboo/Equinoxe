@@ -34,6 +34,8 @@ export interface ObjectifPerso {
   cibleDepuis: string | null;
   codePartage: string | null;
   coches: Coche[];
+  /** Mois (AAAA-MM) où un joker en plus a été acheté avec des points, une entrée par joker. */
+  jokersAchetes?: string[];
 }
 
 /** Ce que l'utilisateur détaille en cochant. */

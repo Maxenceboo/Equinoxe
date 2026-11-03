@@ -56,6 +56,14 @@ describe('progression et séries', () => {
     expect(serie(o, j(LUNDI, 3)).enCours).toBe(0);
   });
 
+  it('un joker acheté avec des points couvre un raté de plus', () => {
+    const o = quotidien({ dateCreation: j(LUNDI, -10) });
+    for (const i of [9, 8, 7, 6, 3, 2, 1, 0]) cocher(o, j(LUNDI, -i));
+    expect(serie(o, LUNDI).enCours).toBe(4);
+    o.jokersAchetes = [j(LUNDI, -5).slice(0, 7), j(LUNDI, -4).slice(0, 7)];
+    expect(serie(o, LUNDI).enCours).toBeGreaterThan(4);
+  });
+
   it('le joker du mois protège une semaine ratée', () => {
     const o = objectif({ dateCreation: '2026-10-05' });
     semaine(o, '2026-10-05', 3);

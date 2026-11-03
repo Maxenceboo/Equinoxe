@@ -11,7 +11,7 @@ export type ReglagesObjectif = Omit<
   'id' | 'utilisateur_id' | 'code_partage' | 'archive'
 >;
 
-const AVEC_COCHES = '*, validation(*)';
+const AVEC_COCHES = '*, validation(*), joker_achete(mois)';
 
 /** Adaptateur Supabase : lit et écrit les objectifs et leurs coches, et les convertit pour le domaine. */
 @Injectable({ providedIn: 'root' })
@@ -105,13 +105,34 @@ export class DepotObjectifs {
     }));
   }
 
+  /** Achats de la boutique : nombre de jokers achetés et palettes possédées. */
+  async achats(): Promise<{ jokers: number; palettes: string[] }> {
+    const [jokers, palettes] = await Promise.all([
+      this.db.from('joker_achete').select('id', { count: 'exact', head: true }),
+      this.db.from('palette_achetee').select('palette'),
+    ]);
+    if (jokers.error) throw jokers.error;
+    if (palettes.error) throw palettes.error;
+    return { jokers: jokers.count ?? 0, palettes: palettes.data.map((p) => p.palette) };
+  }
+
+  async acheterJoker(objectifId: number, mois: string): Promise<void> {
+    const { error } = await this.db.from('joker_achete').insert({ objectif_id: objectifId, mois });
+    if (error) throw error;
+  }
+
+  async acheterPalette(palette: string): Promise<void> {
+    const { error } = await this.db.from('palette_achetee').insert({ palette });
+    if (error) throw error;
+  }
+
   async quitter(objectifId: number): Promise<void> {
     const { error } = await this.db.from('binome').delete().eq('objectif_id', objectifId);
     if (error) throw error;
   }
 }
 
-function versDomaine(l: LigneObjectif & { validation: LigneCoche[] }): ObjectifPerso {
+function versDomaine(l: LigneObjectif & { validation: LigneCoche[]; joker_achete?: { mois: string }[] }): ObjectifPerso {
   return {
     id: l.id,
     nom: l.nom,
@@ -137,5 +158,6 @@ function versDomaine(l: LigneObjectif & { validation: LigneCoche[] }): ObjectifP
       heure: v.heure_coche?.slice(0, 5) ?? null,
       quantite: v.quantite,
     })),
+    jokersAchetes: (l.joker_achete ?? []).map((j) => j.mois),
   };
 }

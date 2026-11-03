@@ -3,6 +3,7 @@ import { ajouterJours as j } from './jours';
 import { ObjectifPerso } from './modele';
 import { progression } from './progression';
 import { badges, niveau, points } from './recompenses';
+import { COUT_JOKER, PALETTES, possede, solde } from './boutique';
 
 const LUNDI = '2026-11-02';
 
@@ -67,5 +68,19 @@ describe('jokers', () => {
     const p = progression(o, j(LUNDI, 35));
     expect(p.serie).toBe(4);
     expect(p.jokerUtilise).toBe(j(LUNDI, 28));
+  });
+});
+
+
+describe('boutique', () => {
+  it('retire les achats des points gagnés, sans passer sous zéro', () => {
+    expect(solde(1000, { jokers: 1, palettes: ['OCEAN'] })).toBe(1000 - COUT_JOKER - 300);
+    expect(solde(100, { jokers: 2, palettes: [] })).toBe(0);
+  });
+
+  it('offre la première palette', () => {
+    expect(PALETTES[0].cout).toBe(0);
+    expect(possede({ jokers: 0, palettes: [] }, 'AURORE')).toBe(true);
+    expect(possede({ jokers: 0, palettes: [] }, 'BRAISE')).toBe(false);
   });
 });

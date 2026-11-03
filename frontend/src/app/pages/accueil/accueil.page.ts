@@ -323,7 +323,7 @@ export class AccueilPage implements OnInit, OnDestroy {
       // Effet immédiat au toucher, sans attendre le serveur
       this.celebration.coche();
       this.pop.set(o.id);
-      setTimeout(() => this.pop.set(null), 350);
+      setTimeout(() => this.pop.set(null), 800);
     } else {
       this.celebration.decoche();
     }

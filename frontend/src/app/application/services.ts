@@ -34,6 +34,7 @@ import { Coche, DetailsCoche, Maintenant, ObjectifPerso } from '../domaine/model
 import { coche, heureHabituelle, heureRappel } from '../domaine/objectif';
 import { historique, progression } from '../domaine/progression';
 import { profil } from '../domaine/recompenses';
+import { COUT_JOKER, CodePalette, palette } from '../domaine/boutique';
 import { tousLesRappels } from '../domaine/rappels';
 import { statistiques } from '../domaine/statistiques';
 import { DepotObjectifs, ReglagesObjectif } from '../donnees/depot-objectifs';
@@ -343,17 +344,43 @@ export class ProfilService {
   profil(): Observable<Profil> {
     return this.erreurs.appel(async () => {
       const moi = (await this.db.auth.getUser()).data.user?.id ?? '';
-      const [objectifs, membre] = await Promise.all([
+      const [objectifs, membre, achats] = await Promise.all([
         this.depot.listerTout(),
         // Mon prénom dans mon premier groupe (la table montre aussi les autres membres)
         this.db.from('foyer_membre').select('prenom').eq('utilisateur_id', moi).order('depuis').limit(1).maybeSingle(),
+        this.depot.achats(),
       ]);
-      return profil(objectifs, aujourdhui(), membre.data?.prenom ?? undefined);
+      return profil(objectifs, aujourdhui(), membre.data?.prenom ?? undefined, {
+        jokers: achats.jokers,
+        palettes: achats.palettes as CodePalette[],
+      });
     }, { silencieux: true });
   }
 }
 
 export type { Badge };
+
+/** Boutique : dépenser ses points. Le solde est vérifié avant chaque achat. */
+@Injectable({ providedIn: 'root' })
+export class BoutiqueService {
+  private readonly depot = inject(DepotObjectifs);
+  private readonly erreurs = inject(Erreurs);
+
+  /** Un joker en plus ce mois-ci pour cet objectif. */
+  acheterJoker(objectifId: number, soldeActuel: number): Observable<void> {
+    return this.erreurs.appel(async () => {
+      if (soldeActuel < COUT_JOKER) throw { code: 'solde', message: 'Pas assez de points pour un joker.' };
+      await this.depot.acheterJoker(objectifId, aujourdhui().slice(0, 7));
+    });
+  }
+
+  acheterPalette(code: CodePalette, soldeActuel: number): Observable<void> {
+    return this.erreurs.appel(async () => {
+      if (soldeActuel < palette(code).cout) throw { code: 'solde', message: 'Pas assez de points pour cette palette.' };
+      await this.depot.acheterPalette(code);
+    });
+  }
+}
 
 /** Les groupes (famille, amis, collègues) : on peut être dans plusieurs. */
 @Injectable({ providedIn: 'root' })

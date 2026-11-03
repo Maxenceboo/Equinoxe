@@ -2,10 +2,13 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
+import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Badge, Identifiants, Profil } from '../../api/generated';
-import { AuthService, ProfilService } from '../../application/services';
+import { Badge, Identifiants, Objectif, Profil } from '../../api/generated';
+import { AuthService, BoutiqueService, ObjectifsService, ProfilService } from '../../application/services';
+import { COUT_JOKER, CodePalette, PALETTES, Palette } from '../../domaine/boutique';
+import { CelebrationService } from '../../core/celebration.service';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { ReglagesService } from '../../core/reglages.service';
@@ -37,6 +40,30 @@ import { BadgeIcone } from '../../shared/badge-icone';
         </div>
         <small>Encore {{ p.pointsNiveauSuivant - p.points }} points pour le niveau suivant. Une coche = 10 points, une semaine tenue = 50.</small>
       </section>
+
+      <h2 class="titre-section">Boutique <span>{{ p.solde }} points à dépenser</span></h2>
+      <p class="aide">Dépenser des points ne fait pas baisser ton niveau.</p>
+      <button type="button" class="article" [disabled]="p.solde < coutJoker" (click)="choixJoker.set(true)">
+        <i class="pi pi-shield"></i>
+        <span><strong>Un joker en plus</strong><small>Protège une série de plus ce mois-ci</small></span>
+        <em>{{ coutJoker }}</em>
+      </button>
+
+      <p class="sous-etiquette">Couleurs des animations</p>
+      <ul class="palettes">
+        @for (pal of palettes; track pal.code) {
+          <li>
+            <button type="button" class="palette" [class.choisie]="reglages.palette() === pal.code"
+                    [disabled]="!p.palettes.includes(pal.code) && p.solde < pal.cout" (click)="palette(pal, p)">
+              <span class="pastilles" aria-hidden="true">
+                @for (c of pal.couleurs; track $index) { <i [style.background]="c"></i> }
+              </span>
+              <span class="nom">{{ pal.nom }}</span>
+              <small>{{ reglages.palette() === pal.code ? 'Active' : p.palettes.includes(pal.code) ? 'Choisir' : pal.cout + ' pts' }}</small>
+            </button>
+          </li>
+        }
+      </ul>
 
       <h2 class="titre-section">Badges <span>{{ obtenus() }}/{{ p.badges.length }}</span></h2>
       <ul class="badges">
@@ -110,6 +137,17 @@ import { BadgeIcone } from '../../shared/badge-icone';
       <p-button class="deconnexion" label="Se déconnecter" icon="pi pi-sign-out" [text]="true" severity="danger" (onClick)="confirmation.set(true)" />
     }
 
+    <p-dialog header="Un joker pour quel objectif ?" [visible]="choixJoker()" (visibleChange)="!$event && choixJoker.set(false)" [modal]="true" [dismissableMask]="true" [style]="{ width: '22rem' }">
+      <p class="aide">Ce mois-ci, cet objectif pourra rater un jour (ou une semaine) de plus sans casser sa série.</p>
+      <ul class="reglages">
+        @for (o of objectifs(); track o.id) {
+          <li><button type="button" class="reglage" (click)="acheterJoker(o)"><i class="pi pi-shield"></i><span>{{ o.nom }}</span><small>{{ coutJoker }} pts</small></button></li>
+        } @empty {
+          <li class="aide">Crée d'abord un objectif.</li>
+        }
+      </ul>
+    </p-dialog>
+
     <p-dialog [header]="enDetail()?.nom ?? ''" [visible]="enDetail() !== null" (visibleChange)="!$event && enDetail.set(null)" [modal]="true" [dismissableMask]="true" [style]="{ width: '22rem' }">
       @if (enDetail(); as b) {
         <div class="badge-detail">
@@ -137,6 +175,14 @@ export class ProfilPage implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly profil = signal<Profil | null>(null);
+  private readonly boutique = inject(BoutiqueService);
+  private readonly objectifsApi = inject(ObjectifsService);
+  private readonly celebration = inject(CelebrationService);
+  private readonly messages = inject(MessageService);
+  protected readonly coutJoker = COUT_JOKER;
+  protected readonly palettes = PALETTES;
+  protected readonly choixJoker = signal(false);
+  protected readonly objectifs = signal<Objectif[]>([]);
   protected readonly enDetail = signal<Badge | null>(null);
   protected readonly confirmation = signal(false);
   protected readonly securisation = signal(false);
@@ -154,7 +200,40 @@ export class ProfilPage implements OnInit {
   protected readonly champsCompte = inject(SchemaFormService).champs('Identifiants');
 
   ngOnInit(): void {
+    this.charger();
+    this.objectifsApi.listerObjectifs(false).subscribe((l) => this.objectifs.set(l));
+  }
+
+  private charger(): void {
     this.api.profil().subscribe((p) => this.profil.set(p));
+  }
+
+  acheterJoker(o: Objectif): void {
+    const p = this.profil();
+    if (!p) return;
+    this.boutique.acheterJoker(o.id, p.solde).subscribe(() => {
+      this.choixJoker.set(false);
+      this.messages.add({ severity: 'success', summary: 'Joker ajouté', detail: `« ${o.nom} » est protégé une fois de plus ce mois-ci.` });
+      this.charger();
+    });
+  }
+
+  /** Une palette possédée se choisit ; sinon on l'achète, puis on la montre tout de suite. */
+  palette(pal: Palette, p: Profil): void {
+    if (p.palettes.includes(pal.code)) {
+      this.choisir(pal.code);
+      return;
+    }
+    this.boutique.acheterPalette(pal.code, p.solde).subscribe(() => {
+      this.choisir(pal.code);
+      this.charger();
+    });
+  }
+
+  private choisir(code: CodePalette): void {
+    this.reglages.choisirPalette(code);
+    const pal = PALETTES.find((x) => x.code === code);
+    this.celebration.celebrer({ titre: pal?.nom ?? '', sousTitre: 'Tes animations auront ces couleurs.', nombre: '✓', legende: 'palette choisie' });
   }
 
   protected date(jour: string): string {

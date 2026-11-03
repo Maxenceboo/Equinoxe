@@ -137,7 +137,30 @@ formly-field-primeng-radio {
   .ligne-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--pas); }
   .ligne-bas { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); margin-top: 0.5rem; }
   .cote { display: grid; justify-items: center; gap: 0.35rem; }
-  &.pop .coche { animation: pop 0.3s ease-out; }
+  &.pop .coche { animation: pop 0.3s ease-out, eclat-coche 0.8s ease-out; }
+  &.pop .cote { position: relative; }
+  &.pop .cote::before, &.pop .cote::after {
+    content: ''; position: absolute; left: 50%; top: 1.625rem; width: 3.25rem; height: 3.25rem; margin: -1.625rem 0 0 -1.625rem;
+    border-radius: 50%; pointer-events: none;
+  }
+  &.pop .cote::before {
+    background: conic-gradient(var(--eclat-1), var(--eclat-2), var(--eclat-3), var(--eclat-1));
+    -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%);
+    animation: anneau 0.7s ease-out both;
+  }
+  &.pop .cote::after {
+    background:
+      radial-gradient(circle, var(--eclat-1) 0 3px, transparent 4px) 50% 0 / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-2) 0 3px, transparent 4px) 100% 50% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-3) 0 3px, transparent 4px) 50% 100% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-1) 0 3px, transparent 4px) 0 50% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-2) 0 3px, transparent 4px) 85% 15% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-3) 0 3px, transparent 4px) 15% 85% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-3) 0 3px, transparent 4px) 85% 85% / 8px 8px no-repeat,
+      radial-gradient(circle, var(--eclat-2) 0 3px, transparent 4px) 15% 15% / 8px 8px no-repeat;
+    animation: etincelles 0.8s ease-out both;
+  }
+  &.pop .segments i.plein:last-of-type { animation: remplit 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both, segment-couleur 0.9s ease-out; }
   animation: apparait 0.3s ease-out both;
   &.atteint .compteur { text-decoration: underline; text-underline-offset: 4px; }
   .nom { font-weight: 700; font-size: 1.15rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -637,4 +660,54 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   .foyer-bande-haut strong { font-size: 1rem; }
   .pi-chevron-right { font-size: 0.7rem; color: var(--discret); margin-left: 0.3rem; }
   small { color: var(--discret); }
+}
+
+// ---------- Couleurs de récompense (seulement pendant les animations) ----------
+:root { --eclat-1: #ff7aa2; --eclat-2: #ffb36b; --eclat-3: #b48cff; }
+@keyframes eclat-coche {
+  0% { background: var(--eclat-1); border-color: var(--eclat-1); color: #000; }
+  60% { background: var(--eclat-2); border-color: var(--eclat-2); color: #000; }
+  100% { background: transparent; }
+}
+@keyframes anneau { from { transform: scale(0.8); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+@keyframes etincelles { from { transform: scale(0.6) rotate(0deg); opacity: 1; } to { transform: scale(2.6) rotate(25deg); opacity: 0; } }
+@keyframes segment-couleur { 0%, 40% { background: var(--eclat-1); } 100% { background: var(--texte); } }
+
+.celebration {
+  .lueur {
+    position: absolute; width: 22rem; height: 22rem; border-radius: 50%; top: 50%; left: 50%; margin: -15rem 0 0 -11rem;
+    background: radial-gradient(circle, color-mix(in srgb, var(--eclat-1) 45%, transparent), color-mix(in srgb, var(--eclat-3) 20%, transparent) 45%, transparent 70%);
+    filter: blur(8px); animation: lueur 2.5s ease-out both; pointer-events: none;
+  }
+  .serie { background: linear-gradient(90deg, var(--eclat-1), var(--eclat-2), var(--eclat-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .confetti { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .confetti i {
+    position: absolute; top: -1rem; width: 0.5rem; height: 0.9rem; border-radius: 2px;
+    animation: tombe var(--duree) cubic-bezier(0.3, 0.6, 0.5, 1) var(--delai) both;
+  }
+  > *:not(.confetti):not(.lueur) { position: relative; }
+}
+@keyframes lueur { 0% { opacity: 0; transform: scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0.25; transform: scale(1.15); } }
+@keyframes tombe { from { transform: translateY(0) rotate(0deg); opacity: 1; } to { transform: translateY(105vh) rotate(var(--tour)); opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) {
+  .objectif.pop .cote::before, .objectif.pop .cote::after, .celebration .confetti { display: none; }
+}
+
+// ---------- Boutique ----------
+.article {
+  width: 100%; display: flex; align-items: center; gap: 0.9rem; padding: 1rem 0; margin-bottom: 1.25rem;
+  background: none; border: 0; border-bottom: 1px solid var(--ligne); color: var(--texte); font: inherit; text-align: left; cursor: pointer;
+  > span { flex: 1; display: grid; gap: 0.15rem; small { color: var(--discret); font-size: 0.85rem; } }
+  em { font-style: normal; font-weight: 700; border: 1px solid var(--ligne-forte); border-radius: 999px; padding: 0.3rem 0.75rem; font-size: 0.85rem; }
+  &:disabled { opacity: 0.45; cursor: default; }
+}
+.palettes { list-style: none; padding: 0; margin: 0.5rem 0 2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: 0.6rem; }
+.palette {
+  width: 100%; display: grid; justify-items: center; gap: 0.35rem; padding: 0.8rem 0.4rem; background: none; color: var(--texte);
+  border: 1px solid transparent; border-radius: var(--rayon); font: inherit; cursor: pointer;
+  .pastilles { display: flex; gap: 0.2rem; i { width: 0.9rem; height: 0.9rem; border-radius: 50%; } }
+  .nom { font-weight: 600; font-size: 0.9rem; }
+  small { color: var(--discret); font-size: 0.75rem; }
+  &.choisie { border-color: var(--texte); }
+  &:disabled { opacity: 0.4; cursor: default; }
 }

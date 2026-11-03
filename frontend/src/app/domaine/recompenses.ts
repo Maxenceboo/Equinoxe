@@ -3,6 +3,7 @@ import { ajouterJours, ecartJours, lundiDe } from './jours';
 import { ObjectifPerso } from './modele';
 import { cochesDeLaSemaine, premiereDate } from './objectif';
 import { serie } from './progression';
+import { Achats, CodePalette, PALETTES, possede, solde } from './boutique';
 
 /** Points : 10 par coche, 50 par semaine tenue (objectif atteint), toutes semaines confondues. */
 export const POINTS_COCHE = 10;
@@ -149,7 +150,7 @@ export function badges(objectifs: ObjectifPerso[], aujourdhui: string): Badge[] 
   });
 }
 
-export function profil(objectifs: ObjectifPerso[], aujourdhui: string, prenom?: string): Profil {
+export function profil(objectifs: ObjectifPerso[], aujourdhui: string, prenom?: string, achats: Achats = { jokers: 0, palettes: [] }): Profil {
   const p = points(objectifs, aujourdhui);
   const n = niveau(p);
   return {
@@ -159,6 +160,8 @@ export function profil(objectifs: ObjectifPerso[], aujourdhui: string, prenom?: 
     nomNiveau: n.nom,
     pointsNiveau: n.points,
     pointsNiveauSuivant: n.suivant,
+    solde: solde(p, achats),
+    palettes: PALETTES.filter((pal) => possede(achats, pal.code)).map((pal): CodePalette => pal.code),
     badges: badges(objectifs, aujourdhui),
   };
 }

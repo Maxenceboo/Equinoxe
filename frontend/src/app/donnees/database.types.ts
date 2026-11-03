@@ -56,6 +56,20 @@ export type Database = {
         Update: { a?: string; cree_le?: string; de?: string; foyer_id?: number; id?: number; type?: string; vu?: boolean }
         Relationships: []
       }
+      joker_achete: {
+        Row: { cree_le: string; id: number; mois: string; objectif_id: number; utilisateur_id: string }
+        Insert: { cree_le?: string; id?: number; mois: string; objectif_id: number; utilisateur_id?: string }
+        Update: { cree_le?: string; id?: number; mois?: string; objectif_id?: number; utilisateur_id?: string }
+        Relationships: [
+          { foreignKeyName: 'joker_achete_objectif_id_fkey'; columns: ['objectif_id']; isOneToOne: false; referencedRelation: 'objectif'; referencedColumns: ['id'] },
+        ]
+      }
+      palette_achetee: {
+        Row: { cree_le: string; palette: string; utilisateur_id: string }
+        Insert: { cree_le?: string; palette: string; utilisateur_id?: string }
+        Update: { cree_le?: string; palette?: string; utilisateur_id?: string }
+        Relationships: []
+      }
       foyer: {
         Row: { code: string; cree_le: string; id: number; nom: string; objectif_semaine: number; recompense: string | null }
         Insert: { code: string; cree_le?: string; id?: number; nom: string; objectif_semaine?: number; recompense?: string | null }

@@ -329,7 +329,7 @@ components:
     # ---------- Récompenses ----------
     Profil:
       type: object
-      required: [points, niveau, nomNiveau, pointsNiveau, pointsNiveauSuivant, badges]
+      required: [points, niveau, nomNiveau, pointsNiveau, pointsNiveauSuivant, solde, palettes, badges]
       properties:
         prenom: { type: string, description: Prénom dans le foyer }
         points: { type: integer, description: "10 par coche, 50 par semaine tenue" }
@@ -337,6 +337,11 @@ components:
         nomNiveau: { type: string, description: "Phase de lune : Nouvelle lune, Croissant…" }
         pointsNiveau: { type: integer, description: Points à partir desquels ce niveau est atteint }
         pointsNiveauSuivant: { type: integer, description: Points du niveau suivant }
+        solde: { type: integer, description: "Points encore à dépenser (gagnés moins achats)" }
+        palettes:
+          type: array
+          description: Palettes de couleurs possédées (Aurore est offerte)
+          items: { type: string }
         badges:
           type: array
           items: { $ref: '#/components/schemas/Badge' }
