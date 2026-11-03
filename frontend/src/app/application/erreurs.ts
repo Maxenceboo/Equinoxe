@@ -9,6 +9,7 @@ const MESSAGES: Record<string, string> = {
   email_not_confirmed: 'Confirme ton email (lien reçu par mail), puis connecte-toi.',
   over_request_rate_limit: 'Trop de tentatives, réessaie dans quelques minutes.',
   PGRST116: 'Objectif introuvable.',
+  anonymous_provider_disabled: "L'entrée par code n'est pas encore activée. Demande à un parent de créer un compte avec email.",
 };
 
 /**

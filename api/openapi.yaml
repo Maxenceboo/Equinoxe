@@ -135,7 +135,8 @@ components:
         serie: { type: integer, description: "Série en cours (flamme) : jours d'affilée pour un objectif quotidien, semaines réussies d'affilée sinon" }
         meilleureSerie: { type: integer, description: Record de série dans la même unité }
         uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
-        jokersRestants: { type: integer, description: "Jokers encore disponibles ce mois-ci : un jour ou une semaine raté qui ne casse pas la série" }
+        jokersRestants: { type: integer, description: "Jokers encore disponibles ce mois-ci : un jour ou une semaine raté qui ne casse pas la série (+1 après une longue série)" }
+        jokerUtilise: { type: string, format: date, description: "Jour (ou lundi) sauvé par un joker ces 14 derniers jours, s'il y en a un" }
         quantiteSemaine: { type: number, format: double, description: Total de la semaine pour un objectif chiffré }
 
     UniteSerie:
@@ -324,3 +325,93 @@ components:
         ami: { type: string, description: Nom affiché de l'ami (avant l'arobase de son email) }
         categorie: { $ref: '#/components/schemas/Categorie' }
         progression: { $ref: '#/components/schemas/ProgressionSemaine' }
+
+    # ---------- Récompenses ----------
+    Profil:
+      type: object
+      required: [points, niveau, nomNiveau, pointsNiveau, pointsNiveauSuivant, badges]
+      properties:
+        prenom: { type: string, description: Prénom dans le foyer }
+        points: { type: integer, description: "10 par coche, 50 par semaine tenue" }
+        niveau: { type: integer, description: "Numéro du niveau, à partir de 1" }
+        nomNiveau: { type: string, description: "Phase de lune : Nouvelle lune, Croissant…" }
+        pointsNiveau: { type: integer, description: Points à partir desquels ce niveau est atteint }
+        pointsNiveauSuivant: { type: integer, description: Points du niveau suivant }
+        badges:
+          type: array
+          items: { $ref: '#/components/schemas/Badge' }
+
+    Badge:
+      type: object
+      required: [code, nom, description, recompense, obtenu]
+      properties:
+        code: { type: string }
+        nom: { type: string }
+        description: { type: string, description: Comment l'obtenir }
+        recompense: { type: string, description: Ce qu'il rapporte }
+        obtenu: { type: boolean }
+        le: { type: string, format: date, description: Date d'obtention }
+
+    # ---------- Foyer ----------
+    Foyer:
+      type: object
+      required: [nom, code, objectifSemaine, cochesSemaine, membres, parent]
+      properties:
+        nom: { type: string }
+        code: { type: string, description: Code à 6 chiffres pour rejoindre le foyer }
+        recompense: { type: string, description: Récompense choisie par les parents }
+        objectifSemaine: { type: integer, description: Coches à faire ensemble dans la semaine }
+        cochesSemaine: { type: integer, description: Coches de toute la famille cette semaine }
+        parent: { type: boolean, description: L'utilisateur est parent (peut régler le foyer) }
+        membres:
+          type: array
+          items: { $ref: '#/components/schemas/MembreFoyer' }
+        encouragements:
+          type: array
+          items: { $ref: '#/components/schemas/Encouragement' }
+
+    MembreFoyer:
+      type: object
+      required: [id, prenom, parent, moi, coches, objectifs, tenus]
+      properties:
+        id: { type: string }
+        prenom: { type: string }
+        parent: { type: boolean }
+        moi: { type: boolean }
+        coches: { type: integer }
+        objectifs: { type: integer }
+        tenus: { type: integer }
+
+    TypeEncouragement:
+      type: string
+      enum: [BRAVO, COURAGE, FIER, MERCI]
+      x-enum-descriptions: [Bravo, Courage, Fier de toi, Merci]
+
+    Encouragement:
+      type: object
+      required: [id, de, type]
+      properties:
+        id: { type: integer, format: int64 }
+        de: { type: string, description: Prénom de l'expéditeur }
+        type: { $ref: '#/components/schemas/TypeEncouragement' }
+
+    CreationFoyer:
+      type: object
+      required: [nom, prenom]
+      properties:
+        nom: { type: string, title: Nom du foyer, minLength: 1, maxLength: 40, description: "Par exemple : Les Martin" }
+        prenom: { type: string, title: Ton prénom, minLength: 1, maxLength: 30 }
+
+    RejoindreFoyer:
+      type: object
+      required: [code, prenom]
+      properties:
+        code: { type: string, title: Code du foyer, pattern: '^\s*\d{3}\s?\d{3}\s*$', description: 6 chiffres donnés par un parent }
+        prenom: { type: string, title: Ton prénom, minLength: 1, maxLength: 30 }
+
+    ReglagesFoyer:
+      type: object
+      required: [objectifSemaine]
+      properties:
+        recompense: { type: string, title: Récompense de la semaine, maxLength: 80, description: "Par exemple : soirée film" }
+        objectifSemaine: { type: integer, title: Coches à faire ensemble, minimum: 1, maximum: 500 }

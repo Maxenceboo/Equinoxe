@@ -12,11 +12,18 @@ import { SupabaseService } from '../donnees/supabase.service';
 export class SessionService {
   private readonly db = inject(SupabaseService).client;
   private readonly router = inject(Router);
-  readonly email = signal<string | null>(null);
-  readonly connecte = computed(() => this.email() !== null);
+  /** Utilisateur connecté : un compte avec email, ou un membre de foyer entré par code (anonyme). */
+  readonly utilisateur = signal<{ email: string | null; anonyme: boolean } | null>(null);
+  readonly email = computed(() => this.utilisateur()?.email ?? null);
+  readonly anonyme = computed(() => this.utilisateur()?.anonyme ?? false);
+  readonly connecte = computed(() => this.utilisateur() !== null);
 
   constructor() {
-    this.db.auth.onAuthStateChange((_evenement, session) => this.email.set(session?.user.email ?? null));
+    this.db.auth.onAuthStateChange((_evenement, session) => this.noter(session?.user));
+  }
+
+  private noter(user: { email?: string; is_anonymous?: boolean } | undefined): void {
+    this.utilisateur.set(user ? { email: user.email || null, anonyme: !!user.is_anonymous } : null);
   }
 
   /** À l'ouverture de l'app : reprend la session enregistrée, même sans réseau. */
@@ -28,7 +35,7 @@ export class SessionService {
       });
     }
     const { data } = await this.db.auth.getSession();
-    this.email.set(data.session?.user.email ?? null);
+    this.noter(data.session?.user);
   }
 
   /** Reprend la session transmise par le lien de confirmation (jetons dans le fragment, ou code). */
@@ -49,12 +56,12 @@ export class SessionService {
     return false;
   }
 
-  ouvrir(email: string): void {
-    this.email.set(email);
+  ouvrir(email: string | null, anonyme = false): void {
+    this.utilisateur.set({ email, anonyme });
   }
 
   async fermer(): Promise<void> {
-    this.email.set(null);
+    this.utilisateur.set(null);
     await this.db.auth.signOut({ scope: 'local' });
   }
 }

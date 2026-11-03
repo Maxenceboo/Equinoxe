@@ -24,6 +24,13 @@ export class DepotObjectifs {
     return data.map(versDomaine);
   }
 
+  /** Tous les objectifs, archivés compris (pour les points et les badges). */
+  async listerTout(): Promise<ObjectifPerso[]> {
+    const { data, error } = await this.db.from('objectif').select(AVEC_COCHES).order('id');
+    if (error) throw error;
+    return data.map(versDomaine);
+  }
+
   async lire(id: number): Promise<ObjectifPerso> {
     const { data, error } = await this.db.from('objectif').select(AVEC_COCHES).eq('id', id).single();
     if (error) throw error;

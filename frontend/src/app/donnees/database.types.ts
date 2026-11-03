@@ -50,6 +50,24 @@ export type Database = {
           },
         ];
       };
+      encouragement: {
+        Row: { a: string; cree_le: string; de: string; foyer_id: number; id: number; type: string; vu: boolean }
+        Insert: { a: string; cree_le?: string; de?: string; foyer_id: number; id?: number; type: string; vu?: boolean }
+        Update: { a?: string; cree_le?: string; de?: string; foyer_id?: number; id?: number; type?: string; vu?: boolean }
+        Relationships: []
+      }
+      foyer: {
+        Row: { code: string; cree_le: string; id: number; nom: string; objectif_semaine: number; recompense: string | null }
+        Insert: { code: string; cree_le?: string; id?: number; nom: string; objectif_semaine?: number; recompense?: string | null }
+        Update: { code?: string; cree_le?: string; id?: number; nom?: string; objectif_semaine?: number; recompense?: string | null }
+        Relationships: []
+      }
+      foyer_membre: {
+        Row: { depuis: string; foyer_id: number; parent: boolean; prenom: string; utilisateur_id: string }
+        Insert: { depuis?: string; foyer_id: number; parent?: boolean; prenom: string; utilisateur_id?: string }
+        Update: { depuis?: string; foyer_id?: number; parent?: boolean; prenom?: string; utilisateur_id?: string }
+        Relationships: []
+      }
       objectif: {
         Row: {
           archive: boolean;
@@ -155,6 +173,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      creer_foyer: { Args: { p_nom: string; p_prenom: string }; Returns: string }
+      foyer_semaine: {
+        Args: { p_lundi: string }
+        Returns: { coches: number; moi: boolean; objectifs: number; parent: boolean; prenom: string; tenus: number; utilisateur_id: string }[]
+      }
+      mon_foyer: { Args: Record<PropertyKey, never>; Returns: number }
+      rejoindre_foyer: { Args: { p_code: string; p_parent?: boolean; p_prenom: string }; Returns: number }
+      suis_parent: { Args: Record<PropertyKey, never>; Returns: boolean }
       objectifs_suivis: {
         Args: Record<PropertyKey, never>;
         Returns: {

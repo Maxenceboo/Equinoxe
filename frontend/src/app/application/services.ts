@@ -6,7 +6,15 @@ import { Observable, defer, from, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SUPABASE } from '../supabase.config';
 import type {
+  Badge,
   Bilan,
+  CreationFoyer,
+  Encouragement,
+  Foyer,
+  Profil,
+  ReglagesFoyer,
+  RejoindreFoyer,
+  TypeEncouragement,
   CodeBinome,
   Historique,
   Identifiants,
@@ -25,6 +33,7 @@ import { estDimanche, lundiDe, ajouterJours } from '../domaine/jours';
 import { Coche, DetailsCoche, Maintenant, ObjectifPerso } from '../domaine/modele';
 import { coche, heureHabituelle, heureRappel } from '../domaine/objectif';
 import { historique, progression } from '../domaine/progression';
+import { profil } from '../domaine/recompenses';
 import { tousLesRappels } from '../domaine/rappels';
 import { statistiques } from '../domaine/statistiques';
 import { DepotObjectifs, ReglagesObjectif } from '../donnees/depot-objectifs';
@@ -282,6 +291,144 @@ export class AuthService {
       if (error) throw error;
       return { token: data.session.access_token, email: data.session.user.email ?? identifiants.email };
     }, { silencieux: true });
+  }
+
+  /** Entrer dans l'app avec le code du foyer et son prénom, sans email (compte anonyme Supabase). */
+  rejoindreSansCompte(code: string, prenom: string): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { error } = await this.db.auth.signInAnonymously();
+      if (error) {
+        if (/anonymous/i.test(error.message)) {
+          throw { code: 'anonyme_desactive', message: "L'entrée par code n'est pas encore activée. Demande à un parent de créer un compte avec email." };
+        }
+        throw error;
+      }
+      const rejoint = await this.db.rpc('rejoindre_foyer', { p_code: code, p_prenom: prenom, p_parent: false });
+      if (rejoint.error) {
+        // Code faux : on ne garde pas un compte vide
+        await this.db.auth.signOut({ scope: 'local' });
+        throw rejoint.error;
+      }
+    });
+  }
+
+  /** Ajoute un email et un mot de passe à un compte entré par code, pour le retrouver sur un autre téléphone. */
+  securiser(identifiants: Identifiants): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { error } = await this.db.auth.updateUser(
+        { email: identifiants.email, password: identifiants.motDePasse },
+        { emailRedirectTo: SUPABASE.confirmation },
+      );
+      if (error) throw error;
+    });
+  }
+}
+
+/** Points, niveau et badges, calculés à partir de tous les objectifs (archivés compris). */
+@Injectable({ providedIn: 'root' })
+export class ProfilService {
+  private readonly depot = inject(DepotObjectifs);
+  private readonly erreurs = inject(Erreurs);
+  private readonly db = inject(SupabaseService).client;
+
+  profil(): Observable<Profil> {
+    return this.erreurs.appel(async () => {
+      const [objectifs, membre] = await Promise.all([
+        this.depot.listerTout(),
+        this.db.from('foyer_membre').select('prenom').maybeSingle(),
+      ]);
+      return profil(objectifs, aujourdhui(), membre.data?.prenom ?? undefined);
+    }, { silencieux: true });
+  }
+}
+
+export type { Badge };
+
+/** Le Foyer : la famille qui avance ensemble. */
+@Injectable({ providedIn: 'root' })
+export class FoyerService {
+  private readonly erreurs = inject(Erreurs);
+  private readonly db = inject(SupabaseService).client;
+
+  /** Le foyer de l'utilisateur et sa semaine, ou null s'il n'en a pas. */
+  foyer(): Observable<Foyer | null> {
+    return this.erreurs.appel(async () => {
+      const { data: f, error } = await this.db.from('foyer').select('id, nom, code, recompense, objectif_semaine').maybeSingle();
+      if (error) throw error;
+      if (!f) return null;
+      const [semaine, encouragements] = await Promise.all([
+        this.db.rpc('foyer_semaine', { p_lundi: lundiDe(aujourdhui()) }),
+        this.db.from('encouragement').select('id, de, type').eq('vu', false).eq('a', (await this.db.auth.getUser()).data.user?.id ?? ''),
+      ]);
+      if (semaine.error) throw semaine.error;
+      const membres = semaine.data.map((m) => ({
+        id: m.utilisateur_id, prenom: m.prenom, parent: m.parent, moi: m.moi, coches: m.coches, objectifs: m.objectifs, tenus: m.tenus,
+      }));
+      const prenoms = new Map(membres.map((m) => [m.id, m.prenom]));
+      return {
+        nom: f.nom,
+        code: f.code,
+        recompense: f.recompense ?? undefined,
+        objectifSemaine: f.objectif_semaine,
+        cochesSemaine: membres.reduce((t, m) => t + m.coches, 0),
+        parent: membres.some((m) => m.moi && m.parent),
+        membres,
+        encouragements: (encouragements.data ?? []).map(
+          (e): Encouragement => ({ id: e.id, de: prenoms.get(e.de) ?? 'Quelqu\'un', type: e.type as TypeEncouragement }),
+        ),
+      };
+    }, { silencieux: true });
+  }
+
+  creer(saisie: CreationFoyer): Observable<string> {
+    return this.erreurs.appel(async () => {
+      const { data, error } = await this.db.rpc('creer_foyer', { p_nom: saisie.nom, p_prenom: saisie.prenom });
+      if (error) throw error;
+      return data;
+    });
+  }
+
+  rejoindre(saisie: RejoindreFoyer, parent = false): Observable<number> {
+    return this.erreurs.appel(async () => {
+      const { data, error } = await this.db.rpc('rejoindre_foyer', { p_code: saisie.code, p_prenom: saisie.prenom, p_parent: parent });
+      if (error) throw error;
+      return data;
+    });
+  }
+
+  regler(reglages: ReglagesFoyer): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { data: id } = await this.db.rpc('mon_foyer');
+      const { error } = await this.db
+        .from('foyer')
+        .update({ recompense: reglages.recompense?.trim() || null, objectif_semaine: reglages.objectifSemaine })
+        .eq('id', id ?? 0);
+      if (error) throw error;
+    });
+  }
+
+  encourager(a: string, type: TypeEncouragement): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { data: id } = await this.db.rpc('mon_foyer');
+      const { error } = await this.db.from('encouragement').insert({ foyer_id: id ?? 0, a, type });
+      if (error) throw error;
+    });
+  }
+
+  marquerVus(ids: number[]): Observable<void> {
+    return this.erreurs.appel(async () => {
+      if (ids.length === 0) return;
+      const { error } = await this.db.from('encouragement').update({ vu: true }).in('id', ids);
+      if (error) throw error;
+    }, { silencieux: true });
+  }
+
+  quitter(): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { data } = await this.db.auth.getUser();
+      const { error } = await this.db.from('foyer_membre').delete().eq('utilisateur_id', data.user?.id ?? '');
+      if (error) throw error;
+    });
   }
 }
 
