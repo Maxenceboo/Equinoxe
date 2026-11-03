@@ -26,7 +26,7 @@ import { SessionService } from '../../core/session.service';
       <p class="sous-titre">Le jour pour avancer, la nuit pour récupérer.</p>
 
       @if (modeCode()) {
-        <p class="aide">Entre le code à 6 chiffres donné par un parent, et ton prénom. Pas besoin d'email.</p>
+        <p class="aide">Entre le code à 6 chiffres qu'on t'a donné, et ton prénom. Pas besoin d'email.</p>
         <form [formGroup]="formCode" (ngSubmit)="entrerAvecCode()">
           <formly-form [form]="formCode" [fields]="champsCode" [model]="modelCode" />
           <p-button type="submit" label="Entrer" [loading]="enCours()" styleClass="w-full" />
@@ -50,7 +50,7 @@ import { SessionService } from '../../core/session.service';
       />
 
       <div class="separateur"><span>ou</span></div>
-      <p-button label="J'ai un code de famille" icon="pi pi-home" [outlined]="true" styleClass="w-full" (onClick)="modeCode.set(true)" />
+      <p-button label="J'ai un code de groupe" icon="pi pi-home" [outlined]="true" styleClass="w-full" (onClick)="modeCode.set(true)" />
       }
 
     </section>

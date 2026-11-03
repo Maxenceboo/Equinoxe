@@ -342,9 +342,11 @@ export class ProfilService {
 
   profil(): Observable<Profil> {
     return this.erreurs.appel(async () => {
+      const moi = (await this.db.auth.getUser()).data.user?.id ?? '';
       const [objectifs, membre] = await Promise.all([
         this.depot.listerTout(),
-        this.db.from('foyer_membre').select('prenom').maybeSingle(),
+        // Mon prénom dans mon premier groupe (la table montre aussi les autres membres)
+        this.db.from('foyer_membre').select('prenom').eq('utilisateur_id', moi).order('depuis').limit(1).maybeSingle(),
       ]);
       return profil(objectifs, aujourdhui(), membre.data?.prenom ?? undefined);
     }, { silencieux: true });
@@ -353,39 +355,60 @@ export class ProfilService {
 
 export type { Badge };
 
-/** Le Foyer : la famille qui avance ensemble. */
+/** Les groupes (famille, amis, collègues) : on peut être dans plusieurs. */
 @Injectable({ providedIn: 'root' })
 export class FoyerService {
   private readonly erreurs = inject(Erreurs);
   private readonly db = inject(SupabaseService).client;
 
-  /** Le foyer de l'utilisateur et sa semaine, ou null s'il n'en a pas. */
-  foyer(): Observable<Foyer | null> {
+  /** Tous mes groupes avec leur semaine, du plus ancien au plus récent. */
+  foyers(): Observable<Foyer[]> {
     return this.erreurs.appel(async () => {
-      const { data: f, error } = await this.db.from('foyer').select('id, nom, code, recompense, objectif_semaine').maybeSingle();
+      const { data, error } = await this.db.from('foyer').select('id, nom, code, recompense, objectif_semaine, cree_le').order('cree_le');
       if (error) throw error;
-      if (!f) return null;
-      const [semaine, encouragements] = await Promise.all([
-        this.db.rpc('foyer_semaine', { p_lundi: lundiDe(aujourdhui()) }),
-        this.db.from('encouragement').select('id, de, type').eq('vu', false).eq('a', (await this.db.auth.getUser()).data.user?.id ?? ''),
-      ]);
-      if (semaine.error) throw semaine.error;
-      const membres = semaine.data.map((m) => ({
-        id: m.utilisateur_id, prenom: m.prenom, parent: m.parent, moi: m.moi, coches: m.coches, objectifs: m.objectifs, tenus: m.tenus,
-      }));
-      const prenoms = new Map(membres.map((m) => [m.id, m.prenom]));
-      return {
-        nom: f.nom,
-        code: f.code,
-        recompense: f.recompense ?? undefined,
-        objectifSemaine: f.objectif_semaine,
-        cochesSemaine: membres.reduce((t, m) => t + m.coches, 0),
-        parent: membres.some((m) => m.moi && m.parent),
-        membres,
-        encouragements: (encouragements.data ?? []).map(
-          (e): Encouragement => ({ id: e.id, de: prenoms.get(e.de) ?? 'Quelqu\'un', type: e.type as TypeEncouragement }),
-        ),
-      };
+      return Promise.all(data.map((f) => this.semaine(f)));
+    }, { silencieux: true });
+  }
+
+  /** Un groupe et sa semaine, ou null si on n'en fait pas partie. */
+  foyer(id: number): Observable<Foyer | null> {
+    return this.erreurs.appel(async () => {
+      const { data: f, error } = await this.db.from('foyer').select('id, nom, code, recompense, objectif_semaine').eq('id', id).maybeSingle();
+      if (error) throw error;
+      return f ? this.semaine(f) : null;
+    }, { silencieux: true });
+  }
+
+  private async semaine(f: { id: number; nom: string; code: string; recompense: string | null; objectif_semaine: number }): Promise<Foyer> {
+    const { data, error } = await this.db.rpc('foyer_semaine', { p_foyer: f.id, p_lundi: lundiDe(aujourdhui()) });
+    if (error) throw error;
+    const membres = data.map((m) => ({
+      id: m.utilisateur_id, prenom: m.prenom, parent: m.parent, moi: m.moi, coches: m.coches, objectifs: m.objectifs, tenus: m.tenus,
+    }));
+    return {
+      id: f.id,
+      nom: f.nom,
+      code: f.code,
+      recompense: f.recompense ?? undefined,
+      objectifSemaine: f.objectif_semaine,
+      cochesSemaine: membres.reduce((t, m) => t + m.coches, 0),
+      parent: membres.some((m) => m.moi && m.parent),
+      membres,
+    };
+  }
+
+  /** Encouragements reçus et pas encore vus, avec le prénom de l'expéditeur. */
+  encouragementsRecus(): Observable<Encouragement[]> {
+    return this.erreurs.appel(async () => {
+      const moi = (await this.db.auth.getUser()).data.user?.id ?? '';
+      const { data, error } = await this.db.from('encouragement').select('id, de, foyer_id, type').eq('vu', false).eq('a', moi);
+      if (error) throw error;
+      if (data.length === 0) return [];
+      const { data: membres } = await this.db.from('foyer_membre').select('foyer_id, utilisateur_id, prenom')
+        .in('utilisateur_id', [...new Set(data.map((e) => e.de))]);
+      const prenom = (foyer: number, de: string) =>
+        membres?.find((m) => m.foyer_id === foyer && m.utilisateur_id === de)?.prenom ?? "Quelqu'un";
+      return data.map((e): Encouragement => ({ id: e.id, de: prenom(e.foyer_id, e.de), type: e.type as TypeEncouragement }));
     }, { silencieux: true });
   }
 
@@ -405,21 +428,19 @@ export class FoyerService {
     });
   }
 
-  regler(reglages: ReglagesFoyer): Observable<void> {
+  regler(id: number, reglages: ReglagesFoyer): Observable<void> {
     return this.erreurs.appel(async () => {
-      const { data: id } = await this.db.rpc('mon_foyer');
       const { error } = await this.db
         .from('foyer')
         .update({ recompense: reglages.recompense?.trim() || null, objectif_semaine: reglages.objectifSemaine })
-        .eq('id', id ?? 0);
+        .eq('id', id);
       if (error) throw error;
     });
   }
 
-  encourager(a: string, type: TypeEncouragement): Observable<void> {
+  encourager(foyerId: number, a: string, type: TypeEncouragement): Observable<void> {
     return this.erreurs.appel(async () => {
-      const { data: id } = await this.db.rpc('mon_foyer');
-      const { error } = await this.db.from('encouragement').insert({ foyer_id: id ?? 0, a, type });
+      const { error } = await this.db.from('encouragement').insert({ foyer_id: foyerId, a, type });
       if (error) throw error;
     });
   }
@@ -432,10 +453,10 @@ export class FoyerService {
     }, { silencieux: true });
   }
 
-  quitter(): Observable<void> {
+  quitter(id: number): Observable<void> {
     return this.erreurs.appel(async () => {
       const { data } = await this.db.auth.getUser();
-      const { error } = await this.db.from('foyer_membre').delete().eq('utilisateur_id', data.user?.id ?? '');
+      const { error } = await this.db.from('foyer_membre').delete().eq('foyer_id', id).eq('utilisateur_id', data.user?.id ?? '');
       if (error) throw error;
     });
   }

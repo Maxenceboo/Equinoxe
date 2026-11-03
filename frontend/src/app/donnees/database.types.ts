@@ -175,12 +175,13 @@ export type Database = {
     Functions: {
       creer_foyer: { Args: { p_nom: string; p_prenom: string }; Returns: string }
       foyer_semaine: {
-        Args: { p_lundi: string }
+        Args: { p_foyer: number; p_lundi: string }
         Returns: { coches: number; moi: boolean; objectifs: number; parent: boolean; prenom: string; tenus: number; utilisateur_id: string }[]
       }
       mon_foyer: { Args: Record<PropertyKey, never>; Returns: number }
       rejoindre_foyer: { Args: { p_code: string; p_parent?: boolean; p_prenom: string }; Returns: number }
-      suis_parent: { Args: Record<PropertyKey, never>; Returns: boolean }
+      est_membre: { Args: { p_foyer: number }; Returns: boolean }
+      est_parent: { Args: { p_foyer: number }; Returns: boolean }
       objectifs_suivis: {
         Args: Record<PropertyKey, never>;
         Returns: {

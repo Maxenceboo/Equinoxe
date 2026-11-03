@@ -47,13 +47,13 @@ import {
     }
 
     @if (charge()) {
-      @if (foyer(); as f) {
-        <a class="foyer-bande" routerLink="/foyer">
+      @for (f of foyers(); track f.id) {
+        <a class="foyer-bande" [routerLink]="['/foyer', f.id]">
           <div class="foyer-bande-haut">
             <span class="etiquette">{{ f.nom }}</span>
             <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches</span>
           </div>
-          <div class="jauge"><span [style.width.%]="avancementFoyer()"></span></div>
+          <div class="jauge"><span [style.width.%]="avancementFoyer(f)"></span></div>
           @if (f.recompense) {
             <small>{{ f.cochesSemaine >= f.objectifSemaine ? 'Gagné : ' : 'À la clé : ' }}{{ f.recompense }}</small>
           }
@@ -226,12 +226,11 @@ export class AccueilPage implements OnInit, OnDestroy {
   private readonly profilApi = inject(ProfilService);
   private readonly foyerApi = inject(FoyerService);
   protected readonly profil = signal<Profil | null>(null);
-  protected readonly foyer = signal<Foyer | null>(null);
+  protected readonly foyers = signal<Foyer[]>([]);
   protected readonly encouragements = signal<Encouragement[]>([]);
-  protected readonly avancementFoyer = computed(() => {
-    const f = this.foyer();
-    return f ? Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100)) : 0;
-  });
+  protected avancementFoyer(f: Foyer): number {
+    return Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100));
+  }
   protected readonly jokerSauveur = computed(() => this.objectifs().find((o) => o.progression.jokerUtilise) ?? null);
 
   protected texteEncouragement(type: TypeEncouragement): string {
@@ -256,10 +255,8 @@ export class AccueilPage implements OnInit, OnDestroy {
         }), 2700);
       }
     });
-    this.foyerApi.foyer().subscribe((f) => {
-      this.foyer.set(f);
-      if (!apresCoche) this.encouragements.set(f?.encouragements ?? []);
-    });
+    this.foyerApi.foyers().subscribe((l) => this.foyers.set(l));
+    if (!apresCoche) this.foyerApi.encouragementsRecus().subscribe((l) => this.encouragements.set(l));
   }
 
   private readonly auRetourDuReseau = () => this.synchroniserPuisCharger();

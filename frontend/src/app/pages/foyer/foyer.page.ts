@@ -1,9 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
-import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
-import { CreationFoyer, Foyer, MembreFoyer, ReglagesFoyer, RejoindreFoyer, TypeEncouragement } from '../../api/generated';
+import { CreationFoyer, Foyer, RejoindreFoyer, TypeEncouragement } from '../../api/generated';
 import { FoyerService } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { Amis } from './amis';
@@ -15,10 +15,10 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'MERCI', texte: 'Merci' },
 ];
 
-/** L'onglet Proches : la famille (Foyer) puis les amis. Foyer : la jauge commune de la semaine, la récompense, les membres et les encouragements. */
+/** L'onglet Proches : mes groupes (famille, amis, collègues…), puis les amis suivis un par un. */
 @Component({
   selector: 'app-foyer',
-  imports: [ReactiveFormsModule, FormlyForm, Button, Amis],
+  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Amis],
   template: `
     <header class="entete">
       <div>
@@ -28,76 +28,35 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
     </header>
 
     @if (charge()) {
-      @if (foyer(); as f) {
-        <h2 class="titre-section">Famille · {{ f.nom }} <span>{{ f.membres.length }} membre(s)</span></h2>
-
-        <section class="foyer-jauge" aria-label="Objectif commun de la semaine">
-          <p class="etiquette">Cette semaine, ensemble</p>
-          <div class="foyer-chiffres">
-            <strong>{{ f.cochesSemaine }}</strong><span>/{{ f.objectifSemaine }} coches</span>
-          </div>
-          <div class="jauge grande" role="progressbar" [attr.aria-valuenow]="f.cochesSemaine" aria-valuemin="0" [attr.aria-valuemax]="f.objectifSemaine">
-            <span [style.width.%]="avancement()"></span>
-          </div>
-          @if (f.recompense) {
-            <p class="recompense">
-              <i class="pi pi-gift"></i>
-              @if (f.cochesSemaine >= f.objectifSemaine) {
-                Gagné : {{ f.recompense }} !
-              } @else {
-                À la clé : {{ f.recompense }}
-              }
-            </p>
-          } @else if (f.parent) {
-            <p class="aide">Choisis une récompense pour la famille dans les réglages ci-dessous.</p>
-          }
-        </section>
-
-        <p class="aide">Touche « Encourager » pour envoyer un petit mot à quelqu'un : il le verra en ouvrant l'app.</p>
-        <ul class="membres">
-          @for (m of f.membres; track m.id) {
-            <li class="membre">
-              <div class="membre-infos">
-                <span class="nom">{{ m.prenom }}{{ m.moi ? ' (toi)' : '' }}</span>
-                <small>{{ resume(m) }}</small>
+      <h2 class="titre-section">Groupes</h2>
+      @if (foyers().length === 0) {
+        <p class="aide">Réunis ta famille ou tes amis : chaque coche fait avancer une jauge commune, et on peut se fixer une récompense pour la semaine.</p>
+      }
+      <ul class="groupes">
+        @for (f of foyers(); track f.id) {
+          <li>
+            <a class="foyer-bande" [routerLink]="['/foyer', f.id]">
+              <div class="foyer-bande-haut">
+                <strong>{{ f.nom }}</strong>
+                <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches <i class="pi pi-chevron-right"></i></span>
               </div>
-              @if (!m.moi) {
-                <button type="button" class="puce encourager" [class.envoye]="envoyes().has(m.id)" [disabled]="envoyes().has(m.id)" (click)="encourager(m)">
-                  <i class="pi" [class.pi-heart]="!envoyes().has(m.id)" [class.pi-check]="envoyes().has(m.id)"></i>
-                  {{ envoyes().has(m.id) ? 'Envoyé' : 'Encourager' }}
-                </button>
-              }
-            </li>
-          }
-        </ul>
-
-        <div class="encart">
-          <p><strong>Inviter quelqu'un</strong></p>
-          <p class="aide">Donne ce code. Sur l'écran d'accueil de l'app, il suffit de choisir « J'ai un code de famille ».</p>
-          <p class="code-foyer" aria-label="Code du foyer">{{ f.code.slice(0, 3) }} {{ f.code.slice(3) }}</p>
-          <p-button label="Partager le code" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(f)" />
-        </div>
-
-        @if (f.parent) {
-          <h2 class="titre-section">Réglages du Foyer</h2>
-          <form [formGroup]="formReglages" (ngSubmit)="regler()">
-            <formly-form [form]="formReglages" [fields]="champsReglages" [model]="modelReglages" />
-            <p-button type="submit" label="Enregistrer" [outlined]="true" [loading]="enCours()" />
-          </form>
+              <div class="jauge"><span [style.width.%]="avancement(f)"></span></div>
+              <small>{{ f.membres.length }} membre(s){{ f.recompense ? ' · À la clé : ' + f.recompense : '' }}</small>
+            </a>
+          </li>
         }
+      </ul>
 
-        <p-button class="quitter-foyer" label="Quitter le Foyer" [text]="true" severity="secondary" (onClick)="quitter()" />
+      @if (mode() === null) {
+        <p-button label="Créer ou rejoindre un groupe" icon="pi pi-plus" [outlined]="true" (onClick)="mode.set('choix')" />
       } @else {
-        <h2 class="titre-section">Famille</h2>
-        <p class="aide">Réunis la famille : chaque coche fait avancer une jauge commune, et les parents choisissent la récompense de la semaine.</p>
-
         <div class="choix-foyer">
           <button type="button" class="carte-choix" [class.choisi]="mode() === 'creer'" (click)="mode.set('creer')">
-            <strong>Créer le Foyer</strong>
-            <small>Je suis parent, j'invite la famille</small>
+            <strong>Créer un groupe</strong>
+            <small>J'invite ma famille ou mes amis</small>
           </button>
           <button type="button" class="carte-choix" [class.choisi]="mode() === 'rejoindre'" (click)="mode.set('rejoindre')">
-            <strong>Rejoindre un Foyer</strong>
+            <strong>Rejoindre un groupe</strong>
             <small>J'ai reçu un code à 6 chiffres</small>
           </button>
         </div>
@@ -105,7 +64,7 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
         @if (mode() === 'creer') {
           <form [formGroup]="formCreer" (ngSubmit)="creer()">
             <formly-form [form]="formCreer" [fields]="champsCreer" [model]="modelCreer" />
-            <p-button type="submit" label="Créer le Foyer" [loading]="enCours()" styleClass="w-full" />
+            <p-button type="submit" label="Créer le groupe" [loading]="enCours()" styleClass="w-full" />
           </form>
         } @else if (mode() === 'rejoindre') {
           <form [formGroup]="formRejoindre" (ngSubmit)="rejoindre()">
@@ -113,6 +72,7 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
             <p-button type="submit" label="Rejoindre" [loading]="enCours()" styleClass="w-full" />
           </form>
         }
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="mode.set(null)" />
       }
 
       <app-amis />
@@ -121,51 +81,35 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
 })
 export class FoyerPage implements OnInit {
   private readonly api = inject(FoyerService);
-  private readonly messages = inject(MessageService);
+  private readonly router = inject(Router);
   private readonly schemas = inject(SchemaFormService);
 
-  protected readonly foyer = signal<Foyer | null>(null);
+  protected readonly foyers = signal<Foyer[]>([]);
   protected readonly charge = signal(false);
   protected readonly enCours = signal(false);
-  protected readonly mode = signal<'creer' | 'rejoindre' | null>(null);
-  protected readonly envoyes = signal(new Set<string>());
-  protected readonly avancement = computed(() => {
-    const f = this.foyer();
-    return f ? Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100)) : 0;
-  });
+  protected readonly mode = signal<'choix' | 'creer' | 'rejoindre' | null>(null);
 
-  protected readonly formCreer = new FormGroup({});
-  protected readonly modelCreer: Partial<CreationFoyer> = {};
+  protected formCreer = new FormGroup({});
+  protected modelCreer: Partial<CreationFoyer> = {};
   protected readonly champsCreer = this.schemas.champs('CreationFoyer');
-  protected readonly formRejoindre = new FormGroup({});
-  protected readonly modelRejoindre: Partial<RejoindreFoyer> = {};
+  protected formRejoindre = new FormGroup({});
+  protected modelRejoindre: Partial<RejoindreFoyer> = {};
   protected readonly champsRejoindre = this.schemas.champs('RejoindreFoyer', {
     code: { props: { attributes: { inputmode: 'numeric', autocomplete: 'off' } } },
   });
-  protected readonly formReglages = new FormGroup({});
-  protected modelReglages: Partial<ReglagesFoyer> = {};
-  protected readonly champsReglages = this.schemas.champs('ReglagesFoyer', {
-    objectifSemaine: { props: { type: 'number', attributes: { inputmode: 'numeric' } } },
-  });
 
   ngOnInit(): void {
-    this.charger();
-  }
-
-  private charger(): void {
-    this.api.foyer().subscribe({
-      next: (f) => {
-        this.foyer.set(f);
-        if (f) this.modelReglages = { recompense: f.recompense, objectifSemaine: f.objectifSemaine };
+    this.api.foyers().subscribe({
+      next: (l) => {
+        this.foyers.set(l);
         this.charge.set(true);
       },
       error: () => this.charge.set(true),
     });
   }
 
-  protected resume(m: MembreFoyer): string {
-    if (m.objectifs === 0) return 'Pas encore d\'objectif';
-    return `${m.coches} coche(s) · ${m.tenus}/${m.objectifs} objectif(s) tenu(s)`;
+  protected avancement(f: Foyer): number {
+    return Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100));
   }
 
   creer(): void {
@@ -173,10 +117,7 @@ export class FoyerPage implements OnInit {
     if (this.formCreer.invalid) return;
     this.enCours.set(true);
     this.api.creer(this.modelCreer as CreationFoyer).subscribe({
-      next: () => {
-        this.enCours.set(false);
-        this.charger();
-      },
+      next: () => this.ouvrirDernier(),
       error: () => this.enCours.set(false),
     });
   }
@@ -186,54 +127,20 @@ export class FoyerPage implements OnInit {
     if (this.formRejoindre.invalid) return;
     this.enCours.set(true);
     this.api.rejoindre(this.modelRejoindre as RejoindreFoyer).subscribe({
-      next: () => {
+      next: (id) => {
         this.enCours.set(false);
-        this.charger();
+        this.router.navigate(['/foyer', id]);
       },
       error: () => this.enCours.set(false),
     });
   }
 
-  regler(): void {
-    this.formReglages.markAllAsTouched();
-    if (this.formReglages.invalid) return;
-    this.enCours.set(true);
-    this.api.regler(this.modelReglages as ReglagesFoyer).subscribe({
-      next: () => {
-        this.enCours.set(false);
-        this.messages.add({ severity: 'success', summary: 'Enregistré', detail: 'La famille voit la nouvelle récompense.' });
-        this.charger();
-      },
-      error: () => this.enCours.set(false),
-    });
-  }
-
-  /** Un seul bouton : « Bravo » si la personne a déjà tenu un objectif cette semaine, « Courage » sinon. */
-  encourager(m: MembreFoyer): void {
-    const type: TypeEncouragement = m.tenus > 0 ? 'BRAVO' : 'COURAGE';
-    this.api.encourager(m.id, type).subscribe(() => {
-      this.envoyes.update((e) => new Set(e).add(m.id));
-      this.messages.add({ severity: 'success', summary: 'Envoyé', detail: `${m.prenom} le verra en ouvrant l'app.` });
-    });
-  }
-
-  async partager(f: Foyer): Promise<void> {
-    const texte = `Rejoins notre Foyer sur Équinoxe avec le code ${f.code}. L'app : https://equinoxe-app.fr/telecharger/`;
-    try {
-      if (navigator.share) await navigator.share({ text: texte });
-      else {
-        await navigator.clipboard.writeText(texte);
-        this.messages.add({ severity: 'success', summary: 'Copié', detail: 'Colle le message à ta famille.' });
-      }
-    } catch {
-      /* partage annulé */
-    }
-  }
-
-  quitter(): void {
-    this.api.quitter().subscribe(() => {
-      this.foyer.set(null);
-      this.mode.set(null);
+  /** Après une création, on ouvre le nouveau groupe (le plus récent) pour partager son code. */
+  private ouvrirDernier(): void {
+    this.api.foyers().subscribe((l) => {
+      this.enCours.set(false);
+      const dernier = l[l.length - 1];
+      if (dernier) this.router.navigate(['/foyer', dernier.id]);
     });
   }
 }
