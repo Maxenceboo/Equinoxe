@@ -9,11 +9,12 @@ import { NotificationsService } from './core/notifications.service';
 import { PushService } from './core/push.service';
 import { ReglagesService } from './core/reglages.service';
 import { CelebrationOverlay } from './shared/celebration-overlay';
+import { LuneOverlay } from './shared/lune-overlay';
 import { Onglets } from './shared/onglets';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Toast, CelebrationOverlay, Onglets],
+  imports: [RouterOutlet, Toast, CelebrationOverlay, LuneOverlay, Onglets],
   template: `
     <p-toast position="top-center" />
     @if (miseAJour.disponible(); as version) {
@@ -28,6 +29,7 @@ import { Onglets } from './shared/onglets';
       <app-onglets />
     }
     <app-celebration />
+    <app-lune />
   `,
 })
 export class App {

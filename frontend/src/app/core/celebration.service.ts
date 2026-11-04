@@ -12,10 +12,25 @@ export interface Celebration {
   legende: string;
 }
 
+/** Grand moment de la lune : passage à une nouvelle phase (niveau) ou badge « Lune pleine ». */
+export interface CelebrationLune {
+  /** Phase de départ et d'arrivée, de 0 (nouvelle lune) à 1 (pleine lune). */
+  de: number;
+  vers: number;
+  titre: string;
+  sousTitre: string;
+}
+
+/** Phase de la lune pour un niveau : 1 = nouvelle lune … 5 = pleine lune, puis pleine lune pour toujours. */
+export function phaseDuNiveau(numero: number): number {
+  return Math.min(1, Math.max(0, (numero - 1) / 4));
+}
+
 /** Retours de réussite : vibration à chaque coche, écran de célébration aux grands moments. */
 @Injectable({ providedIn: 'root' })
 export class CelebrationService {
   readonly enCours = signal<Celebration | null>(null);
+  readonly lune = signal<CelebrationLune | null>(null);
   private readonly sons = inject(SonsService);
   private minuteur?: ReturnType<typeof setTimeout>;
 
@@ -42,6 +57,21 @@ export class CelebrationService {
 
   fermer(): void {
     this.enCours.set(null);
+  }
+
+  /** Écran plein de la lune : l'ombre glisse vers la nouvelle phase. Se ferme au toucher. */
+  celebrerLune(c: CelebrationLune): void {
+    this.fermer();
+    this.sons.fanfare();
+    this.lune.set(c);
+    // La vibration tombe quand la lune atteint sa nouvelle phase
+    setTimeout(() => this.vibrer('succes'), 1900);
+    clearTimeout(this.minuteur);
+    this.minuteur = setTimeout(() => this.fermerLune(), 6000);
+  }
+
+  fermerLune(): void {
+    this.lune.set(null);
   }
 
   private vibrer(type: 'legere' | 'succes'): void {

@@ -10,7 +10,7 @@ import { Encouragement, Foyer, Mesure, Objectif, ObjectifSaisie, Profil, TypeEnc
 import { ENCOURAGEMENTS } from '../foyer/foyer.page';
 import { FoyerService, ObjectifsService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
-import { CelebrationService } from '../../core/celebration.service';
+import { CelebrationService, phaseDuNiveau } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
@@ -279,13 +279,26 @@ export class AccueilPage implements OnInit, OnDestroy {
     const avant = this.profil();
     this.profilApi.profil().subscribe((p) => {
       // le signal partagé est déjà mis à jour par le service
-      if (apresCoche && avant && p.niveau > avant.niveau) {
-        setTimeout(() => this.celebration.celebrer({
-          titre: 'Nouveau niveau !',
-          sousTitre: `Tu passes ${p.nomNiveau}. Continue comme ça.`,
-          nombre: String(p.points),
-          legende: 'points',
-        }), 2700);
+      if (!apresCoche || !avant) return;
+      const badgeLune = (x: Profil) => x.badges.some((b) => b.code === 'LUNE_PLEINE' && b.obtenu);
+      // Juste après l'animation de la coche, ou après l'écran de fête s'il est ouvert
+      const attente = this.celebration.enCours() ? 2700 : 900;
+      if (p.niveau > avant.niveau) {
+        const pleine = phaseDuNiveau(p.niveau) >= 1;
+        setTimeout(() => this.celebration.celebrerLune({
+          // Au-delà de la première pleine lune, elle se remplit à nouveau depuis la gibbeuse
+          de: phaseDuNiveau(avant.niveau) >= 1 ? 0.75 : phaseDuNiveau(avant.niveau),
+          vers: phaseDuNiveau(p.niveau),
+          titre: p.nomNiveau,
+          sousTitre: pleine ? `${p.points} points. Ta lune est pleine, bravo !` : `${p.points} points. Ta lune grandit à chaque coche.`,
+        }), attente);
+      } else if (!badgeLune(avant) && badgeLune(p)) {
+        setTimeout(() => this.celebration.celebrerLune({
+          de: 0.75,
+          vers: 1,
+          titre: 'Lune pleine',
+          sousTitre: '4 semaines tenues d\'affilée. Un joker de plus chaque mois sur cet objectif.',
+        }), attente);
       }
     });
     this.foyerApi.foyers().subscribe((l) => this.foyers.set(l));
