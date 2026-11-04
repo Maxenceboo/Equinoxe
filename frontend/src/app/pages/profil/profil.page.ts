@@ -5,11 +5,12 @@ import { ProfilService } from '../../application/services';
 import { phaseDuNiveau } from '../../core/celebration.service';
 import { niveau } from '../../domaine/recompenses';
 import { cheminPhase } from '../../shared/lune-overlay';
+import { BadgeIcone } from '../../shared/badge-icone';
 
 /** Profil : ta lune (ton niveau), puis trois entrées : badges, boutique, réglages. */
 @Component({
   selector: 'app-profil',
-  imports: [RouterLink],
+  imports: [RouterLink, BadgeIcone],
   template: `
     <header class="entete">
       <div>
@@ -34,8 +35,20 @@ import { cheminPhase } from '../../shared/lune-overlay';
       </div>
       <p class="prochaine-phase">Encore {{ p.pointsNiveauSuivant - p.points }} points pour {{ niveauSuivant() }}</p>
 
+      <!-- Les badges en vitrine : ceux gagnés brillent, les autres attendent -->
+      <a class="vitrine-badges" routerLink="/profil/badges">
+        <div class="vitrine-titre"><strong>Badges</strong><span>{{ obtenus() }} sur {{ p.badges.length }} <i class="pi pi-chevron-right"></i></span></div>
+        <ul>
+          @for (b of p.badges; track b.code) {
+            <li [class.obtenu]="b.obtenu"><app-badge-icone [code]="b.code" [obtenu]="b.obtenu" /></li>
+          }
+        </ul>
+        @if (prochainBadge(); as b) {
+          <small>Prochain : {{ b.nom }}, {{ b.description.charAt(0).toLowerCase() + b.description.slice(1) }}</small>
+        }
+      </a>
+
       <ul class="menu-profil">
-        <li><a routerLink="/profil/badges"><span>Badges</span><em>{{ obtenus() }} sur {{ p.badges.length }}</em><i class="pi pi-chevron-right"></i></a></li>
         <li><a routerLink="/profil/boutique"><span>Boutique</span><em>{{ p.solde }} pts</em><i class="pi pi-chevron-right"></i></a></li>
         <li><a routerLink="/profil/reglages"><span>Réglages</span><i class="pi pi-chevron-right"></i></a></li>
       </ul>
@@ -52,6 +65,7 @@ export class ProfilPage implements OnInit {
     return p ? niveau(p.pointsNiveauSuivant).nom : '';
   });
   protected readonly obtenus = computed(() => this.profil()?.badges.filter((b) => b.obtenu).length ?? 0);
+  protected readonly prochainBadge = computed(() => this.profil()?.badges.find((b) => !b.obtenu) ?? null);
   protected readonly avancement = computed(() => {
     const p = this.profil();
     if (!p) return 0;
