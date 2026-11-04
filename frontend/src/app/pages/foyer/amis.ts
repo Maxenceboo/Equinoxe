@@ -1,51 +1,35 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Ami, CodeAmi, ObjectifCommun, ObjectifSuivi } from '../../api/generated';
 import { AmisService } from '../../application/services';
-import { NotificationsService } from '../../core/notifications.service';
+import { lienAmi } from '../../core/invitation.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { Flamme } from '../../shared/flamme';
 
 /** Dernières données connues : l'onglet s'affiche tout de suite au retour, puis se met à jour. */
-const cache: { amis: Ami[]; communs: ObjectifCommun[]; code: string | null } = { amis: [], communs: [], code: null };
+const cache: { amis: Ami[]; communs: ObjectifCommun[] } = { amis: [], communs: [] };
 
 /** À la déconnexion : rien ne doit rester du compte précédent. */
 export function viderCacheAmis(): void {
   cache.amis = [];
   cache.communs = [];
-  cache.code = null;
 }
 
 /**
- * Les amis hors groupe : invitations à faire un objectif à deux, objectifs communs (flamme commune),
- * puis chaque ami et ses objectifs visibles, dans un menu dépliant.
+ * Les amis hors groupe : objectifs faits à deux (flamme commune), puis chaque ami et ses objectifs
+ * visibles, dans un menu dépliant. Les invitations reçues sont dans Notifications (la cloche).
  */
 @Component({
   selector: 'app-amis',
   imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Dialog, Flamme],
   template: `
-    @for (c of recues(); track c.id) {
-      <section class="invitation" aria-label="Invitation">
-        @if (c.demande) {
-          <p><strong>{{ c.ami }}</strong> aimerait faire ton objectif « {{ c.nom }} » avec toi, {{ frequence(c) }}.</p>
-        } @else {
-          <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
-        }
-        <small class="aide">Vous aurez une flamme commune : elle ne monte que si vous le faites tous les deux.</small>
-        <div class="actions">
-          <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="quitterCommun(c)" />
-          <p-button label="On le fait ensemble" icon="pi pi-check" (onClick)="accepter(c)" />
-        </div>
-      </section>
-    }
-
     @if (actifs().length > 0 || envoyees().length > 0) {
-      <section class="binomes" aria-label="Objectifs communs">
-        <h2 class="titre-section">Objectifs communs</h2>
+      <section class="binomes" aria-label="À deux">
+        <h2 class="titre-section">À deux</h2>
         @for (c of actifs(); track c.id) {
           <a class="binome commun" [routerLink]="['/objectifs', c.monObjectif]">
             <div class="ligne-haut">
@@ -135,20 +119,10 @@ export function viderCacheAmis(): void {
           }
         </div>
       } @empty {
-        <p class="aide">Ajoute des amis avec leur code : tu verras leurs objectifs visibles, et vous pourrez faire des objectifs à deux. Tes objectifs privés restent privés.</p>
+        <p class="aide">Ajoute un ami avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire à deux.</p>
       }
 
-      <div class="partage mon-code">
-        <p class="etiquette">Mon code ami</p>
-        @if (code(); as c) {
-          <div class="code">
-            <strong>{{ c }}</strong>
-            <p-button [label]="copie() ? 'Copié' : 'Partager'" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(c)" />
-          </div>
-        }
-        <small class="aide">Sur la page d'un objectif, tu peux le rendre visible par tes amis ou le faire avec l'un d'eux.</small>
-      </div>
-      <p-button label="Ajouter un ami avec son code" icon="pi pi-user-plus" [outlined]="true" (onClick)="ouvrir()" />
+      <p-button label="Ajouter un ami" icon="pi pi-user-plus" [outlined]="true" (onClick)="ouvrir()" />
     </section>
 
     <p-dialog
@@ -159,7 +133,7 @@ export function viderCacheAmis(): void {
       [dismissableMask]="true"
       [style]="{ width: 'min(30rem, 95vw)' }"
     >
-      <p class="aide">Demande à ton ami son code, affiché en bas de sa page Proches. Vous verrez chacun les objectifs visibles de l'autre.</p>
+      <p class="aide">Tape son identifiant, affiché sur sa page Profil.</p>
       <form [formGroup]="formCode" (ngSubmit)="envoyer()">
         <formly-form [form]="formCode" [fields]="champsCode" [model]="modelCode" />
         <div class="actions">
@@ -167,19 +141,25 @@ export function viderCacheAmis(): void {
           <p-button type="submit" label="Ajouter" />
         </div>
       </form>
+      @if (pseudo(); as p) {
+        <div class="partage mon-code lien-ami">
+          <p class="etiquette">Ou envoie-lui ton lien</p>
+          <div class="code">
+            <strong>&#64;{{ p }}</strong>
+            <p-button [label]="copie() ? 'Copié' : 'Partager'" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(p)" />
+          </div>
+        </div>
+      }
     </p-dialog>
   `,
 })
 export class Amis implements OnInit {
   private readonly api = inject(AmisService);
-  private readonly router = inject(Router);
-  private readonly notifications = inject(NotificationsService);
   protected readonly amis = signal<Ami[]>(cache.amis);
   protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
-  protected readonly recues = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
   protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
-  protected readonly code = signal<string | null>(cache.code);
+  protected readonly pseudo = this.api.pseudo;
   protected readonly copie = signal(false);
   protected readonly ajout = signal(false);
   /** Ami déplié (un seul à la fois). */
@@ -191,12 +171,12 @@ export class Amis implements OnInit {
   protected formCode = new FormGroup({});
   protected modelCode: Partial<CodeAmi> = {};
   protected readonly champsCode = inject(SchemaFormService).champs('CodeAmi', {
-    code: { props: { placeholder: 'ABC234', attributes: { autocapitalize: 'characters', autocomplete: 'off' } } },
+    code: { props: { placeholder: '@lea', attributes: { autocapitalize: 'none', autocomplete: 'off', spellcheck: 'false' } } },
   });
 
   ngOnInit(): void {
     this.charger();
-    if (!cache.code) this.api.monCode().subscribe({ next: (c) => this.code.set((cache.code = c)), error: () => undefined });
+    if (this.pseudo() === undefined) this.api.chargerPseudo().subscribe({ error: () => undefined });
   }
 
   private charger(): void {
@@ -233,14 +213,15 @@ export class Amis implements OnInit {
     return `Aucun de vous deux ${periode} pour l'instant.`;
   }
 
-  async partager(code: string): Promise<void> {
-    const texte = `Ajoute-moi en ami sur Équinoxe : https://equinoxe-app.fr/invite/?ami=${code} (ou avec mon code ${code})`;
+  async partager(pseudo: string): Promise<void> {
+    const lien = lienAmi(pseudo);
+    const texte = `Ajoute-moi en ami sur Équinoxe : ${lien} (mon identifiant : @${pseudo})`;
     try {
       if (navigator.share) {
         await navigator.share({ text: texte });
         return;
       }
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(lien);
       this.copie.set(true);
       setTimeout(() => this.copie.set(false), 2000);
     } catch {
@@ -256,7 +237,7 @@ export class Amis implements OnInit {
 
   envoyer(): void {
     this.formCode.markAllAsTouched();
-    const code = this.modelCode.code?.trim().toUpperCase();
+    const code = this.modelCode.code?.trim();
     if (this.formCode.invalid || !code) return;
     this.api.ajouter(code).subscribe(() => {
       this.ajout.set(false);
@@ -269,13 +250,6 @@ export class Amis implements OnInit {
       this.ouvert.set(null);
       this.aRetirer.set(null);
       this.charger();
-    });
-  }
-
-  accepter(c: ObjectifCommun): void {
-    this.api.accepterCommun(c.id).subscribe((id) => {
-      this.notifications.synchroniser();
-      void this.router.navigate(['/objectifs', id]);
     });
   }
 

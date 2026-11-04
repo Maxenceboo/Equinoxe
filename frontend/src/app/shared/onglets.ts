@@ -1,5 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { AmisService } from '../application/services';
+import { Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 /** Barre d'onglets en bas des écrans principaux. */
@@ -13,9 +12,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       </a>
       <a routerLink="/foyer" routerLinkActive="actif" [replaceUrl]="true">
         <i class="pi pi-users"></i><span>Proches</span>
-        @if (amis.aRepondre() > 0) {
-          <b class="pastille" [attr.aria-label]="amis.aRepondre() + ' invitation(s) en attente'">{{ amis.aRepondre() }}</b>
-        }
       </a>
       <a routerLink="/bilan" routerLinkActive="actif" [replaceUrl]="true">
         <i class="pi pi-chart-bar"></i><span>Bilan</span>
@@ -26,6 +22,4 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     </nav>
   `,
 })
-export class Onglets {
-  protected readonly amis = inject(AmisService);
-}
+export class Onglets {}

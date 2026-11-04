@@ -7,6 +7,8 @@ import { CreationFoyer, Foyer, RejoindreFoyer, TypeEncouragement } from '../../a
 import { FoyerService } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { Amis, viderCacheAmis } from './amis';
+import { Cloche } from '../../shared/cloche';
+import { BoiteService } from '../../core/boite.service';
 
 export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'BRAVO', texte: 'Bravo' },
@@ -23,26 +25,24 @@ export function viderCacheProches(): void {
   viderCacheAmis();
 }
 
-/** L'onglet Proches : mes groupes (famille, amis, collègues…), puis mes amis et les objectifs faits à deux. */
+/** L'onglet Proches : objectifs faits à deux, amis, puis groupes. Les invitations sont derrière la cloche. */
 @Component({
   selector: 'app-foyer',
-  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Amis],
+  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Amis, Cloche],
   template: `
     <header class="entete">
       <div>
         <h1>Proches</h1>
         <small>Tenir ses objectifs, c'est plus facile à plusieurs</small>
       </div>
+      <app-cloche />
     </header>
 
     <app-amis />
 
     <section class="section-groupes" aria-label="Groupes">
       <h2 class="titre-section">Groupes</h2>
-      <p class="aide">
-        Un groupe, c'est une équipe : la famille, la coloc, les collègues. Chaque coche de chacun remplit une jauge
-        commune pour la semaine. Fixez-vous une récompense (un resto, une sortie) : si la jauge est pleine dimanche, c'est gagné.
-      </p>
+      <p class="aide">Famille, coloc, collègues : chaque coche remplit une jauge commune, avec une récompense si elle est pleine dimanche.</p>
     @if (!charge()) {
       <p class="aide chargement"><i class="pi pi-spin pi-spinner"></i> Chargement des groupes…</p>
     } @else {
@@ -115,7 +115,10 @@ export class FoyerPage implements OnInit {
   /** Code de groupe reçu par un lien d'invitation (?rejoindre=123456) : le formulaire est prérempli. */
   readonly codeGroupe = input<string>(undefined, { alias: 'rejoindre' });
 
+  private readonly boite = inject(BoiteService);
+
   ngOnInit(): void {
+    this.boite.charger();
     const code = this.codeGroupe();
     if (code) {
       this.modelRejoindre = { code };

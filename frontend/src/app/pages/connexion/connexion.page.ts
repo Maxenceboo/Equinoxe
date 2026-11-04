@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Observable } from 'rxjs';
-import { Identifiants, RejoindreFoyer } from '../../api/generated';
+import { Identifiant, Identifiants, RejoindreFoyer } from '../../api/generated';
 import { AuthService, Session } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
@@ -33,7 +33,13 @@ import { SessionService } from '../../core/session.service';
         </form>
         <p-button label="J'ai un compte avec email" [text]="true" (onClick)="modeCode.set(false)" />
       } @else {
+      <p-button label="Continuer avec Google" icon="pi pi-google" [outlined]="true" styleClass="w-full" [loading]="google()" (onClick)="avecGoogle()" />
+      <div class="separateur"><span>ou avec ton email</span></div>
+
       <form [formGroup]="form" (ngSubmit)="envoyer()">
+        @if (modeInscription()) {
+          <formly-form [form]="formPseudo" [fields]="champsPseudo" [model]="modelPseudo" />
+        }
         <formly-form [form]="form" [fields]="champs" [model]="model" />
         <p-button
           type="submit"
@@ -65,6 +71,17 @@ export class ConnexionPage {
   protected readonly model: Partial<Identifiants> = {};
   protected readonly champs = inject(SchemaFormService).champs('Identifiants');
   protected readonly modeInscription = signal(false);
+  protected readonly formPseudo = new FormGroup({});
+  protected readonly modelPseudo: Partial<Identifiant> = {};
+  protected readonly champsPseudo = inject(SchemaFormService).champs('Identifiant', {
+    pseudo: { props: { placeholder: 'ex. lea.martin', attributes: { autocapitalize: 'none', autocomplete: 'username' } } },
+  });
+  protected readonly google = signal(false);
+
+  avecGoogle(): void {
+    this.google.set(true);
+    this.auth.connexionGoogle().subscribe({ error: () => this.google.set(false) });
+  }
   protected readonly modeCode = signal(false);
   protected readonly formCode = new FormGroup({});
   protected readonly modelCode: Partial<RejoindreFoyer> = {};
@@ -89,10 +106,11 @@ export class ConnexionPage {
 
   envoyer(): void {
     this.form.markAllAsTouched();
-    if (this.form.invalid) return;
+    this.formPseudo.markAllAsTouched();
+    if (this.form.invalid || (this.modeInscription() && this.formPseudo.invalid)) return;
     const identifiants = this.model as Identifiants;
     const appel: Observable<Session> = this.modeInscription()
-      ? this.auth.inscription(identifiants)
+      ? this.auth.inscription(identifiants, this.modelPseudo.pseudo ?? '')
       : this.auth.connexion(identifiants);
     this.enCours.set(true);
     appel.subscribe({

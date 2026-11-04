@@ -26,6 +26,8 @@ export const routes: Routes = [
       { path: 'profil/boutique', loadComponent: () => import('./pages/boutique/boutique.page').then((m) => m.BoutiquePage) },
       { path: 'profil/badges', loadComponent: () => import('./pages/profil/badges.page').then((m) => m.BadgesPage) },
       { path: 'profil/reglages', loadComponent: () => import('./pages/profil/reglages.page').then((m) => m.ReglagesPage) },
+      { path: 'identifiant', loadComponent: () => import('./pages/identifiant/identifiant.page').then((m) => m.IdentifiantPage) },
+      { path: 'notifications', loadComponent: () => import('./pages/notifications/notifications.page').then((m) => m.NotificationsPage) },
       { path: 'compte', redirectTo: 'profil' },
       { path: 'archives', redirectTo: 'profil/archives' },
       {

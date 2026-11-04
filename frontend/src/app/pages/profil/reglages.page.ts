@@ -6,7 +6,8 @@ import { Capacitor } from '@capacitor/core';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Identifiants } from '../../api/generated';
-import { AuthService } from '../../application/services';
+import { AmisService, AuthService } from '../../application/services';
+import { BoiteService } from '../../core/boite.service';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { NavigationService } from '../../core/navigation.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -132,6 +133,8 @@ export class ReglagesPage {
   protected readonly sons = inject(SonsService);
   protected readonly reglages = inject(ReglagesService);
   private readonly auth = inject(AuthService);
+  private readonly boite = inject(BoiteService);
+  private readonly amis = inject(AmisService);
   private readonly horsLigne = inject(HorsLigneService);
   private readonly notifications = inject(NotificationsService);
   private readonly widgets = inject(WidgetsService);
@@ -198,6 +201,8 @@ export class ReglagesPage {
     await this.widgets.vider();
     this.horsLigne.oublier();
     viderCacheProches();
+    this.boite.vider();
+    this.amis.pseudo.set(undefined);
     await this.session.fermer();
     void this.router.navigate(['/connexion'], { replaceUrl: true });
   }

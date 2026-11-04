@@ -2,18 +2,20 @@ import { Capacitor } from '@capacitor/core';
 import { PushService, estInstallee, estIos } from '../../core/push.service';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Encouragement, Foyer, Mesure, Objectif, ObjectifCommun, ObjectifSaisie, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
-import { ENCOURAGEMENTS } from '../foyer/foyer.page';
+import { Foyer, Mesure, Objectif, ObjectifCommun, ObjectifSaisie, Profil, ValidationSaisie } from '../../api/generated';
 import { AmisService, FoyerService, ObjectifsService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService, phaseDuNiveau } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { WidgetsService } from '../../core/widgets.service';
 import { InvitationService } from '../../core/invitation.service';
+import { BoiteService } from '../../core/boite.service';
+import { SessionService } from '../../core/session.service';
+import { Cloche } from '../../shared/cloche';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
@@ -39,36 +41,25 @@ function lireStockage(cle: string): string | null {
 
 @Component({
   selector: 'app-accueil',
-  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog, Flamme],
+  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog, Flamme, Cloche],
   template: `
     <header class="entete">
       <div>
         <h1>Cette<br />semaine</h1>
         <small>{{ semaine }}</small>
       </div>
-      @if (profil(); as p) {
-        @if (p.solde > 0) {
-        <a class="niveau-puce" routerLink="/profil/boutique" [attr.aria-label]="p.solde + ' points à dépenser, ouvrir la boutique'">
-          <strong>{{ p.solde }}</strong>
-          <small>pts à dépenser</small>
-        </a>
+      <div class="entete-droite">
+        @if (profil(); as p) {
+          @if (p.solde > 0) {
+            <a class="niveau-puce" routerLink="/profil/boutique" [attr.aria-label]="p.solde + ' points à dépenser, ouvrir la boutique'">
+              <strong>{{ p.solde }}</strong>
+              <small>pts</small>
+            </a>
+          }
         }
-      }
-    </header>
-
-    @for (e of encouragements(); track e.id) {
-      <div class="encouragement-recu" role="status">
-        <span><strong>{{ e.de }}</strong> t'encourage : {{ texteEncouragement(e.type) }} !</span>
-        <button type="button" class="fermer" aria-label="Fermer" (click)="lireEncouragement(e.id)"><i class="pi pi-times"></i></button>
+        <app-cloche />
       </div>
-    }
-
-    @for (c of invitations(); track c.id) {
-      <a class="encouragement-recu invitation-accueil" routerLink="/foyer">
-        <span><strong>{{ c.ami }}</strong> {{ c.demande ? 'aimerait faire ton objectif' : 'te propose de faire' }} « {{ c.nom }} » {{ c.demande ? 'avec toi' : 'ensemble' }}.</span>
-        <i class="pi pi-chevron-right"></i>
-      </a>
-    }
+    </header>
 
     @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
       <p class="bandeau-hors-ligne">
@@ -277,12 +268,13 @@ export class AccueilPage implements OnInit, OnDestroy {
   private readonly foyerApi = inject(FoyerService);
   protected readonly profil = this.profilApi.dernier;
   protected readonly foyers = signal<Foyer[]>([]);
-  protected readonly encouragements = signal<Encouragement[]>([]);
-  // Objectifs faits à deux : invitations reçues et flamme commune sur chaque carte
+  // Objectifs faits à deux : flamme commune sur chaque carte
   private readonly amisApi = inject(AmisService);
   private readonly liensInvitation = inject(InvitationService);
+  private readonly boite = inject(BoiteService);
+  private readonly session = inject(SessionService);
+  private readonly router = inject(Router);
   private readonly communs = signal<ObjectifCommun[]>([]);
-  protected readonly invitations = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
   protected communDe(id: number): ObjectifCommun | undefined {
     return this.communs().find((c) => c.statut === 'ACTIF' && c.monObjectif === id);
   }
@@ -293,10 +285,6 @@ export class AccueilPage implements OnInit, OnDestroy {
     return Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100));
   }
   protected readonly jokerSauveur = computed(() => this.objectifs().find((o) => o.progression.jokerUtilise) ?? null);
-
-  protected texteEncouragement(type: TypeEncouragement): string {
-    return ENCOURAGEMENTS.find((e) => e.type === type)?.texte ?? type;
-  }
 
   // Navigateur (hors iPhone non installé) : les rappels sont à activer à la main, on le propose une fois
   private readonly push = inject(PushService);
@@ -332,11 +320,6 @@ export class AccueilPage implements OnInit, OnDestroy {
     }
   }
 
-  lireEncouragement(id: number): void {
-    this.encouragements.update((l) => l.filter((e) => e.id !== id));
-    this.foyerApi.marquerVus([id]).subscribe();
-  }
-
   private chargerRecompenses(apresCoche = false): void {
     const avant = this.profil();
     this.profilApi.profil().subscribe((p) => {
@@ -364,7 +347,6 @@ export class AccueilPage implements OnInit, OnDestroy {
       }
     });
     this.foyerApi.foyers().subscribe((l) => this.foyers.set(l));
-    if (!apresCoche) this.foyerApi.encouragementsRecus().subscribe((l) => this.encouragements.set(l));
   }
 
   private readonly auRetourDuReseau = () => this.synchroniserPuisCharger();
@@ -377,6 +359,16 @@ export class AccueilPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Invitation reçue par lien avant la connexion : on la traite maintenant
     this.liensInvitation.traiter();
+    this.boite.charger();
+    // Compte sans identifiant (créé avant, ou avec Google) : on le demande une fois
+    if (!this.session.anonyme()) {
+      this.amisApi.chargerPseudo().subscribe({
+        next: (p) => {
+          if (p === null) void this.router.navigateByUrl('/identifiant');
+        },
+        error: () => undefined,
+      });
+    }
     this.synchroniserPuisCharger();
     window.addEventListener('online', this.auRetourDuReseau);
   }

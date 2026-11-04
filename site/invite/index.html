@@ -28,14 +28,15 @@
     </div>
   </main>
   <script>
-    // Lien d'invitation : ?ami=CODE (ajouter un ami) ou ?groupe=CODE (rejoindre un groupe).
+    // Lien d'invitation : ?ami=identifiant (ajouter un ami) ou ?groupe=CODE (rejoindre un groupe).
     // Sur Android on ouvre l'app ; sinon (ou sans l'app) on continue dans l'app web, qui garde l'invitation.
     var params = new URLSearchParams(location.search);
-    var ami = (params.get('ami') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
+    var ami = (params.get('ami') || '').trim().replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20);
+    if (ami.length < 3) ami = '';
     var groupe = (params.get('groupe') || '').replace(/\D/g, '').slice(0, 6);
     var requete = ami ? 'ami=' + ami : groupe ? 'groupe=' + groupe : '';
     if (ami) {
-      document.getElementById('titre').textContent = 'On te propose de devenir amis';
+      document.getElementById('titre').textContent = '@' + ami + ' te propose de devenir amis';
       document.getElementById('texte').textContent = "Vous verrez vos objectifs visibles et pourrez en faire à deux, avec une flamme commune.";
     } else if (groupe) {
       document.getElementById('titre').textContent = 'Rejoins le groupe';

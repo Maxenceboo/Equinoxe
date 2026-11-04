@@ -231,6 +231,9 @@ export type Database = {
         }[];
       };
       rejoindre_binome: { Args: { p_code: string }; Returns: number };
+      pseudo_disponible: { Args: { p_pseudo: string }; Returns: boolean };
+      mon_pseudo: { Args: Record<PropertyKey, never>; Returns: string | null };
+      choisir_pseudo: { Args: { p_pseudo: string }; Returns: string };
       mon_code_ami: { Args: Record<PropertyKey, never>; Returns: string };
       ajouter_ami: { Args: { p_code: string }; Returns: string };
       retirer_ami: { Args: { p_ami: string }; Returns: undefined };

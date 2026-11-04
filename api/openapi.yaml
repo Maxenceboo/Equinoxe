@@ -30,6 +30,18 @@ components:
 
 
 
+    Identifiant:
+      type: object
+      required: [pseudo]
+      properties:
+        pseudo:
+          type: string
+          title: Identifiant
+          description: "Tes amis t'ajoutent avec. De 3 à 20 caractères : lettres, chiffres, point ou tiret bas."
+          minLength: 3
+          maxLength: 20
+          pattern: '^@?[A-Za-z0-9_.]{3,20}$'
+
     Categorie:
       type: string
       title: Catégorie
@@ -328,9 +340,9 @@ components:
       properties:
         code:
           type: string
-          title: Code de ton ami
-          minLength: 6
-          maxLength: 6
+          title: Identifiant de ton ami
+          minLength: 3
+          maxLength: 21
 
     Ami:
       type: object

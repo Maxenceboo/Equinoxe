@@ -863,9 +863,21 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 
 .section-groupes { margin-top: 2.5rem; > .aide { display: block; margin-bottom: 1rem; } .chargement .pi { margin-right: 0.35rem; } }
 
-.onglets a { position: relative; }
-.onglets .pastille {
-  position: absolute; top: 0.15rem; left: calc(50% + 0.45rem);
+.entete-droite { display: flex; align-items: center; gap: 0.6rem; }
+.cloche {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem; border: 1px solid var(--ligne-forte); border-radius: 999px;
+  color: inherit; text-decoration: none; flex-shrink: 0;
+  .pi { font-size: 1.1rem; }
+}
+.cloche .pastille {
+  position: absolute; top: -0.25rem; right: -0.25rem;
   min-width: 1.05rem; height: 1.05rem; padding: 0 0.25rem; border-radius: 999px;
   background: var(--texte); color: var(--fond); font-size: 0.65rem; font-weight: 800; line-height: 1.05rem; text-align: center;
 }
+
+.entete small + .mon-identifiant, .entete h1 + .mon-identifiant { margin-top: 0.3rem; }
+.mon-identifiant { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--discret); text-decoration: none; font-weight: 600; .pi { font-size: 0.75rem; } }
+.notif-encouragement { display: flex; align-items: center; gap: 0.6rem; padding: 0.85rem 0; border-bottom: 1px solid var(--ligne-forte); .pi { font-size: 1rem; } }
+.vide-notif { text-align: center; margin-top: 3rem; }
+.lien-ami .code { flex-wrap: wrap; gap: 0.6rem; strong { font-size: 1.05rem; letter-spacing: 0; font-family: inherit; } }

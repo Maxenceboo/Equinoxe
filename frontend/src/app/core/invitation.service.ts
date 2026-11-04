@@ -11,11 +11,19 @@ export interface Invitation {
   code: string;
 }
 
-/** Lit ?ami=CODE ou ?groupe=CODE (lien equinoxe-app.fr/invite/…) et nettoie le code. */
+/** Lien à partager pour se faire ajouter en ami. */
+export function lienAmi(pseudo: string): string {
+  return `https://equinoxe-app.fr/invite/?ami=${encodeURIComponent(pseudo)}`;
+}
+
+/**
+ * Lit ?ami=identifiant ou ?groupe=CODE (lien equinoxe-app.fr/invite/…) et nettoie la valeur.
+ * Les anciens liens avec un code ami à 6 caractères restent acceptés (le serveur cherche les deux).
+ */
 export function lireInvitation(params: URLSearchParams | Record<string, string | undefined>): Invitation | null {
   const lire = (k: string) => (params instanceof URLSearchParams ? params.get(k) : params[k]) ?? '';
-  const ami = lire('ami').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
-  if (ami.length === 6) return { type: 'ami', code: ami };
+  const ami = lire('ami').trim().replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_.]/g, '').slice(0, 20);
+  if (ami.length >= 3) return { type: 'ami', code: ami };
   const groupe = lire('groupe').replace(/\D/g, '').slice(0, 6);
   if (groupe.length === 6) return { type: 'groupe', code: groupe };
   return null;

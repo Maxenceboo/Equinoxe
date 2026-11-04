@@ -1,7 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Profil } from '../../api/generated';
-import { ProfilService } from '../../application/services';
+import { AmisService, ProfilService } from '../../application/services';
+import { Button } from 'primeng/button';
+import { lienAmi } from '../../core/invitation.service';
 import { phaseDuNiveau } from '../../core/celebration.service';
 import { niveau } from '../../domaine/recompenses';
 import { cheminPhase } from '../../shared/lune-overlay';
@@ -10,12 +12,18 @@ import { BadgeIcone } from '../../shared/badge-icone';
 /** Profil : ta lune (ton niveau), puis trois entrées : badges, boutique, réglages. */
 @Component({
   selector: 'app-profil',
-  imports: [RouterLink, BadgeIcone],
+  imports: [RouterLink, BadgeIcone, Button],
   template: `
     <header class="entete">
       <div>
         <h1>{{ profil()?.prenom ?? 'Profil' }}</h1>
+        @if (amis.pseudo(); as ps) {
+          <a class="mon-identifiant" routerLink="/identifiant" aria-label="Changer mon identifiant">&#64;{{ ps }} <i class="pi pi-pencil"></i></a>
+        }
       </div>
+      @if (amis.pseudo(); as ps) {
+        <p-button [label]="copie() ? 'Lien copié' : 'Partager mon lien'" icon="pi pi-share-alt" [outlined]="true" size="small" (onClick)="partager(ps)" />
+      }
     </header>
 
     @if (profil(); as p) {
@@ -57,6 +65,8 @@ import { BadgeIcone } from '../../shared/badge-icone';
 })
 export class ProfilPage implements OnInit {
   private readonly api = inject(ProfilService);
+  protected readonly amis = inject(AmisService);
+  protected readonly copie = signal(false);
   protected readonly profil = signal<Profil | null>(this.api.dernier());
   /** Dessin de ta lune à la phase de ton niveau. */
   protected readonly lune = computed(() => cheminPhase(phaseDuNiveau(this.profil()?.niveau ?? 1)));
@@ -74,5 +84,22 @@ export class ProfilPage implements OnInit {
 
   ngOnInit(): void {
     this.api.profil().subscribe((p) => this.profil.set(p));
+    if (this.amis.pseudo() === undefined) this.amis.chargerPseudo().subscribe({ error: () => undefined });
+  }
+
+  /** Lien pour se faire ajouter en ami (ouvre l'app sur Android). */
+  async partager(pseudo: string): Promise<void> {
+    const lien = lienAmi(pseudo);
+    try {
+      if (navigator.share) {
+        await navigator.share({ text: `Ajoute-moi en ami sur Équinoxe : ${lien} (mon identifiant : @${pseudo})` });
+        return;
+      }
+      await navigator.clipboard.writeText(lien);
+      this.copie.set(true);
+      setTimeout(() => this.copie.set(false), 2000);
+    } catch {
+      /* partage annulé */
+    }
   }
 }

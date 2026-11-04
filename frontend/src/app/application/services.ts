@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Observable, defer, from, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { Capacitor } from '@capacitor/core';
 import { SUPABASE } from '../supabase.config';
 import type {
   Badge,
@@ -248,6 +249,28 @@ export class RappelsService {
 export class AmisService {
   private readonly depot = inject(DepotObjectifs);
   private readonly erreurs = inject(Erreurs);
+  private readonly db = inject(SupabaseService).client;
+
+  /** Mon identifiant (null tant qu'il n'est pas choisi) ; undefined = pas encore chargé. */
+  readonly pseudo = signal<string | null | undefined>(undefined);
+
+  chargerPseudo(): Observable<string | null> {
+    return this.erreurs.appel(async () => {
+      const { data, error } = await this.db.rpc('mon_pseudo');
+      if (error) throw error;
+      this.pseudo.set(data ?? null);
+      return data ?? null;
+    }, { silencieux: true });
+  }
+
+  choisirPseudo(pseudo: string): Observable<string> {
+    return this.erreurs.appel(async () => {
+      const { data, error } = await this.db.rpc('choisir_pseudo', { p_pseudo: pseudoNormal(pseudo) });
+      if (error) throw error;
+      this.pseudo.set(data);
+      return data;
+    });
+  }
 
   monCode(): Observable<string> {
     return this.erreurs.appel(() => this.depot.monCodeAmi(), { silencieux: true });
@@ -280,14 +303,10 @@ export class AmisService {
     return this.erreurs.appel(() => this.depot.retirerAmi(id));
   }
 
-  /** Invitations et demandes qui attendent ma réponse : pastille sur l'onglet Proches. */
-  readonly aRepondre = signal(0);
-
   /** Objectifs communs (actifs et invitations), avec la flamme commune calculée. */
   communs(): Observable<ObjectifCommun[]> {
     return this.erreurs.appel(async () => {
       const lignes = await this.depot.communs();
-      this.aRepondre.set(lignes.filter((c) => c.statut === 'RECUE').length);
       return lignes.map((c): ObjectifCommun => {
         const commun: ObjectifCommun = {
           id: c.id,
@@ -335,21 +354,46 @@ export class AmisService {
   }
 }
 
+/** Identifiant tel qu'enregistré : minuscules, sans @ ni espaces. */
+export function pseudoNormal(p: string): string {
+  return p.trim().replace(/^@/, '').toLowerCase();
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly db = inject(SupabaseService).client;
   private readonly erreurs = inject(Erreurs);
 
-  inscription(identifiants: Identifiants): Observable<Session> {
+  inscription(identifiants: Identifiants, pseudo: string): Observable<Session> {
     return this.erreurs.appel(async () => {
+      const choisi = pseudoNormal(pseudo);
+      const libre = await this.db.rpc('pseudo_disponible', { p_pseudo: choisi });
+      if (libre.error) throw libre.error;
+      if (!libre.data) throw { code: 'pseudo_pris', message: 'Cet identifiant est déjà pris.' };
       const { data, error } = await this.db.auth.signUp({
         email: identifiants.email,
         password: identifiants.motDePasse,
-        options: { emailRedirectTo: SUPABASE.confirmation },
+        options: { emailRedirectTo: SUPABASE.confirmation, data: { pseudo: choisi } },
       });
       if (error) throw error;
       if (!data.session) throw { code: 'email_not_confirmed', message: '' };
       return { token: data.session.access_token, email: data.session.user.email ?? identifiants.email };
+    });
+  }
+
+  /**
+   * Connexion avec Google. Sur le web, la page part chez Google et revient sur l'app ;
+   * dans l'app Android, Google s'ouvre dans le navigateur et revient par le lien equinoxe://auth.
+   */
+  connexionGoogle(): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const natif = Capacitor.isNativePlatform();
+      const { data, error } = await this.db.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: natif ? 'equinoxe://auth' : location.origin + location.pathname.replace(/connexion.*$/, ''), skipBrowserRedirect: natif },
+      });
+      if (error) throw error;
+      if (natif && data.url) window.open(data.url, '_system');
     });
   }
 
