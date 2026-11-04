@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Toast } from 'primeng/toast';
@@ -11,6 +11,7 @@ import { ReglagesService } from './core/reglages.service';
 import { CelebrationOverlay } from './shared/celebration-overlay';
 import { LuneOverlay } from './shared/lune-overlay';
 import { Onglets } from './shared/onglets';
+import { VERSION } from './version';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,14 @@ import { Onglets } from './shared/onglets';
     }
     <app-celebration />
     <app-lune />
+    @if (lancement() !== 'fini') {
+      <!-- Prolonge l'écran de démarrage d'Android (même logo, même place), avec la version dans un coin -->
+      <div class="lancement" [class.part]="lancement() === 'part'" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><mask id="lancement-m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#lancement-m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+        <strong>Équinoxe</strong>
+        <small class="version">v{{ version }}</small>
+      </div>
+    }
   `,
 })
 export class App {
@@ -43,7 +52,12 @@ export class App {
     { initialValue: false },
   );
 
+  protected readonly version = VERSION;
+  protected readonly lancement = signal<'visible' | 'part' | 'fini'>('visible');
+
   constructor() {
+    setTimeout(() => this.lancement.set('part'), 900);
+    setTimeout(() => this.lancement.set('fini'), 1300);
     inject(NotificationsService).ecouterOuvertures();
     inject(NavigationService).ecouterBoutonRetour();
     inject(ReglagesService);

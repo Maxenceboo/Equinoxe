@@ -16,6 +16,7 @@ import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
 import { SonsService } from '../../core/sons.service';
 import { BadgeIcone } from '../../shared/badge-icone';
+import { VERSION } from '../../version';
 
 /** Profil : niveau, badges, réglages, sécurisation du compte et déconnexion. */
 @Component({
@@ -140,6 +141,8 @@ import { BadgeIcone } from '../../shared/badge-icone';
       <p-button class="deconnexion" label="Se déconnecter" icon="pi pi-sign-out" [text]="true" severity="danger" (onClick)="confirmation.set(true)" />
     }
 
+    <p class="version-app">Équinoxe v{{ version }}</p>
+
     <p-dialog [header]="enDetail()?.nom ?? ''" [visible]="enDetail() !== null" (visibleChange)="!$event && enDetail.set(null)" [modal]="true" [dismissableMask]="true" [style]="{ width: '22rem' }">
       @if (enDetail(); as b) {
         <div class="badge-detail">
@@ -169,6 +172,7 @@ export class ProfilPage implements OnInit {
   /** iPhone dans Safari : les rappels n'existent qu'une fois l'app ajoutée à l'écran d'accueil. */
   protected readonly iosNavigateur = !Capacitor.isNativePlatform() && estIos() && !estInstallee();
   protected readonly aideInstallation = signal(false);
+  protected readonly version = VERSION;
   private readonly router = inject(Router);
 
   protected readonly profil = signal<Profil | null>(inject(ProfilService).dernier());
