@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import { estInstallee, estIos } from '../../core/push.service';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -21,6 +23,16 @@ import {
   suggestionEcartee,
   unite,
 } from '../../shared/objectifs';
+
+const CLE_INSTALLATION = 'equinoxe.installation-vue';
+
+function lireStockage(cle: string): string | null {
+  try {
+    return localStorage.getItem(cle);
+  } catch {
+    return null;
+  }
+}
 
 @Component({
   selector: 'app-accueil',
@@ -51,6 +63,13 @@ import {
         <i class="pi pi-wifi"></i>
         Hors ligne. {{ horsLigne.enAttente().length }} action(s) enregistrée(s) sur le téléphone, envoyée(s) au retour du réseau.
       </p>
+    }
+
+    @if (proposerInstallation()) {
+      <div class="encouragement-recu" role="status">
+        <span><strong>Installe Équinoxe</strong> : touche <i class="pi pi-upload"></i> Partager, puis « Sur l'écran d'accueil ». Tu auras l'app en plein écran et tes rappels.</span>
+        <button type="button" class="fermer" aria-label="Plus tard" (click)="masquerInstallation()"><i class="pi pi-times"></i></button>
+      </div>
     }
 
     @if (jokerSauveur(); as o) {
@@ -225,6 +244,10 @@ export class AccueilPage implements OnInit, OnDestroy {
 
   // Récompenses et Foyer
   private readonly profilApi = inject(ProfilService);
+  /** iPhone dans Safari : on explique une fois comment installer l'app (plein écran et rappels). */
+  protected readonly proposerInstallation = signal(
+    !Capacitor.isNativePlatform() && estIos() && !estInstallee() && !lireStockage(CLE_INSTALLATION),
+  );
   private readonly foyerApi = inject(FoyerService);
   protected readonly profil = this.profilApi.dernier;
   protected readonly foyers = signal<Foyer[]>([]);
@@ -236,6 +259,15 @@ export class AccueilPage implements OnInit, OnDestroy {
 
   protected texteEncouragement(type: TypeEncouragement): string {
     return ENCOURAGEMENTS.find((e) => e.type === type)?.texte ?? type;
+  }
+
+  masquerInstallation(): void {
+    this.proposerInstallation.set(false);
+    try {
+      localStorage.setItem(CLE_INSTALLATION, '1');
+    } catch {
+      /* stockage indisponible : le bandeau reviendra */
+    }
   }
 
   lireEncouragement(id: number): void {

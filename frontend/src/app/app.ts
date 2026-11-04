@@ -6,6 +6,7 @@ import { filter, map } from 'rxjs';
 import { NavigationService, ONGLETS } from './core/navigation.service';
 import { MiseAJourService } from './core/mise-a-jour.service';
 import { NotificationsService } from './core/notifications.service';
+import { PushService } from './core/push.service';
 import { ReglagesService } from './core/reglages.service';
 import { CelebrationOverlay } from './shared/celebration-overlay';
 import { Onglets } from './shared/onglets';
@@ -44,6 +45,7 @@ export class App {
     inject(NotificationsService).ecouterOuvertures();
     inject(NavigationService).ecouterBoutonRetour();
     inject(ReglagesService);
+    void inject(PushService).demarrer();
     void this.miseAJour.verifier();
   }
 }

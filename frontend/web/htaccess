@@ -1,0 +1,13 @@
+# Version web d'Équinoxe (equinoxe-app.fr/app/) : toutes les adresses de l'app ouvrent index.html
+RewriteEngine On
+RewriteBase /app/
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /app/index.html [L]
+
+# La page et le service worker ne doivent jamais rester en cache : sinon les mises à jour n'arrivent pas
+<FilesMatch "^(index\.html|sw\.js|manifest\.webmanifest)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
+AddType application/manifest+json .webmanifest

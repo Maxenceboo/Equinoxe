@@ -2,12 +2,15 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
+import { Capacitor } from '@capacitor/core';
+import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Badge, Identifiants, Profil } from '../../api/generated';
 import { AuthService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { PushService, estInstallee, estIos } from '../../core/push.service';
 import { ReglagesService } from '../../core/reglages.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { SessionService } from '../../core/session.service';
@@ -91,6 +94,26 @@ import { BadgeIcone } from '../../shared/badge-icone';
           <small>{{ sons.actif() ? 'Activés' : 'Coupés' }}</small>
         </button>
       </li>
+      @if (iosNavigateur) {
+        <li>
+          <button type="button" class="reglage" (click)="aideInstallation.set(!aideInstallation())">
+            <i class="pi pi-bell"></i>
+            <span>Rappels</span>
+            <small>Installe l'app d'abord</small>
+          </button>
+          @if (aideInstallation()) {
+            <p class="aide">Dans Safari, touche <i class="pi pi-upload"></i> Partager, puis « Sur l'écran d'accueil ». Ouvre Équinoxe depuis son icône, et active les rappels ici.</p>
+          }
+        </li>
+      } @else if (push.possible) {
+        <li>
+          <button type="button" class="reglage" role="switch" [attr.aria-checked]="push.actifs()" (click)="basculerRappels()">
+            <i [class]="push.actifs() ? 'pi pi-bell' : 'pi pi-bell-slash'"></i>
+            <span>Rappels</span>
+            <small>{{ push.actifs() ? 'Activés' : 'Désactivés' }}</small>
+          </button>
+        </li>
+      }
       <li>
         <a class="reglage" routerLink="/profil/archives">
           <i class="pi pi-inbox"></i>
@@ -141,6 +164,11 @@ export class ProfilPage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly horsLigne = inject(HorsLigneService);
   private readonly notifications = inject(NotificationsService);
+  protected readonly push = inject(PushService);
+  private readonly messages = inject(MessageService);
+  /** iPhone dans Safari : les rappels n'existent qu'une fois l'app ajoutée à l'écran d'accueil. */
+  protected readonly iosNavigateur = !Capacitor.isNativePlatform() && estIos() && !estInstallee();
+  protected readonly aideInstallation = signal(false);
   private readonly router = inject(Router);
 
   protected readonly profil = signal<Profil | null>(inject(ProfilService).dernier());
@@ -184,6 +212,23 @@ export class ProfilPage implements OnInit {
       },
       error: () => this.enCours.set(false),
     });
+  }
+
+  async basculerRappels(): Promise<void> {
+    if (this.push.actifs()) {
+      await this.push.desactiver();
+      return;
+    }
+    try {
+      if (await this.push.activer()) {
+        await this.notifications.synchroniser();
+        this.messages.add({ severity: 'success', summary: 'Rappels activés', detail: 'Tu les recevras même app fermée.' });
+      } else {
+        this.messages.add({ severity: 'info', summary: 'Rappels refusés', detail: 'Autorise les notifications d\'Équinoxe dans les réglages du téléphone.' });
+      }
+    } catch {
+      this.messages.add({ severity: 'error', summary: 'Pas de rappels', detail: 'Réessaie dans un moment.' });
+    }
   }
 
   async deconnecter(): Promise<void> {

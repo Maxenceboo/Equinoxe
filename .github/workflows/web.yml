@@ -1,0 +1,53 @@
+# Version web de l'app (pour iPhone surtout), en ligne sur equinoxe-app.fr/app/ à chaque modification.
+# Mêmes secrets FTP que le workflow « Site ». L'app Android, elle, ne change pas.
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths: ['frontend/src/**', 'frontend/public/**', 'frontend/web/**', 'api/**', '.github/workflows/web.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  ovh:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Dépendances
+        run: npm ci
+
+      - name: Build web (sous /app/)
+        run: npm run build -- --base-href /app/
+
+      - name: Règles Apache
+        run: cp web/htaccess dist/frontend/browser/.htaccess
+
+      - uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.OVH_FTP_SERVEUR }}
+          username: ${{ secrets.OVH_FTP_UTILISATEUR }}
+          password: ${{ secrets.OVH_FTP_MOT_DE_PASSE }}
+          local-dir: ./frontend/dist/frontend/browser/
+          server-dir: ./www/app/

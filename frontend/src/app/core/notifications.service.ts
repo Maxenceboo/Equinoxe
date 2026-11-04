@@ -5,6 +5,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { firstValueFrom } from 'rxjs';
 import { ObjectifsService, RappelsService } from '../application/services';
 import { ajouterJours } from '../domaine/jours';
+import { PushService, RappelWeb } from './push.service';
 
 const CANAL = 'rappels-objectifs';
 const JOURS = 14;
@@ -22,6 +23,16 @@ export function dateRelance(derniereCoche: string | null, maintenant: Date): Dat
   return quand > maintenant ? quand : null;
 }
 
+/** Prochaine date (dans les 15 jours) tombant ce jour de la semaine (0 = dimanche) à cette heure. */
+function prochaines(jourSemaine: number, heure: number, maintenant: Date): Date[] {
+  const dates: Date[] = [];
+  for (let i = 0; i <= 14; i++) {
+    const d = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i, heure, 0);
+    if (d.getDay() === jourSemaine && d > maintenant) dates.push(d);
+  }
+  return dates;
+}
+
 /**
  * Programme sur le téléphone les rappels calculés par le serveur (répartis sur la semaine).
  * À rappeler après chaque changement : les anciens rappels sont remplacés.
@@ -31,6 +42,7 @@ export class NotificationsService {
   private readonly rappels = inject(RappelsService);
   private readonly objectifs = inject(ObjectifsService);
   private readonly router = inject(Router);
+  private readonly push = inject(PushService);
   private prete = false;
 
   /** Toucher une notification ouvre le bon écran : le bilan, ou l'objectif concerné. */
@@ -44,7 +56,7 @@ export class NotificationsService {
   }
 
   async synchroniser(): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return; // navigateur : pas de notifications locales
+    if (!Capacitor.isNativePlatform()) return this.synchroniserWeb();
     try {
       if (!(await this.preparer())) return;
       const liste = await firstValueFrom(this.rappels.prochainsRappels(JOURS));
@@ -99,8 +111,41 @@ export class NotificationsService {
     }
   }
 
+  /** Version web : les mêmes rappels, envoyés par le serveur à l'heure dite. */
+  private async synchroniserWeb(): Promise<void> {
+    if (!this.push.actifs()) return;
+    try {
+      const maintenant = new Date();
+      const liste = await firstValueFrom(this.rappels.prochainsRappels(JOURS));
+      const relance = dateRelance(await firstValueFrom(this.objectifs.derniereCoche()), maintenant);
+      const web: RappelWeb[] = [
+        ...liste.slice(0, 50).map((r) => ({
+          quand: new Date(r.dateHeure).toISOString(),
+          titre: r.nomObjectif,
+          corps: r.message,
+          route: `/objectifs/${r.objectifId}`,
+        })),
+        ...prochaines(1, 9, maintenant).map((d) => ({
+          quand: d.toISOString(),
+          titre: 'Nouvelle semaine',
+          corps: 'Tes objectifs t\'attendent : ouvre l\'app pour garder ta flamme.',
+        })),
+        ...(relance ? [{ quand: relance.toISOString(), titre: 'Ta série t\'attend', corps: 'Pas de souci, ça arrive. Un tap suffit pour repartir.' }] : []),
+        ...prochaines(0, 20, maintenant).map((d) => ({
+          quand: d.toISOString(),
+          titre: 'Ton bilan de la semaine',
+          corps: 'Regarde ce que tu as tenu cette semaine, et prépare la suivante.',
+          route: '/bilan',
+        })),
+      ];
+      await this.push.programmer(web.filter((r) => new Date(r.quand) > maintenant));
+    } catch (e) {
+      console.warn('Rappels web non programmés', e);
+    }
+  }
+
   async toutAnnuler(): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return;
+    if (!Capacitor.isNativePlatform()) return this.push.desactiver();
     const enAttente = await LocalNotifications.getPending();
     if (enAttente.notifications.length) {
       await LocalNotifications.cancel({ notifications: enAttente.notifications.map((n) => ({ id: n.id })) });

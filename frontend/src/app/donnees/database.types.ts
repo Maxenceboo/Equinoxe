@@ -197,6 +197,9 @@ export type Database = {
       est_membre: { Args: { p_foyer: number }; Returns: boolean }
       est_parent: { Args: { p_foyer: number }; Returns: boolean }
       nommer_parent: { Args: { p_foyer: number; p_membre: string }; Returns: undefined }
+      enregistrer_push: { Args: { p_endpoint: string; p_p256dh: string; p_auth: string }; Returns: undefined }
+      programmer_rappels: { Args: { p_rappels: Json }; Returns: undefined }
+      oublier_push: { Args: { p_endpoint: string }; Returns: undefined }
       objectifs_suivis: {
         Args: Record<PropertyKey, never>;
         Returns: {
