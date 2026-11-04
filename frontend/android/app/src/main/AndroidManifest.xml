@@ -32,6 +32,30 @@
 
         </activity>
 
+        <!-- Widgets de l'écran d'accueil -->
+        <receiver
+            android:name=".WidgetLune"
+            android:exported="false"
+            android:label="@string/widget_lune_nom">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_lune_info" />
+        </receiver>
+        <receiver
+            android:name=".WidgetJour"
+            android:exported="false"
+            android:label="@string/widget_jour_nom">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_jour_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

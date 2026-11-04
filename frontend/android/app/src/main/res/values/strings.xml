@@ -4,4 +4,9 @@
     <string name="title_activity_main">Équinoxe</string>
     <string name="package_name">com.objectifsperso.app</string>
     <string name="custom_url_scheme">com.objectifsperso.app</string>
+    <string name="widget_lune_nom">Ma lune</string>
+    <string name="widget_lune_description">Ta lune, tes points et ta semaine</string>
+    <string name="widget_jour_nom">Aujourd\'hui</string>
+    <string name="widget_jour_description">Tes objectifs du jour, cochés quand ils sont faits</string>
+    <string name="widget_jour_vide">Ouvre l\'app pour voir tes objectifs</string>
 </resources>

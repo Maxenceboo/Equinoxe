@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { estInstallee, estIos } from '../../core/push.service';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
@@ -12,6 +12,7 @@ import { FoyerService, ObjectifsService, ProfilService } from '../../application
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService, phaseDuNiveau } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { WidgetsService } from '../../core/widgets.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
@@ -306,6 +307,11 @@ export class AccueilPage implements OnInit, OnDestroy {
   }
 
   private readonly auRetourDuReseau = () => this.synchroniserPuisCharger();
+  private readonly widgets = inject(WidgetsService);
+  /** Les widgets Android suivent la liste et le niveau affichés ici. */
+  private readonly majWidgets = effect(() => {
+    if (this.charge()) this.widgets.publier(this.objectifs(), this.profil());
+  });
 
   ngOnInit(): void {
     this.synchroniserPuisCharger();

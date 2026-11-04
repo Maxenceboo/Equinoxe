@@ -10,6 +10,7 @@ import { AuthService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { NavigationService } from '../../core/navigation.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { WidgetsService } from '../../core/widgets.service';
 import { PushService, estInstallee, estIos } from '../../core/push.service';
 import { ReglagesService } from '../../core/reglages.service';
 import { SchemaFormService } from '../../core/schema-form.service';
@@ -132,6 +133,7 @@ export class ReglagesPage {
   private readonly auth = inject(AuthService);
   private readonly horsLigne = inject(HorsLigneService);
   private readonly notifications = inject(NotificationsService);
+  private readonly widgets = inject(WidgetsService);
   protected readonly push = inject(PushService);
   private readonly messages = inject(MessageService);
   /** iPhone dans Safari : les rappels n'existent qu'une fois l'app ajoutée à l'écran d'accueil. */
@@ -192,6 +194,7 @@ export class ReglagesPage {
   async deconnecter(): Promise<void> {
     this.enCours.set(true);
     await this.notifications.toutAnnuler();
+    await this.widgets.vider();
     this.horsLigne.oublier();
     await this.session.fermer();
     void this.router.navigate(['/connexion'], { replaceUrl: true });
