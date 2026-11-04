@@ -6,6 +6,7 @@ import { Categorie, ObjectifSaisie } from '../../api/generated';
 import { ObjectifsService } from '../../application/services';
 import { NavigationService } from '../../core/navigation.service';
 import { NotificationsService } from '../../core/notifications.service';
+import { heureLisible } from '../../shared/objectifs';
 
 interface Idee {
   nom: string;
@@ -17,7 +18,7 @@ interface Idee {
 const IDEES: Idee[] = [
   { nom: 'Sport', categorie: 'SPORT', icone: 'pi pi-bolt', heure: '18:00' },
   { nom: 'Me coucher tôt', categorie: 'SOMMEIL', icone: 'pi pi-moon', heure: '23:00' },
-  { nom: 'Lire', categorie: 'AUTRE', icone: 'pi pi-book', heure: '21:00' },
+  { nom: 'Lire', categorie: 'AUTRE', icone: 'pi pi-book', heure: '21:30' },
   { nom: 'Marcher', categorie: 'SPORT', icone: 'pi pi-map', heure: '12:30' },
 ];
 
@@ -35,6 +36,14 @@ const MOMENTS = [
   { libelle: 'Avant de dormir', heure: '21:30' },
 ];
 
+/** Pour le sommeil, l'heure est celle du coucher visé (le rappel arrive 30 min avant). */
+const COUCHERS = [
+  { libelle: 'Tôt', heure: '22:00' },
+  { libelle: 'Raisonnable', heure: '22:30' },
+  { libelle: 'Classique', heure: '23:00' },
+  { libelle: 'Tard', heure: '23:30' },
+];
+
 /**
  * Création d'un objectif en 3 questions, une par écran, avec de grosses cartes déjà remplies.
  * Le formulaire complet reste accessible par « Réglages avancés ».
@@ -47,7 +56,7 @@ const MOMENTS = [
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="precedent()" />
       <div>
         <p class="etiquette">Question {{ etape() }} sur 3</p>
-        <h1>{{ titres[etape() - 1] }}</h1>
+        <h1>{{ etape() === 3 && categorie() === 'SOMMEIL' ? 'À quelle heure te coucher ?' : titres[etape() - 1] }}</h1>
       </div>
     </header>
     <div class="etapes-assistant" aria-hidden="true">
@@ -82,9 +91,9 @@ const MOMENTS = [
       }
       @case (3) {
         <div class="cartes-choix">
-          @for (m of moments; track m.heure) {
+          @for (m of moments(); track m.heure) {
             <button type="button" class="carte-choix grande" [class.choisi]="heure() === m.heure" (click)="heure.set(m.heure)">
-              <strong>{{ m.libelle }}</strong><small>{{ m.heure.replace(':', ' h ') }}</small>
+              <strong>{{ m.libelle }}</strong><small>{{ lisible(m.heure) }}</small>
             </button>
           }
         </div>
@@ -108,7 +117,8 @@ export class AssistantPage {
 
   protected readonly idees = IDEES;
   protected readonly frequences = FREQUENCES;
-  protected readonly moments = MOMENTS;
+  protected readonly moments = computed(() => (this.categorie() === 'SOMMEIL' ? COUCHERS : MOMENTS));
+  protected readonly lisible = heureLisible;
   protected readonly titres = ['Que veux-tu tenir ?', 'Combien de fois ?', 'Quand te le rappeler ?'];
 
   protected readonly etape = signal(1);
@@ -123,7 +133,7 @@ export class AssistantPage {
   protected readonly resume = computed(() => {
     const frequence = this.cible() === 7 ? 'tous les jours' : `${this.cible()} fois par semaine`;
     const rappel = this.categorie() === 'SOMMEIL' ? 'coucher visé à' : 'rappel à';
-    return `${this.nom()}, ${frequence}, ${rappel} ${this.heure().replace(':', ' h ')}.`;
+    return `${this.nom()}, ${frequence}, ${rappel} ${heureLisible(this.heure())}.`;
   });
 
   choisirIdee(i: Idee): void {

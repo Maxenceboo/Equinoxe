@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { estInstallee, estIos } from '../../core/push.service';
+import { PushService, estInstallee, estIos } from '../../core/push.service';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -26,6 +26,7 @@ import {
 } from '../../shared/objectifs';
 
 const CLE_INSTALLATION = 'equinoxe.installation-vue';
+const CLE_RAPPELS = 'equinoxe.proposition-rappels-vue';
 
 function lireStockage(cle: string): string | null {
   try {
@@ -45,10 +46,12 @@ function lireStockage(cle: string): string | null {
         <small>{{ semaine }}</small>
       </div>
       @if (profil(); as p) {
+        @if (p.solde > 0) {
         <a class="niveau-puce" routerLink="/profil/boutique" [attr.aria-label]="p.solde + ' points à dépenser, ouvrir la boutique'">
           <strong>{{ p.solde }}</strong>
           <small>pts à dépenser</small>
         </a>
+        }
       }
     </header>
 
@@ -77,6 +80,14 @@ function lireStockage(cle: string): string | null {
       <div class="encouragement-recu" role="status">
         <span><strong>Installe Équinoxe</strong> : touche <i class="pi pi-upload"></i> Partager, puis « Sur l'écran d'accueil ». Tu auras l'app en plein écran et tes rappels.</span>
         <button type="button" class="fermer" aria-label="Plus tard" (click)="masquerInstallation()"><i class="pi pi-times"></i></button>
+      </div>
+    }
+
+    @if (proposerRappels()) {
+      <div class="encouragement-recu" role="status">
+        <span><strong>Active les rappels</strong> pour être prévenu à l'heure choisie, même app fermée.</span>
+        <p-button label="Activer" size="small" (onClick)="activerRappels()" />
+        <button type="button" class="fermer" aria-label="Plus tard" (click)="masquerRappels()"><i class="pi pi-times"></i></button>
       </div>
     }
 
@@ -283,6 +294,31 @@ export class AccueilPage implements OnInit, OnDestroy {
 
   protected texteEncouragement(type: TypeEncouragement): string {
     return ENCOURAGEMENTS.find((e) => e.type === type)?.texte ?? type;
+  }
+
+  // Navigateur (hors iPhone non installé) : les rappels sont à activer à la main, on le propose une fois
+  private readonly push = inject(PushService);
+  private readonly rappelsMasques = signal(!!lireStockage(CLE_RAPPELS));
+  protected readonly proposerRappels = computed(
+    () => this.push.possible && !this.push.actifs() && !this.rappelsMasques() && this.objectifs().length > 0,
+  );
+
+  async activerRappels(): Promise<void> {
+    try {
+      if (await this.push.activer()) this.notifications.synchroniser();
+    } catch {
+      /* refus ou erreur : on n'insiste pas */
+    }
+    this.masquerRappels();
+  }
+
+  masquerRappels(): void {
+    this.rappelsMasques.set(true);
+    try {
+      localStorage.setItem(CLE_RAPPELS, '1');
+    } catch {
+      /* stockage indisponible */
+    }
   }
 
   masquerInstallation(): void {

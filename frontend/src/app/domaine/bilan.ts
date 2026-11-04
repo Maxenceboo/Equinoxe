@@ -38,14 +38,17 @@ export function bilan(objectifs: ObjectifPerso[], jour: string, aujourdhui: stri
     total: lignes.length,
     seances,
     seancesSemainePrecedente: avant,
-    phrase: phrase(tenus, lignes.length, seances, avant),
+    phrase: phrase(tenus, lignes.length, seances, avant, dimanche > aujourdhui),
   };
 }
 
-function phrase(tenus: number, total: number, seances: number, avant: number): string {
+function phrase(tenus: number, total: number, seances: number, avant: number, enCours = false): string {
   if (total === 0) return 'Aucun objectif cette semaine.';
   let base: string;
-  if (tenus === total) base = total === 1 ? 'Objectif tenu cette semaine, bravo !' : 'Tous tes objectifs tenus, bravo !';
+  if (enCours && tenus < total) {
+    // Semaine pas finie : on encourage, on ne juge pas encore
+    base = tenus === 0 ? 'Semaine en cours, tout reste possible.' : `${tenus} sur ${total} déjà tenu${tenus > 1 ? 's' : ''}, la semaine continue.`;
+  } else if (tenus === total) base = total === 1 ? 'Objectif tenu cette semaine, bravo !' : 'Tous tes objectifs tenus, bravo !';
   else if (tenus === 0) base = 'Semaine plus calme. On repart lundi.';
   else base = `${tenus} objectif${tenus > 1 ? 's' : ''} sur ${total} tenu${tenus > 1 ? 's' : ''}.`;
   if (avant > 0 && seances > avant) base += " Plus actif que la semaine d'avant.";

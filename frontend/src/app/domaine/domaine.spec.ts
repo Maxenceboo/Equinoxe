@@ -142,6 +142,10 @@ describe('cible qui s’adapte', () => {
     expect(suggestion(o, LUNDI)).toBeNull();
     expect(suggestion(o, j(LUNDI, 14))).toBeNull();
   });
+  it('ne propose rien pour un objectif tout juste créé', () => {
+    expect(suggestion(objectif({ cible: 5, dateCreation: j(LUNDI, 2) }), j(LUNDI, 2))).toBeNull();
+    expect(suggestion(objectif({ cible: 5, dateCreation: j(LUNDI, 2) }), j(LUNDI, 9))).toBeNull();
+  });
 });
 
 describe('heure habituelle et coches', () => {

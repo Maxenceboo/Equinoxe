@@ -91,6 +91,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
             }
           </div>
 
+          @if (afficherBarres()) {
           <p class="sous-etiquette">{{ chiffre(st.mesure) ? unite(st.mesure) + ' par mois' : 'Coches par mois' }}</p>
           <svg class="barres" viewBox="0 0 300 120" role="img" [attr.aria-label]="'Évolution sur 6 mois'">
             @for (b of barres(); track b.mois; let i = $index) {
@@ -100,6 +101,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
               <text class="mois-court" [attr.x]="i * 50 + 25" y="114" text-anchor="middle">{{ b.libelle }}</text>
             }
           </svg>
+          }
 
           @if (st.types.length > 0) {
             <p class="sous-etiquette">Séances les plus fréquentes</p>
@@ -143,7 +145,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
             />
           </div>
           @if (!o.visibleAmis) {
-            <small class="aide">Seul toi le vois. Tes amis s'ajoutent avec ton code, sur la page Proches.</small>
+            <small class="aide">Toi seul le vois. Tes amis s'ajoutent avec ton code, sur la page Proches.</small>
           } @else if (voientMoi().length === 0) {
             <small class="aide">Aucun ami ne le voit encore. Ajoute des amis avec ton code, sur la page Proches.</small>
           } @else {
@@ -155,7 +157,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           <p class="etiquette">À deux</p>
           @if (commun(); as c) {
             @if (c.statut === 'ACTIF') {
-              <div class="code">
+              <div class="ligne-a-deux">
                 <span>Avec <strong>{{ c.ami }}</strong></span>
                 <span class="flamme-commune"><app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" /> commune</span>
               </div>
@@ -214,6 +216,12 @@ export class ObjectifDetailPage implements OnInit {
   protected readonly unite = unite;
   protected readonly chiffre = estChiffre;
   protected readonly heure = heureLisible;
+
+  /** Le graphique mois par mois n'a de sens qu'à partir du deuxième mois de l'objectif. */
+  protected readonly afficherBarres = computed(() => {
+    const o = this.objectif();
+    return !!o && o.dateCreation.slice(0, 7) < this.auj.slice(0, 7);
+  });
 
   /** Six barres : coches par mois, ou quantité par mois pour un objectif chiffré. */
   protected readonly barres = computed(() => {

@@ -848,7 +848,9 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   .flamme-commune { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--discret); font-size: 0.9rem; }
   .choix-amis { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
   .actions-ligne { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.6rem; }
-  > .p-button, > p-button { margin-top: 0.6rem; display: inline-block; }
+  > p-button { margin-top: 0.6rem; display: block; }
+  .ligne-a-deux { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 0.5rem; font-size: 1.05rem; }
+  .aide { display: block; }
 }
 
 .invitation-accueil { color: inherit; text-decoration: none; align-items: center; .pi { font-size: 0.8rem; } }

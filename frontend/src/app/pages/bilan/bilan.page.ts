@@ -50,7 +50,7 @@ import { nombre, saisieDe, unite } from '../../shared/objectifs';
               </div>
               <div class="ligne-bas">
                 <small class="message">
-                  {{ l.atteint ? 'Tenu' : 'Pas cette fois' }}@if (l.quantite != null) { · {{ nombre(l.quantite) }} {{ unite(l.mesure) }} }
+                  {{ l.atteint ? 'Tenu' : estCourante() ? 'En cours' : 'Pas cette fois' }}@if (l.quantite != null) { · {{ nombre(l.quantite) }} {{ unite(l.mesure) }} }
                 </small>
                 <span class="compteur">{{ l.realisees }}<span>/{{ l.cible }}</span></span>
               </div>
@@ -69,8 +69,6 @@ import { nombre, saisieDe, unite } from '../../shared/objectifs';
               </div>
             </li>
           }
-        } @empty {
-          <li class="aide">Aucun objectif sur cette semaine.</li>
         }
       </ul>
     }
@@ -125,6 +123,13 @@ export class BilanPage implements OnInit {
   }
 
   private charger(jour?: string): void {
-    this.api.bilanSemaine(jour).subscribe((b) => this.bilan.set(b));
+    this.api.bilanSemaine(jour).subscribe((b) => {
+      // Par défaut on montre la semaine passée ; pour un nouveau venu (rien la semaine passée), la semaine en cours
+      if (!jour && b.total === 0) {
+        this.api.bilanSemaine(aujourdhui()).subscribe((c) => this.bilan.set(c));
+        return;
+      }
+      this.bilan.set(b);
+    });
   }
 }

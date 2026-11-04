@@ -1,7 +1,7 @@
 import type { Suggestion } from '../api/generated';
 import { ajouterJours, lundiDe } from './jours';
 import { ObjectifPerso } from './modele';
-import { cochesDeLaSemaine } from './objectif';
+import { cochesDeLaSemaine, premiereDate } from './objectif';
 
 export const SEMAINES_POUR_MONTER = 4;
 export const SEMAINES_POUR_BAISSER = 3;
@@ -9,11 +9,12 @@ export const SEMAINES_POUR_BAISSER = 3;
 /**
  * Propose d'ajuster la cible d'un objectif « X fois par semaine » : +1 après 4 semaines réussies d'affilée,
  * -1 après 3 semaines ratées d'affilée. Seules les semaines terminées comptent, et seulement celles d'après
- * le dernier changement de cible.
+ * le dernier changement de cible. Les semaines d'avant la création de l'objectif ne comptent pas.
  */
 export function suggestion(o: ObjectifPerso, aujourdhui: string): Suggestion | null {
   if (o.archive || o.typeFrequence !== 'PAR_SEMAINE') return null;
-  const limite = o.cibleDepuis ?? '0000-01-01';
+  const debut = premiereDate(o);
+  const limite = o.cibleDepuis && o.cibleDepuis > debut ? o.cibleDepuis : debut;
   let reussite: boolean | null = null;
   let affilee = 0;
   for (
