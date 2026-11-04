@@ -64,7 +64,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
                 class="jour"
                 [class.fait]="faits().has(case)"
                 [class.aujourdhui]="case === auj"
-                [disabled]="case > auj"
+                [disabled]="case !== auj"
                 [attr.aria-label]="case"
                 (click)="basculer(case)"
               >
@@ -75,7 +75,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
             }
           }
         </div>
-        <small class="aide">Touche un jour passé pour le cocher ou le décocher.</small>
+        <small class="aide">Seul le jour même peut être coché ou décoché.</small>
       </section>
 
       @if (stats(); as st) {
@@ -234,6 +234,7 @@ export class ObjectifDetailPage implements OnInit {
   }
 
   basculer(date: string): void {
+    if (date !== this.auj) return; // le passé ne se modifie plus
     const id = Number(this.id());
     const appel = this.faits().has(date) ? this.api.annulerValidation(id, date) : this.api.validerObjectif(id, { date });
     appel.subscribe((o) => {

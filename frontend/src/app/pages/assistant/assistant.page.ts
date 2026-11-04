@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Categorie, ObjectifSaisie } from '../../api/generated';
 import { ObjectifsService } from '../../application/services';
@@ -41,7 +41,7 @@ const MOMENTS = [
  */
 @Component({
   selector: 'app-assistant',
-  imports: [FormsModule, RouterLink, Button],
+  imports: [FormsModule, Button],
   template: `
     <header class="entete entete-assistant">
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="precedent()" />
@@ -93,7 +93,7 @@ const MOMENTS = [
       }
     }
 
-    <p class="lien-avance"><a routerLink="/objectifs/nouveau/avance">Réglages avancés</a></p>
+    <p class="lien-avance"><a href="/objectifs/nouveau/avance" (click)="$event.preventDefault(); avance()">Réglages avancés</a></p>
   `,
 })
 export class AssistantPage {
@@ -140,15 +140,24 @@ export class AssistantPage {
     else this.navigation.retour();
   }
 
-  creer(): void {
+  private saisie(): ObjectifSaisie {
     const quotidien = this.cible() === 7;
-    const saisie: ObjectifSaisie = {
+    return {
       nom: this.nom().slice(0, 50),
       categorie: this.categorie(),
       typeFrequence: quotidien ? 'QUOTIDIEN' : 'PAR_SEMAINE',
       cible: this.cible(),
       heure: this.heure(),
     };
+  }
+
+  /** Ouvre le formulaire complet en gardant ce qui a déjà été saisi. */
+  avance(): void {
+    void this.router.navigate(['/objectifs/nouveau/avance'], { state: { saisie: this.saisie() } });
+  }
+
+  creer(): void {
+    const saisie = this.saisie();
     this.enCours.set(true);
     this.api.creerObjectif(saisie).subscribe({
       next: () => {

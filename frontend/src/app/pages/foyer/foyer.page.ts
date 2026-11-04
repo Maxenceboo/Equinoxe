@@ -117,7 +117,7 @@ export class FoyerPage implements OnInit {
     if (this.formCreer.invalid) return;
     this.enCours.set(true);
     this.api.creer(this.modelCreer as CreationFoyer).subscribe({
-      next: () => this.ouvrirDernier(),
+      next: (code) => this.ouvrirCree(code),
       error: () => this.enCours.set(false),
     });
   }
@@ -135,12 +135,14 @@ export class FoyerPage implements OnInit {
     });
   }
 
-  /** Après une création, on ouvre le nouveau groupe (le plus récent) pour partager son code. */
-  private ouvrirDernier(): void {
+  /** Après une création (on en est déjà membre), on ouvre le nouveau groupe pour partager son code. */
+  private ouvrirCree(code: string): void {
     this.api.foyers().subscribe((l) => {
       this.enCours.set(false);
-      const dernier = l[l.length - 1];
-      if (dernier) this.router.navigate(['/foyer', dernier.id]);
+      this.foyers.set(l);
+      this.mode.set(null);
+      const cree = l.find((f) => f.code === code) ?? l[l.length - 1];
+      if (cree) this.router.navigate(['/foyer', cree.id]);
     });
   }
 }

@@ -72,6 +72,8 @@ export class ObjectifFormPage implements OnInit {
   ngOnInit(): void {
     const id = this.id();
     if (!id) {
+      const reprise = (history.state as { saisie?: Partial<ObjectifSaisie> } | null)?.saisie;
+      if (reprise) this.model = { ...reprise, nom: reprise.nom || undefined };
       this.pret.set(true);
       return;
     }
