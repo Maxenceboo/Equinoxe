@@ -35,6 +35,8 @@ alter table public.abonnement_push enable row level security;
 alter table public.rappel_push enable row level security;
 alter table public.config_push enable row level security;
 revoke all on public.abonnement_push, public.rappel_push, public.config_push from anon, authenticated;
+-- La fonction d'envoi passe par service_role (pas de droits par défaut sur ce projet)
+grant select, insert, update, delete on public.abonnement_push, public.rappel_push, public.config_push to service_role;
 
 -- Enregistre l'abonnement de ce navigateur pour l'utilisateur connecté
 create or replace function public.enregistrer_push(p_endpoint text, p_p256dh text, p_auth text)
