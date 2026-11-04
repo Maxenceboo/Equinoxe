@@ -24,9 +24,15 @@ export function plusRecente(distante: string, locale: string): boolean {
 @Injectable({ providedIn: 'root' })
 export class MiseAJourService {
   readonly disponible = signal<string | null>(null);
+  private ecoute = false;
 
+  /** Au démarrage, puis à chaque retour dans l'app (elle reste souvent ouverte en arrière-plan). */
   async verifier(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
+    if (!this.ecoute) {
+      this.ecoute = true;
+      void App.addListener('resume', () => void this.verifier());
+    }
     try {
       const [{ version: locale }, reponse] = await Promise.all([App.getInfo(), fetch(URL_VERSION, { cache: 'no-store' })]);
       if (!reponse.ok) return;
