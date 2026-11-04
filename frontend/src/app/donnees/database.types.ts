@@ -248,6 +248,27 @@ export type Database = {
           jours: string[];
         }[];
       };
+      inviter_commun: { Args: { p_objectif: number; p_ami: string }; Returns: number };
+      accepter_commun: { Args: { p_id: number }; Returns: number };
+      quitter_commun: { Args: { p_id: number }; Returns: undefined };
+      mes_communs: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: number;
+          statut: string;
+          ami_id: string;
+          ami: string;
+          mon_objectif: number | null;
+          nom: string;
+          categorie: string;
+          type_frequence: string;
+          cible: number;
+          heure: string;
+          depuis: string | null;
+          mes_jours: string[];
+          jours_ami: string[];
+        }[];
+      };
       amis_qui_voient: { Args: { p_objectif: number }; Returns: { nom: string }[] };
     };
     Enums: {

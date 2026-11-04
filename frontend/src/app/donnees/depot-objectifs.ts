@@ -114,6 +114,28 @@ export class DepotObjectifs {
     }));
   }
 
+  async communs() {
+    const { data, error } = await this.db.rpc('mes_communs');
+    if (error) throw error;
+    return data;
+  }
+
+  async inviterCommun(objectifId: number, amiId: string): Promise<void> {
+    const { error } = await this.db.rpc('inviter_commun', { p_objectif: objectifId, p_ami: amiId });
+    if (error) throw error;
+  }
+
+  async accepterCommun(id: number): Promise<number> {
+    const { data, error } = await this.db.rpc('accepter_commun', { p_id: id });
+    if (error) throw error;
+    return data;
+  }
+
+  async quitterCommun(id: number): Promise<void> {
+    const { error } = await this.db.rpc('quitter_commun', { p_id: id });
+    if (error) throw error;
+  }
+
   async amisQuiVoient(objectifId: number): Promise<string[]> {
     const { data, error } = await this.db.rpc('amis_qui_voient', { p_objectif: objectifId });
     if (error) throw error;

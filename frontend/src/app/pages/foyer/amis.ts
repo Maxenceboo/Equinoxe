@@ -1,50 +1,113 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Ami, CodeAmi, ObjectifSuivi } from '../../api/generated';
+import { Ami, CodeAmi, ObjectifCommun, ObjectifSuivi } from '../../api/generated';
 import { AmisService } from '../../application/services';
+import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { Flamme } from '../../shared/flamme';
 
-/** Les amis hors groupe : on s'ajoute avec un code perso et on voit les objectifs visibles de l'autre. */
+/**
+ * Les amis hors groupe : invitations à faire un objectif à deux, objectifs communs (flamme commune),
+ * puis chaque ami et ses objectifs visibles, dans un menu dépliant.
+ */
 @Component({
   selector: 'app-amis',
-  imports: [ReactiveFormsModule, FormlyForm, Button, Dialog, Flamme],
+  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Dialog, Flamme],
   template: `
+    @for (c of recues(); track c.id) {
+      <section class="invitation" aria-label="Invitation">
+        <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
+        <small class="aide">Vous aurez une flamme commune : elle ne monte que si vous le faites tous les deux.</small>
+        <div class="actions">
+          <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="quitterCommun(c)" />
+          <p-button label="On le fait ensemble" icon="pi pi-check" (onClick)="accepter(c)" />
+        </div>
+      </section>
+    }
+
+    @if (actifs().length > 0 || envoyees().length > 0) {
+      <section class="binomes" aria-label="Objectifs communs">
+        <h2 class="titre-section">Objectifs communs</h2>
+        @for (c of actifs(); track c.id) {
+          <a class="binome commun" [routerLink]="['/objectifs', c.monObjectif]">
+            <div class="ligne-haut">
+              <span class="nom">{{ c.nom }} <small>· avec {{ c.ami }}</small></span>
+              <app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" />
+            </div>
+            <div class="duo">
+              <span [class.fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)">
+                <i class="pi" [class.pi-check-circle]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" [class.pi-circle]="(c.moi ?? 0) < (c.objectifPeriode ?? 1)"></i>
+                Toi {{ c.typeFrequence === 'QUOTIDIEN' ? '' : (c.moi ?? 0) + '/' + c.objectifPeriode }}
+              </span>
+              <span [class.fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)">
+                <i class="pi" [class.pi-check-circle]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" [class.pi-circle]="(c.duAmi ?? 0) < (c.objectifPeriode ?? 1)"></i>
+                {{ c.ami }} {{ c.typeFrequence === 'QUOTIDIEN' ? '' : (c.duAmi ?? 0) + '/' + c.objectifPeriode }}
+              </span>
+            </div>
+            <small class="aide">{{ etatCommun(c) }}</small>
+          </a>
+        }
+        @for (c of envoyees(); track c.id) {
+          <div class="binome commun en-attente">
+            <div class="ligne-haut">
+              <span class="nom">{{ c.nom }} <small>· invitation envoyée à {{ c.ami }}</small></span>
+              <button type="button" class="lien-details" (click)="quitterCommun(c)">Annuler</button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
     <section class="binomes" aria-label="Amis">
       <h2 class="titre-section">Amis</h2>
       @for (a of amis(); track a.id) {
-        <div class="ami">
-          <button type="button" class="nom-ami" (click)="ouvert.set(ouvert() === a.id ? null : a.id)">
-            {{ a.nom }} <i class="pi" [class.pi-chevron-down]="ouvert() !== a.id" [class.pi-chevron-up]="ouvert() === a.id"></i>
+        <div class="ami" [class.ouvert]="ouvert() === a.id">
+          <button type="button" class="tete-ami" [attr.aria-expanded]="ouvert() === a.id" (click)="basculer(a.id)">
+            <span class="nom-ami">{{ a.nom }}</span>
+            <small>{{ a.objectifs.length === 0 ? 'aucun objectif visible' : a.objectifs.length + ' objectif(s) visible(s)' }}</small>
+            <i class="pi pi-chevron-down"></i>
           </button>
           @if (ouvert() === a.id) {
-            <button type="button" class="lien-details quitter" (click)="retirer(a)">Retirer {{ a.nom }} de mes amis</button>
-          }
-          @for (b of a.objectifs; track b.objectifId) {
-            <div class="binome">
-              <div class="ligne-haut">
-                <span class="nom">{{ b.nom }}</span>
-                <app-flamme [valeur]="b.progression.serie" [unite]="b.progression.uniteSerie" />
-              </div>
-              <div class="segments" aria-hidden="true">
-                @for (plein of segments(b); track $index) {
-                  <i [class.plein]="plein"></i>
+            <div class="corps-ami">
+              @for (b of a.objectifs; track b.objectifId) {
+                <div class="binome">
+                  <div class="ligne-haut">
+                    <span class="nom">{{ b.nom }}</span>
+                    <app-flamme [valeur]="b.progression.serie" [unite]="b.progression.uniteSerie" />
+                  </div>
+                  <div class="segments" aria-hidden="true">
+                    @for (plein of segments(b); track $index) {
+                      <i [class.plein]="plein"></i>
+                    }
+                  </div>
+                  <div class="ligne-bas">
+                    <small>{{ etat(b) }}</small>
+                    <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
+                  </div>
+                </div>
+              } @empty {
+                <small class="aide">{{ a.nom }} n'a pas encore rendu d'objectif visible.</small>
+              }
+              <div class="retrait">
+                @if (aRetirer() === a.id) {
+                  <span>Retirer {{ a.nom }} ? Vos objectifs communs s'arrêteront.</span>
+                  <div class="actions">
+                    <p-button label="Annuler" [text]="true" severity="secondary" size="small" (onClick)="aRetirer.set(null)" />
+                    <p-button label="Retirer" severity="danger" size="small" (onClick)="retirer(a)" />
+                  </div>
+                } @else {
+                  <p-button label="Retirer de mes amis" icon="pi pi-user-minus" [outlined]="true" severity="secondary" size="small" (onClick)="aRetirer.set(a.id)" />
                 }
               </div>
-              <div class="ligne-bas">
-                <small>{{ etat(b) }}</small>
-                <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
-              </div>
             </div>
-          } @empty {
-            <small class="aide">{{ a.nom }} n'a pas encore d'objectif visible par ses amis.</small>
           }
         </div>
       } @empty {
-        <p class="aide">Ajoute des amis avec leur code : tu verras leurs objectifs visibles, et eux les tiens. Tes objectifs privés restent privés.</p>
+        <p class="aide">Ajoute des amis avec leur code : tu verras leurs objectifs visibles, et vous pourrez faire des objectifs à deux. Tes objectifs privés restent privés.</p>
       }
 
       <div class="partage mon-code">
@@ -55,7 +118,7 @@ import { Flamme } from '../../shared/flamme';
             <p-button [label]="copie() ? 'Copié' : 'Partager'" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(c)" />
           </div>
         }
-        <small class="aide">Pour qu'un objectif soit vu par tes amis, active « Visible par mes amis » sur sa page.</small>
+        <small class="aide">Sur la page d'un objectif, tu peux le rendre visible par tes amis ou le faire avec l'un d'eux.</small>
       </div>
       <p-button label="Ajouter un ami avec son code" icon="pi pi-user-plus" [outlined]="true" (onClick)="ouvrir()" />
     </section>
@@ -81,12 +144,20 @@ import { Flamme } from '../../shared/flamme';
 })
 export class Amis implements OnInit {
   private readonly api = inject(AmisService);
+  private readonly router = inject(Router);
+  private readonly notifications = inject(NotificationsService);
   protected readonly amis = signal<Ami[]>([]);
+  protected readonly communs = signal<ObjectifCommun[]>([]);
+  protected readonly recues = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
+  protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
+  protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
   protected readonly code = signal<string | null>(null);
   protected readonly copie = signal(false);
   protected readonly ajout = signal(false);
-  /** Ami dont on montre l'action « Retirer » (cachée par défaut pour éviter un tap malheureux). */
+  /** Ami déplié (un seul à la fois). */
   protected readonly ouvert = signal<string | null>(null);
+  /** Ami pour qui on confirme le retrait. */
+  protected readonly aRetirer = signal<string | null>(null);
   protected formCode = new FormGroup({});
   protected modelCode: Partial<CodeAmi> = {};
   protected readonly champsCode = inject(SchemaFormService).champs('CodeAmi', {
@@ -100,6 +171,12 @@ export class Amis implements OnInit {
 
   private charger(): void {
     this.api.lister().subscribe({ next: (l) => this.amis.set(l), error: () => undefined });
+    this.api.communs().subscribe({ next: (l) => this.communs.set(l), error: () => undefined });
+  }
+
+  protected basculer(id: string): void {
+    this.aRetirer.set(null);
+    this.ouvert.set(this.ouvert() === id ? null : id);
   }
 
   protected segments(b: ObjectifSuivi): boolean[] {
@@ -109,6 +186,21 @@ export class Amis implements OnInit {
   protected etat(b: ObjectifSuivi): string {
     if (b.progression.faitAujourdhui) return "Fait aujourd'hui";
     return b.progression.atteint ? 'Semaine réussie' : "Pas encore aujourd'hui";
+  }
+
+  protected frequence(c: ObjectifCommun): string {
+    return c.typeFrequence === 'QUOTIDIEN' ? 'tous les jours' : `${c.cible} fois par semaine`;
+  }
+
+  protected etatCommun(c: ObjectifCommun): string {
+    const objectif = c.objectifPeriode ?? 1;
+    const moi = (c.moi ?? 0) >= objectif;
+    const ami = (c.duAmi ?? 0) >= objectif;
+    const periode = c.typeFrequence === 'QUOTIDIEN' ? "aujourd'hui" : 'cette semaine';
+    if (moi && ami) return `Fait à deux ${periode} : la flamme commune est sauvée.`;
+    if (moi) return `À ${c.ami} de jouer ${periode}, sinon la flamme commune retombe.`;
+    if (ami) return `${c.ami} l'a fait. À toi ${periode}, sinon la flamme commune retombe.`;
+    return `Aucun de vous deux ${periode} pour l'instant.`;
   }
 
   async partager(code: string): Promise<void> {
@@ -145,7 +237,19 @@ export class Amis implements OnInit {
   retirer(a: Ami): void {
     this.api.retirer(a.id).subscribe(() => {
       this.ouvert.set(null);
-      this.amis.update((l) => l.filter((x) => x.id !== a.id));
+      this.aRetirer.set(null);
+      this.charger();
     });
+  }
+
+  accepter(c: ObjectifCommun): void {
+    this.api.accepterCommun(c.id).subscribe((id) => {
+      this.notifications.synchroniser();
+      void this.router.navigate(['/objectifs', id]);
+    });
+  }
+
+  quitterCommun(c: ObjectifCommun): void {
+    this.api.quitterCommun(c.id).subscribe(() => this.communs.update((l) => l.filter((x) => x.id !== c.id)));
   }
 }

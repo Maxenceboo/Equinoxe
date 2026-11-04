@@ -504,13 +504,35 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   .aide { display: block; margin-top: 0.5rem; }
 }
 .ami {
-  margin-top: 1.25rem;
-  .nom-ami {
-    all: unset; cursor: pointer; font-weight: 800; font-size: 1.05rem;
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    .pi { font-size: 0.75rem; color: var(--discret); }
+  border-bottom: 1px solid var(--ligne);
+  .tete-ami {
+    all: unset; box-sizing: border-box; cursor: pointer; width: 100%;
+    display: flex; align-items: baseline; gap: 0.6rem; padding: 0.9rem 0;
+    small { color: var(--discret); flex: 1; }
+    .pi { font-size: 0.8rem; color: var(--discret); transition: transform 0.2s ease; align-self: center; }
   }
-  .binome { cursor: default; }
+  .nom-ami { font-weight: 800; font-size: 1.05rem; }
+  &.ouvert .tete-ami .pi { transform: rotate(180deg); }
+  .corps-ami { padding-bottom: 0.9rem; }
+  .binome { cursor: default; margin-top: 0; }
+  .binome:last-of-type { border-bottom: none; }
+  .retrait {
+    margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;
+    span { font-size: 0.9rem; }
+    .actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+  }
+}
+.invitation {
+  border: 1px solid var(--texte); border-radius: var(--rayon); padding: 1rem; margin: 1.5rem 0 0;
+  p { margin: 0 0 0.35rem; }
+  .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem; }
+}
+.binome.commun {
+  display: block; color: inherit; text-decoration: none;
+  .duo { display: flex; gap: 1.25rem; margin: 0.5rem 0 0.25rem; font-size: 0.95rem; color: var(--discret); }
+  .duo .fait { color: var(--texte); font-weight: 700; }
+  .duo .pi { font-size: 0.9rem; margin-right: 0.2rem; }
+  &.en-attente .nom small { font-style: italic; }
 }
 .mon-code { margin: 1.5rem 0 1rem; padding-top: 1rem; }
 .binome {
@@ -821,3 +843,10 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 }
 .supprimer-compte { display: block; margin: 1rem auto 0; background: none; border: 0; color: var(--discret); font: inherit; font-size: 0.85rem; text-decoration: underline; cursor: pointer; }
 .version-app a { color: inherit; }
+
+.a-deux {
+  .flamme-commune { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--discret); font-size: 0.9rem; }
+  .choix-amis { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+  .actions-ligne { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.6rem; }
+  > .p-button, > p-button { margin-top: 0.6rem; display: inline-block; }
+}

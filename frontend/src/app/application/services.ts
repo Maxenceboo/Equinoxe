@@ -16,6 +16,8 @@ import type {
   RejoindreFoyer,
   TypeEncouragement,
   Ami,
+  ObjectifCommun,
+  StatutCommun,
   Historique,
   Identifiants,
   Objectif,
@@ -26,6 +28,7 @@ import type {
   ValidationSaisie,
 } from '../api/generated';
 import { bilan } from '../domaine/bilan';
+import { serieCommune } from '../domaine/commun';
 import { suggestion } from '../domaine/conseil-cible';
 import { estDimanche, lundiDe, ajouterJours } from '../domaine/jours';
 import { Coche, DetailsCoche, Maintenant, ObjectifPerso } from '../domaine/modele';
@@ -274,6 +277,46 @@ export class AmisService {
 
   retirer(id: string): Observable<void> {
     return this.erreurs.appel(() => this.depot.retirerAmi(id));
+  }
+
+  /** Objectifs communs (actifs et invitations), avec la flamme commune calculée. */
+  communs(): Observable<ObjectifCommun[]> {
+    return this.erreurs.appel(async () =>
+      (await this.depot.communs()).map((c): ObjectifCommun => {
+        const commun: ObjectifCommun = {
+          id: c.id,
+          statut: c.statut as StatutCommun,
+          ami: c.ami,
+          amiId: c.ami_id,
+          monObjectif: c.mon_objectif ?? undefined,
+          nom: c.nom,
+          categorie: c.categorie as ObjectifCommun['categorie'],
+          typeFrequence: c.type_frequence as ObjectifCommun['typeFrequence'],
+          cible: c.cible,
+          heure: c.heure,
+        };
+        if (c.statut !== 'ACTIF' || !c.depuis) return commun;
+        const s = serieCommune(
+          { quotidien: c.type_frequence === 'QUOTIDIEN', cible: c.cible, depuis: c.depuis, mesJours: c.mes_jours, joursAmi: c.jours_ami },
+          aujourdhui(),
+        );
+        return { ...commun, flamme: s.enCours, record: s.record, uniteSerie: s.unite, moi: s.moi, duAmi: s.ami, objectifPeriode: s.objectif };
+      }),
+      { silencieux: true },
+    );
+  }
+
+  inviterCommun(objectifId: number, amiId: string): Observable<void> {
+    return this.erreurs.appel(() => this.depot.inviterCommun(objectifId, amiId));
+  }
+
+  /** Accepte l'invitation et renvoie l'identifiant de mon nouvel objectif. */
+  accepterCommun(id: number): Observable<number> {
+    return this.erreurs.appel(() => this.depot.accepterCommun(id));
+  }
+
+  quitterCommun(id: number): Observable<void> {
+    return this.erreurs.appel(() => this.depot.quitterCommun(id));
   }
 
   quiVoit(objectifId: number): Observable<string[]> {

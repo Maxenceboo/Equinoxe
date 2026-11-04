@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
-import { Historique, Objectif, Statistiques, TypeSeance } from '../../api/generated';
+import { Ami, Historique, Objectif, ObjectifCommun, Statistiques, TypeSeance } from '../../api/generated';
 import { AmisService, ObjectifsService } from '../../application/services';
 import schemas from '../../api/generated/schemas.json';
 import { estChiffre, heureLisible, nombre, saisieDe, unite } from '../../shared/objectifs';
@@ -150,6 +150,42 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
             <small class="aide">Vu par {{ voientMoi().join(', ') }} : ta progression et ta flamme, pas tes détails.</small>
           }
         </section>
+
+        <section class="partage a-deux" aria-label="À deux">
+          <p class="etiquette">À deux</p>
+          @if (commun(); as c) {
+            @if (c.statut === 'ACTIF') {
+              <div class="code">
+                <span>Avec <strong>{{ c.ami }}</strong></span>
+                <span class="flamme-commune"><app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" /> commune</span>
+              </div>
+              <small class="aide">La flamme commune ne monte que si vous le faites tous les deux. Si l'un rate, elle retombe pour les deux.</small>
+            } @else {
+              <small class="aide">Invitation envoyée à {{ c.ami }}. Elle apparaîtra sur sa page Proches.</small>
+            }
+            @if (confirmerArret()) {
+              <div class="actions-ligne">
+                <p-button label="Garder" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(false)" />
+                <p-button [label]="c.statut === 'ACTIF' ? 'Arrêter à deux' : 'Annuler l’invitation'" severity="danger" size="small" (onClick)="arreterCommun(c.id)" />
+              </div>
+            } @else {
+              <p-button [label]="c.statut === 'ACTIF' ? 'Arrêter de le faire à deux' : 'Annuler l’invitation'" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(true)" />
+            }
+          } @else if (amis().length === 0) {
+            <small class="aide">Ajoute un ami sur la page Proches pour faire cet objectif ensemble, avec une flamme commune.</small>
+          } @else if (choixAmi()) {
+            <small class="aide">Avec qui ? Ton ami recevra l'invitation sur sa page Proches.</small>
+            <div class="choix-amis">
+              @for (a of amis(); track a.id) {
+                <p-button [label]="a.nom" [outlined]="true" size="small" (onClick)="inviter(a.id)" />
+              }
+              <p-button label="Annuler" [text]="true" severity="secondary" size="small" (onClick)="choixAmi.set(false)" />
+            </div>
+          } @else {
+            <small class="aide">Fais-le avec un ami : vous aurez une flamme commune, qui ne monte que si vous le faites tous les deux.</small>
+            <p-button label="Le faire avec un ami" icon="pi pi-users" [outlined]="true" (onClick)="choixAmi.set(true)" />
+          }
+        </section>
       }
 
       <p-button label="Archiver cet objectif" icon="pi pi-inbox" severity="secondary" [text]="true" (onClick)="archiver()" />
@@ -163,12 +199,17 @@ export class ObjectifDetailPage implements OnInit {
   private readonly api = inject(ObjectifsService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationsService);
-  private readonly amis = inject(AmisService);
+  private readonly amisApi = inject(AmisService);
 
   protected readonly stats = signal<Statistiques | null>(null);
   /** Les amis qui voient cet objectif (vide s'il est privé). */
   protected readonly voientMoi = signal<string[]>([]);
   protected readonly changeVisibilite = signal(false);
+  /** L'objectif commun (ou l'invitation envoyée) lié à cet objectif. */
+  protected readonly commun = signal<ObjectifCommun | null>(null);
+  protected readonly amis = signal<Ami[]>([]);
+  protected readonly choixAmi = signal(false);
+  protected readonly confirmerArret = signal(false);
   protected readonly nombre = nombre;
   protected readonly unite = unite;
   protected readonly chiffre = estChiffre;
@@ -202,10 +243,34 @@ export class ObjectifDetailPage implements OnInit {
       if (o.visibleAmis) this.chargerQuiVoit();
     });
     this.chargerHistorique();
+    this.chargerCommun();
+    this.amisApi.lister().subscribe({ next: (l) => this.amis.set(l), error: () => undefined });
+  }
+
+  private chargerCommun(): void {
+    const id = Number(this.id());
+    this.amisApi.communs().subscribe({
+      next: (l) => this.commun.set(l.find((c) => c.statut !== 'RECUE' && c.monObjectif === id) ?? null),
+      error: () => undefined,
+    });
+  }
+
+  inviter(amiId: string): void {
+    this.amisApi.inviterCommun(Number(this.id()), amiId).subscribe(() => {
+      this.choixAmi.set(false);
+      this.chargerCommun();
+    });
+  }
+
+  arreterCommun(id: number): void {
+    this.amisApi.quitterCommun(id).subscribe(() => {
+      this.confirmerArret.set(false);
+      this.commun.set(null);
+    });
   }
 
   private chargerQuiVoit(): void {
-    this.amis.quiVoit(Number(this.id())).subscribe({ next: (l) => this.voientMoi.set(l), error: () => undefined });
+    this.amisApi.quiVoit(Number(this.id())).subscribe({ next: (l) => this.voientMoi.set(l), error: () => undefined });
   }
 
   basculerVisibilite(o: Objectif): void {
@@ -249,6 +314,9 @@ export class ObjectifDetailPage implements OnInit {
   }
 
   archiver(): void {
+    // Un objectif archivé ne se fait plus à deux
+    const c = this.commun();
+    if (c) this.amisApi.quitterCommun(c.id).subscribe({ error: () => undefined });
     this.api.archiverObjectif(Number(this.id())).subscribe(() => {
       this.notifications.synchroniser();
       this.router.navigate(['/'], { replaceUrl: true });
