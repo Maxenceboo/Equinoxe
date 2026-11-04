@@ -65,9 +65,9 @@ export class CelebrationService {
     this.sons.fanfare();
     this.lune.set(c);
     // La vibration tombe quand la lune atteint sa nouvelle phase
-    setTimeout(() => this.vibrer('succes'), 1900);
+    setTimeout(() => this.vibrer('succes'), 2700);
     clearTimeout(this.minuteur);
-    this.minuteur = setTimeout(() => this.fermerLune(), 6000);
+    this.minuteur = setTimeout(() => this.fermerLune(), 7000);
   }
 
   fermerLune(): void {
