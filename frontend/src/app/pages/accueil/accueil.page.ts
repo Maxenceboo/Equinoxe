@@ -13,6 +13,7 @@ import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService, phaseDuNiveau } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { WidgetsService } from '../../core/widgets.service';
+import { InvitationService } from '../../core/invitation.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
@@ -279,6 +280,7 @@ export class AccueilPage implements OnInit, OnDestroy {
   protected readonly encouragements = signal<Encouragement[]>([]);
   // Objectifs faits à deux : invitations reçues et flamme commune sur chaque carte
   private readonly amisApi = inject(AmisService);
+  private readonly liensInvitation = inject(InvitationService);
   private readonly communs = signal<ObjectifCommun[]>([]);
   protected readonly invitations = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
   protected communDe(id: number): ObjectifCommun | undefined {
@@ -373,6 +375,8 @@ export class AccueilPage implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    // Invitation reçue par lien avant la connexion : on la traite maintenant
+    this.liensInvitation.traiter();
     this.synchroniserPuisCharger();
     window.addEventListener('online', this.auRetourDuReseau);
   }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
@@ -112,7 +112,16 @@ export class FoyerPage implements OnInit {
     code: { props: { attributes: { inputmode: 'numeric', autocomplete: 'off' } } },
   });
 
+  /** Code de groupe reçu par un lien d'invitation (?rejoindre=123456) : le formulaire est prérempli. */
+  readonly codeGroupe = input<string>(undefined, { alias: 'rejoindre' });
+
   ngOnInit(): void {
+    const code = this.codeGroupe();
+    if (code) {
+      this.modelRejoindre = { code };
+      this.mode.set('rejoindre');
+      setTimeout(() => document.querySelector('.section-groupes')?.scrollIntoView({ behavior: 'smooth' }), 300);
+    }
     this.api.foyers().subscribe({
       next: (l) => {
         derniersFoyers = l;

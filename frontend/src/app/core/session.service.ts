@@ -31,6 +31,11 @@ export class SessionService {
     if (Capacitor.isNativePlatform()) {
       // Lien de confirmation d'email (equinoxe://auth#access_token=…) : l'app s'ouvre déjà connectée
       void App.addListener('appUrlOpen', async ({ url }) => {
+        // Lien d'invitation (equinoxe://invite?ami=…) : la page d'invitation s'en occupe
+        if (url.startsWith('equinoxe://invite')) {
+          void this.router.navigateByUrl('/invite' + url.slice('equinoxe://invite'.length));
+          return;
+        }
         if (await this.ouvrirLien(url)) void this.router.navigateByUrl('/', { replaceUrl: true });
       });
     }

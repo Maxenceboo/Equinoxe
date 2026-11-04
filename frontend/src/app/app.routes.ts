@@ -7,6 +7,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/connexion/connexion.page').then((m) => m.ConnexionPage),
   },
   {
+    path: 'invite',
+    loadComponent: () => import('./pages/invite/invite.page').then((m) => m.InvitePage),
+  },
+  {
     path: '',
     canActivate: [connecteGuard],
     children: [

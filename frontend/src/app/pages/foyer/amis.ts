@@ -234,7 +234,7 @@ export class Amis implements OnInit {
   }
 
   async partager(code: string): Promise<void> {
-    const texte = `Ajoute-moi en ami sur Équinoxe avec mon code ${code}`;
+    const texte = `Ajoute-moi en ami sur Équinoxe : https://equinoxe-app.fr/invite/?ami=${code} (ou avec mon code ${code})`;
     try {
       if (navigator.share) {
         await navigator.share({ text: texte });

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>Équinoxe · Invitation</title>
+  <meta property="og:title" content="Rejoins-moi sur Équinoxe" />
+  <meta property="og:description" content="Tenir ses objectifs, c'est plus facile à plusieurs." />
+  <link rel="stylesheet" href="../style.css?v=3" />
+  <link rel="icon" href="../favicon.png" />
+</head>
+<body class="page-simple">
+  <header class="entete">
+    <div class="conteneur">
+      <a class="marque" href="../"><svg viewBox="0 0 100 100" aria-hidden="true"><mask id="m"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg> Équinoxe</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="carte">
+    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><mask id="m2"><rect width="100" height="100" fill="#fff"/><circle cx="50" cy="42" r="27" fill="#000"/></mask><circle cx="50" cy="52" r="32" fill="#fff" mask="url(#m2)"/><circle cx="50" cy="58" r="11" fill="#fff"/></svg>
+    <h1 id="titre">Tu es invité</h1>
+    <p id="texte">Ouvre Équinoxe pour accepter l'invitation.</p>
+    <a id="ouvrir" class="bouton plein" href="#">Ouvrir dans l'app</a>
+    <a id="web" href="../app/" style="display:block;margin:.9rem 0;color:inherit">Continuer sur le web</a>
+    <span class="discret">Pas encore l'app ? <a href="../telecharger/">Télécharge-la</a>, puis rouvre ce lien.</span>
+    </div>
+  </main>
+  <script>
+    // Lien d'invitation : ?ami=CODE (ajouter un ami) ou ?groupe=CODE (rejoindre un groupe).
+    // Sur Android on ouvre l'app ; sinon (ou sans l'app) on continue dans l'app web, qui garde l'invitation.
+    var params = new URLSearchParams(location.search);
+    var ami = (params.get('ami') || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 6);
+    var groupe = (params.get('groupe') || '').replace(/\D/g, '').slice(0, 6);
+    var requete = ami ? 'ami=' + ami : groupe ? 'groupe=' + groupe : '';
+    if (ami) {
+      document.getElementById('titre').textContent = 'On te propose de devenir amis';
+      document.getElementById('texte').textContent = "Vous verrez vos objectifs visibles et pourrez en faire à deux, avec une flamme commune.";
+    } else if (groupe) {
+      document.getElementById('titre').textContent = 'Rejoins le groupe';
+      document.getElementById('texte').textContent = "Chaque coche de chacun remplit la jauge commune de la semaine.";
+    }
+    var web = '../app/invite' + (requete ? '?' + requete : '');
+    document.getElementById('web').setAttribute('href', web);
+    var app = 'intent://invite?' + requete + '#Intent;scheme=equinoxe;package=com.objectifsperso.app;S.browser_fallback_url=' +
+      encodeURIComponent(location.origin + '/app/invite?' + requete) + ';end';
+    if (/Android/i.test(navigator.userAgent) && requete) {
+      document.getElementById('ouvrir').setAttribute('href', app);
+      location.href = app;
+    } else {
+      // Pas d'app native ici : le bouton principal ouvre directement l'app web
+      document.getElementById('ouvrir').setAttribute('href', web);
+      document.getElementById('ouvrir').textContent = 'Ouvrir Équinoxe';
+      document.getElementById('web').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

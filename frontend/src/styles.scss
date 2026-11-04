@@ -862,3 +862,10 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 }
 
 .section-groupes { margin-top: 2.5rem; > .aide { display: block; margin-bottom: 1rem; } .chargement .pi { margin-right: 0.35rem; } }
+
+.onglets a { position: relative; }
+.onglets .pastille {
+  position: absolute; top: 0.15rem; left: calc(50% + 0.45rem);
+  min-width: 1.05rem; height: 1.05rem; padding: 0 0.25rem; border-radius: 999px;
+  background: var(--texte); color: var(--fond); font-size: 0.65rem; font-weight: 800; line-height: 1.05rem; text-align: center;
+}

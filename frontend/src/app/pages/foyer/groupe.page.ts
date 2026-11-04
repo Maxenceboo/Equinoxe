@@ -173,7 +173,7 @@ export class GroupePage implements OnInit {
   }
 
   async partager(f: Foyer): Promise<void> {
-    const texte = `Rejoins notre groupe « ${f.nom} » sur Équinoxe avec le code ${f.code}. L'app : https://equinoxe-app.fr/telecharger/`;
+    const texte = `Rejoins notre groupe « ${f.nom} » sur Équinoxe : https://equinoxe-app.fr/invite/?groupe=${f.code} (ou avec le code ${f.code})`;
     try {
       if (navigator.share) await navigator.share({ text: texte });
       else {

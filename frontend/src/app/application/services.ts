@@ -280,10 +280,15 @@ export class AmisService {
     return this.erreurs.appel(() => this.depot.retirerAmi(id));
   }
 
+  /** Invitations et demandes qui attendent ma réponse : pastille sur l'onglet Proches. */
+  readonly aRepondre = signal(0);
+
   /** Objectifs communs (actifs et invitations), avec la flamme commune calculée. */
   communs(): Observable<ObjectifCommun[]> {
-    return this.erreurs.appel(async () =>
-      (await this.depot.communs()).map((c): ObjectifCommun => {
+    return this.erreurs.appel(async () => {
+      const lignes = await this.depot.communs();
+      this.aRepondre.set(lignes.filter((c) => c.statut === 'RECUE').length);
+      return lignes.map((c): ObjectifCommun => {
         const commun: ObjectifCommun = {
           id: c.id,
           statut: c.statut as StatutCommun,
@@ -303,9 +308,8 @@ export class AmisService {
           aujourdhui(),
         );
         return { ...commun, flamme: s.enCours, record: s.record, uniteSerie: s.unite, moi: s.moi, duAmi: s.ami, objectifPeriode: s.objectif };
-      }),
-      { silencieux: true },
-    );
+      });
+    }, { silencieux: true });
   }
 
   /** Fait à deux l'objectif visible d'un ami ; renvoie l'identifiant de mon nouvel objectif. */
