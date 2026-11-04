@@ -15,15 +15,14 @@ export function cheminPhase(f: number): string {
 }
 
 /** Étoiles placées une fois pour toutes (pas d'aléatoire : même ciel à chaque fois). */
-const ETOILES = Array.from({ length: 28 }, (_, i) => {
+const ETOILES = Array.from({ length: 14 }, (_, i) => {
   const angle = i * 2.399963; // angle d'or : réparties sans se toucher
   const distance = 34 + ((i * 53) % 60);
   return {
     x: 50 + Math.cos(angle) * distance * 0.6,
     y: 42 + Math.sin(angle) * distance * 0.75,
-    taille: 2 + (i % 3),
+    taille: 2 + (i % 2),
     delai: `${1.5 + (i % 7) * 0.12}s`,
-    couleur: i % 4 === 0 ? `var(--eclat-${(i % 3) + 1})` : '#fff',
   };
 }).filter((e) => e.x > 2 && e.x < 98 && e.y > 2 && e.y < 92 && !(e.y > 54 && e.y < 80 && e.x > 8 && e.x < 92));
 
@@ -38,30 +37,18 @@ const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t 
         <div class="ciel" aria-hidden="true">
           @for (e of etoiles; track $index) {
             <i [style.left.%]="e.x" [style.top.%]="e.y" [style.width.px]="e.taille" [style.height.px]="e.taille"
-               [style.background]="e.couleur" [style.--delai]="e.delai"></i>
+               [style.--delai]="e.delai"></i>
           }
         </div>
         <div class="astre" aria-hidden="true">
-          <span class="halo"></span>
           @if (l.vers >= 1) {
             <span class="anneau"></span>
             <span class="anneau deux"></span>
           }
           <svg viewBox="0 0 200 200">
-            <defs>
-              <radialGradient id="lune-relief" cx="42%" cy="38%" r="70%">
-                <stop offset="0%" stop-color="#ffffff" />
-                <stop offset="70%" stop-color="#ececec" />
-                <stop offset="100%" stop-color="#cfcfcf" />
-              </radialGradient>
-            </defs>
-            <!-- La face cachée reste visible, très sombre, comme la lumière cendrée -->
-            <circle [attr.cx]="100" [attr.cy]="100" [attr.r]="80" class="cendree" />
-            <path [attr.d]="chemin()" fill="url(#lune-relief)" />
-            <g class="crateres" [style.opacity]="phase()">
-              <circle cx="122" cy="78" r="9" /><circle cx="140" cy="118" r="6" /><circle cx="108" cy="132" r="11" />
-              <circle cx="80" cy="96" r="7" /><circle cx="70" cy="64" r="5" />
-            </g>
+            <!-- Aplat blanc comme le logo ; la face cachée n'est qu'un trait -->
+            <circle cx="100" cy="100" r="80" class="contour" />
+            <path [attr.d]="chemin()" class="eclairee" />
           </svg>
         </div>
         <p class="etiquette-lune">{{ l.vers >= 1 && l.de < 1 ? 'Pleine lune atteinte' : 'Nouvelle phase' }}</p>
