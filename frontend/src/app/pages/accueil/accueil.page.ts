@@ -64,7 +64,7 @@ function lireStockage(cle: string): string | null {
 
     @for (c of invitations(); track c.id) {
       <a class="encouragement-recu invitation-accueil" routerLink="/foyer">
-        <span><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble.</span>
+        <span><strong>{{ c.ami }}</strong> {{ c.demande ? 'aimerait faire ton objectif' : 'te propose de faire' }} « {{ c.nom }} » {{ c.demande ? 'avec toi' : 'ensemble' }}.</span>
         <i class="pi pi-chevron-right"></i>
       </a>
     }

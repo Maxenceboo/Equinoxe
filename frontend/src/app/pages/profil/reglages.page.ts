@@ -19,6 +19,7 @@ import { SonsService } from '../../core/sons.service';
 import { VERSION } from '../../version';
 
 /** Réglages : affichage, sons, rappels, archives, sécurisation du compte et déconnexion. */
+import { viderCacheProches } from '../foyer/foyer.page';
 @Component({
   selector: 'app-reglages',
   imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button],
@@ -196,6 +197,7 @@ export class ReglagesPage {
     await this.notifications.toutAnnuler();
     await this.widgets.vider();
     this.horsLigne.oublier();
+    viderCacheProches();
     await this.session.fermer();
     void this.router.navigate(['/connexion'], { replaceUrl: true });
   }

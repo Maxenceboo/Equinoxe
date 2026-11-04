@@ -354,6 +354,7 @@ components:
       properties:
         id: { type: integer, format: int64 }
         statut: { $ref: '#/components/schemas/StatutCommun' }
+        demande: { type: boolean, description: "true : l'invité a demandé à rejoindre l'objectif du propriétaire" }
         ami: { type: string }
         amiId: { type: string }
         monObjectif: { type: integer, format: int64, description: "Mon objectif relié (absent pour une invitation reçue)" }

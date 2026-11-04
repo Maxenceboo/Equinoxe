@@ -6,7 +6,7 @@ import { Button } from 'primeng/button';
 import { CreationFoyer, Foyer, RejoindreFoyer, TypeEncouragement } from '../../api/generated';
 import { FoyerService } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
-import { Amis } from './amis';
+import { Amis, viderCacheAmis } from './amis';
 
 export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'BRAVO', texte: 'Bravo' },
@@ -14,6 +14,14 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'FIER', texte: 'Fier de toi' },
   { type: 'MERCI', texte: 'Merci' },
 ];
+
+let derniersFoyers: Foyer[] | null = null;
+
+/** À la déconnexion : rien ne doit rester du compte précédent. */
+export function viderCacheProches(): void {
+  derniersFoyers = null;
+  viderCacheAmis();
+}
 
 /** L'onglet Proches : mes groupes (famille, amis, collègues…), puis mes amis et les objectifs faits à deux. */
 @Component({
@@ -27,11 +35,17 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
       </div>
     </header>
 
-    @if (charge()) {
+    <app-amis />
+
+    <section class="section-groupes" aria-label="Groupes">
       <h2 class="titre-section">Groupes</h2>
-      @if (foyers().length === 0) {
-        <p class="aide">Réunis ta famille ou tes amis : chaque coche fait avancer une jauge commune, et on peut se fixer une récompense pour la semaine.</p>
-      }
+      <p class="aide">
+        Un groupe, c'est une équipe : la famille, la coloc, les collègues. Chaque coche de chacun remplit une jauge
+        commune pour la semaine. Fixez-vous une récompense (un resto, une sortie) : si la jauge est pleine dimanche, c'est gagné.
+      </p>
+    @if (!charge()) {
+      <p class="aide chargement"><i class="pi pi-spin pi-spinner"></i> Chargement des groupes…</p>
+    } @else {
       <ul class="groupes">
         @for (f of foyers(); track f.id) {
           <li>
@@ -74,9 +88,8 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
         }
         <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="mode.set(null)" />
       }
-
-      <app-amis />
     }
+    </section>
   `,
 })
 export class FoyerPage implements OnInit {
@@ -84,8 +97,9 @@ export class FoyerPage implements OnInit {
   private readonly router = inject(Router);
   private readonly schemas = inject(SchemaFormService);
 
-  protected readonly foyers = signal<Foyer[]>([]);
-  protected readonly charge = signal(false);
+  // Dernière liste connue : la page s'affiche tout de suite au retour, puis se met à jour
+  protected readonly foyers = signal<Foyer[]>(derniersFoyers ?? []);
+  protected readonly charge = signal(derniersFoyers !== null);
   protected readonly enCours = signal(false);
   protected readonly mode = signal<'choix' | 'creer' | 'rejoindre' | null>(null);
 
@@ -101,6 +115,7 @@ export class FoyerPage implements OnInit {
   ngOnInit(): void {
     this.api.foyers().subscribe({
       next: (l) => {
+        derniersFoyers = l;
         this.foyers.set(l);
         this.charge.set(true);
       },

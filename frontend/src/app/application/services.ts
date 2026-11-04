@@ -287,6 +287,7 @@ export class AmisService {
         const commun: ObjectifCommun = {
           id: c.id,
           statut: c.statut as StatutCommun,
+          demande: !!c.demande,
           ami: c.ami,
           amiId: c.ami_id,
           monObjectif: c.mon_objectif ?? undefined,

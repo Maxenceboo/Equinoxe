@@ -10,6 +10,16 @@ import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { Flamme } from '../../shared/flamme';
 
+/** Dernières données connues : l'onglet s'affiche tout de suite au retour, puis se met à jour. */
+const cache: { amis: Ami[]; communs: ObjectifCommun[]; code: string | null } = { amis: [], communs: [], code: null };
+
+/** À la déconnexion : rien ne doit rester du compte précédent. */
+export function viderCacheAmis(): void {
+  cache.amis = [];
+  cache.communs = [];
+  cache.code = null;
+}
+
 /**
  * Les amis hors groupe : invitations à faire un objectif à deux, objectifs communs (flamme commune),
  * puis chaque ami et ses objectifs visibles, dans un menu dépliant.
@@ -20,7 +30,11 @@ import { Flamme } from '../../shared/flamme';
   template: `
     @for (c of recues(); track c.id) {
       <section class="invitation" aria-label="Invitation">
-        <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
+        @if (c.demande) {
+          <p><strong>{{ c.ami }}</strong> aimerait faire ton objectif « {{ c.nom }} » avec toi, {{ frequence(c) }}.</p>
+        } @else {
+          <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
+        }
         <small class="aide">Vous aurez une flamme commune : elle ne monte que si vous le faites tous les deux.</small>
         <div class="actions">
           <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="quitterCommun(c)" />
@@ -54,7 +68,7 @@ import { Flamme } from '../../shared/flamme';
         @for (c of envoyees(); track c.id) {
           <div class="binome commun en-attente">
             <div class="ligne-haut">
-              <span class="nom">{{ c.nom }} <small>· invitation envoyée à {{ c.ami }}</small></span>
+              <span class="nom">{{ c.nom }} <small>· {{ c.demande ? 'demande envoyée' : 'invitation envoyée' }} à {{ c.ami }}</small></span>
               <button type="button" class="lien-details" (click)="quitterCommun(c)">Annuler</button>
             </div>
           </div>
@@ -88,9 +102,11 @@ import { Flamme } from '../../shared/flamme';
                     <small>{{ etat(b) }}</small>
                     <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
                   </div>
-                  @if (!b.enCommun) {
+                  @if (demandeEnvoyee(a, b)) {
+                    <small class="aide"><i class="pi pi-clock"></i> Demande envoyée, {{ a.nom }} doit accepter</small>
+                  } @else if (!b.enCommun) {
                     <p-button
-                      [label]="'Le faire avec ' + a.nom"
+                      [label]="'Proposer à ' + a.nom + ' de le faire ensemble'"
                       icon="pi pi-users"
                       [text]="true"
                       size="small"
@@ -158,12 +174,12 @@ export class Amis implements OnInit {
   private readonly api = inject(AmisService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationsService);
-  protected readonly amis = signal<Ami[]>([]);
-  protected readonly communs = signal<ObjectifCommun[]>([]);
+  protected readonly amis = signal<Ami[]>(cache.amis);
+  protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
   protected readonly recues = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
   protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
-  protected readonly code = signal<string | null>(null);
+  protected readonly code = signal<string | null>(cache.code);
   protected readonly copie = signal(false);
   protected readonly ajout = signal(false);
   /** Ami déplié (un seul à la fois). */
@@ -180,12 +196,12 @@ export class Amis implements OnInit {
 
   ngOnInit(): void {
     this.charger();
-    this.api.monCode().subscribe({ next: (c) => this.code.set(c), error: () => undefined });
+    if (!cache.code) this.api.monCode().subscribe({ next: (c) => this.code.set((cache.code = c)), error: () => undefined });
   }
 
   private charger(): void {
-    this.api.lister().subscribe({ next: (l) => this.amis.set(l), error: () => undefined });
-    this.api.communs().subscribe({ next: (l) => this.communs.set(l), error: () => undefined });
+    this.api.lister().subscribe({ next: (l) => this.amis.set((cache.amis = l)), error: () => undefined });
+    this.api.communs().subscribe({ next: (l) => this.communs.set((cache.communs = l)), error: () => undefined });
   }
 
   protected basculer(id: string): void {
@@ -263,13 +279,18 @@ export class Amis implements OnInit {
     });
   }
 
-  /** « Le faire avec Léa » : mon objectif est créé avec les mêmes réglages, et la flamme commune démarre. */
+  /** Demande déjà envoyée à cet ami pour cet objectif (en attente de sa réponse). */
+  protected demandeEnvoyee(a: Ami, b: ObjectifSuivi): boolean {
+    return this.envoyees().some((c) => c.demande && c.amiId === a.id && c.nom === b.nom);
+  }
+
+  /** « Le faire avec Léa » : envoie une demande ; à son accord, mon objectif est créé et la flamme commune démarre. */
   rejoindre(b: ObjectifSuivi): void {
     this.rejoint.set(b.objectifId);
     this.api.rejoindreObjectif(b.objectifId).subscribe({
-      next: (id) => {
-        this.notifications.synchroniser();
-        void this.router.navigate(['/objectifs', id]);
+      next: () => {
+        this.rejoint.set(null);
+        this.charger();
       },
       error: () => this.rejoint.set(null),
     });

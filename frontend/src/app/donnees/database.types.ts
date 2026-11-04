@@ -258,6 +258,7 @@ export type Database = {
         Returns: {
           id: number;
           statut: string;
+          demande?: boolean;
           ami_id: string;
           ami: string;
           mon_objectif: number | null;
