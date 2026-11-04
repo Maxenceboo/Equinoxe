@@ -246,8 +246,10 @@ export type Database = {
           cible: number;
           date_creation: string;
           jours: string[];
+          en_commun?: boolean;
         }[];
       };
+      rejoindre_objectif_ami: { Args: { p_objectif: number }; Returns: number };
       inviter_commun: { Args: { p_objectif: number; p_ami: string }; Returns: number };
       accepter_commun: { Args: { p_id: number }; Returns: number };
       quitter_commun: { Args: { p_id: number }; Returns: undefined };

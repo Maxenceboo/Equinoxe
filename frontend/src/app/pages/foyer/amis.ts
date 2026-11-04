@@ -88,6 +88,18 @@ import { Flamme } from '../../shared/flamme';
                     <small>{{ etat(b) }}</small>
                     <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
                   </div>
+                  @if (!b.enCommun) {
+                    <p-button
+                      [label]="'Le faire avec ' + a.nom"
+                      icon="pi pi-users"
+                      [text]="true"
+                      size="small"
+                      [loading]="rejoint() === b.objectifId"
+                      (onClick)="rejoindre(b)"
+                    />
+                  } @else {
+                    <small class="aide"><i class="pi pi-users"></i> Déjà fait à deux</small>
+                  }
                 </div>
               } @empty {
                 <small class="aide">{{ a.nom }} n'a pas encore rendu d'objectif visible.</small>
@@ -156,6 +168,8 @@ export class Amis implements OnInit {
   protected readonly ajout = signal(false);
   /** Ami déplié (un seul à la fois). */
   protected readonly ouvert = signal<string | null>(null);
+  /** Objectif d'ami qu'on est en train de rejoindre. */
+  protected readonly rejoint = signal<number | null>(null);
   /** Ami pour qui on confirme le retrait. */
   protected readonly aRetirer = signal<string | null>(null);
   protected formCode = new FormGroup({});
@@ -246,6 +260,18 @@ export class Amis implements OnInit {
     this.api.accepterCommun(c.id).subscribe((id) => {
       this.notifications.synchroniser();
       void this.router.navigate(['/objectifs', id]);
+    });
+  }
+
+  /** « Le faire avec Léa » : mon objectif est créé avec les mêmes réglages, et la flamme commune démarre. */
+  rejoindre(b: ObjectifSuivi): void {
+    this.rejoint.set(b.objectifId);
+    this.api.rejoindreObjectif(b.objectifId).subscribe({
+      next: (id) => {
+        this.notifications.synchroniser();
+        void this.router.navigate(['/objectifs', id]);
+      },
+      error: () => this.rejoint.set(null),
     });
   }
 

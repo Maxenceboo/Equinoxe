@@ -378,6 +378,7 @@ components:
         ami: { type: string, description: Nom affiché de l'ami (avant l'arobase de son email) }
         categorie: { $ref: '#/components/schemas/Categorie' }
         progression: { $ref: '#/components/schemas/ProgressionSemaine' }
+        enCommun: { type: boolean, description: Déjà fait à deux }
 
     # ---------- Récompenses ----------
     Profil:

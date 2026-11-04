@@ -87,7 +87,13 @@ export class DepotObjectifs {
   }
 
   /** Mes amis et leurs objectifs visibles (jours cochés seulement). */
-  async amis(): Promise<{ id: string; nom: string; objectifs: ObjectifPerso[] }[]> {
+  async rejoindreObjectifAmi(objectifId: number): Promise<number> {
+    const { data, error } = await this.db.rpc('rejoindre_objectif_ami', { p_objectif: objectifId });
+    if (error) throw error;
+    return data;
+  }
+
+  async amis(): Promise<{ id: string; nom: string; objectifs: (ObjectifPerso & { enCommun: boolean })[] }[]> {
     const [amis, objectifs] = await Promise.all([this.db.rpc('mes_amis'), this.db.rpc('objectifs_amis')]);
     if (amis.error) throw amis.error;
     if (objectifs.error) throw objectifs.error;
@@ -110,6 +116,7 @@ export class DepotObjectifs {
         cibleDepuis: null,
         codePartage: null,
         coches: (o.jours ?? []).map((jour) => ({ jour })),
+        enCommun: !!o.en_commun,
       })),
     }));
   }

@@ -264,6 +264,7 @@ export class AmisService {
           ami: a.nom,
           categorie: o.categorie,
           progression: progression(o, aujourdhui()),
+          enCommun: o.enCommun,
         })),
       })),
       { silencieux: true },
@@ -304,6 +305,11 @@ export class AmisService {
       }),
       { silencieux: true },
     );
+  }
+
+  /** Fait à deux l'objectif visible d'un ami ; renvoie l'identifiant de mon nouvel objectif. */
+  rejoindreObjectif(objectifId: number): Observable<number> {
+    return this.erreurs.appel(() => this.depot.rejoindreObjectifAmi(objectifId));
   }
 
   inviterCommun(objectifId: number, amiId: string): Observable<void> {
