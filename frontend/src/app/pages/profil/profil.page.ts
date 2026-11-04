@@ -17,6 +17,9 @@ import { SessionService } from '../../core/session.service';
 import { SonsService } from '../../core/sons.service';
 import { BadgeIcone } from '../../shared/badge-icone';
 import { VERSION } from '../../version';
+import { cheminPhase } from '../../shared/lune-overlay';
+import { phaseDuNiveau } from '../../core/celebration.service';
+import { niveau } from '../../domaine/recompenses';
 
 /** Profil : niveau, badges, réglages, sécurisation du compte et déconnexion. */
 @Component({
@@ -26,30 +29,34 @@ import { VERSION } from '../../version';
     <header class="entete">
       <div>
         <h1>{{ profil()?.prenom ?? 'Profil' }}</h1>
-        <small>{{ session.anonyme() ? 'Entré avec le code du Foyer' : session.email() }}</small>
+        <small>{{ session.anonyme() ? 'Compte sans email' : session.email() }}</small>
       </div>
     </header>
 
     @if (profil(); as p) {
-      <section class="niveau" aria-label="Niveau">
-        <p class="etiquette">Ton niveau</p>
-        <div class="niveau-ligne">
+      <!-- Ta lune : sa phase montre ton niveau -->
+      <section class="ma-lune" aria-label="Ton niveau">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="100" r="80" class="contour" />
+          <path [attr.d]="lune()" class="eclairee" />
+        </svg>
+        <div>
           <strong>{{ p.nomNiveau }}</strong>
-          <span>{{ p.points }} points</span>
+          <span>{{ p.points }} points gagnés</span>
         </div>
-        <div class="jauge" role="progressbar" [attr.aria-valuenow]="p.points" [attr.aria-valuemin]="p.pointsNiveau" [attr.aria-valuemax]="p.pointsNiveauSuivant">
-          <span [style.width.%]="avancement()"></span>
-        </div>
-        <small>Encore {{ p.pointsNiveauSuivant - p.points }} points pour le niveau suivant. Une coche = 10 points, une semaine tenue = 50.</small>
       </section>
+      <div class="jauge" role="progressbar" [attr.aria-valuenow]="p.points" [attr.aria-valuemin]="p.pointsNiveau" [attr.aria-valuemax]="p.pointsNiveauSuivant">
+        <span [style.width.%]="avancement()"></span>
+      </div>
+      <p class="prochaine-phase">Encore {{ p.pointsNiveauSuivant - p.points }} points pour {{ niveauSuivant() }}</p>
 
       <a class="lien-boutique" routerLink="/profil/boutique">
-        <span><strong>Boutique</strong><small>Jokers et couleurs</small></span>
+        <span><strong>Boutique</strong><small>Dépense tes points</small></span>
         <em>{{ p.solde }} pts</em>
         <i class="pi pi-chevron-right"></i>
       </a>
 
-      <h2 class="titre-section">Badges <span>{{ obtenus() }}/{{ p.badges.length }}</span></h2>
+      <h2 class="titre-section">Badges <span>{{ obtenus() }} sur {{ p.badges.length }}</span></h2>
       <ul class="badges">
         @for (b of p.badges; track b.code) {
           <li>
@@ -60,6 +67,7 @@ import { VERSION } from '../../version';
           </li>
         }
       </ul>
+      <p class="aide aide-badges">Touche un badge pour savoir comment le gagner.</p>
     }
 
     @if (session.anonyme()) {
@@ -173,6 +181,12 @@ export class ProfilPage implements OnInit {
   protected readonly iosNavigateur = !Capacitor.isNativePlatform() && estIos() && !estInstallee();
   protected readonly aideInstallation = signal(false);
   protected readonly version = VERSION;
+  /** Dessin de ta lune à la phase de ton niveau. */
+  protected readonly lune = computed(() => cheminPhase(phaseDuNiveau(this.profil()?.niveau ?? 1)));
+  protected readonly niveauSuivant = computed(() => {
+    const p = this.profil();
+    return p ? niveau(p.pointsNiveauSuivant).nom : '';
+  });
   private readonly router = inject(Router);
 
   protected readonly profil = signal<Profil | null>(inject(ProfilService).dernier());

@@ -784,3 +784,13 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   &.part { opacity: 0; pointer-events: none; }
 }
 .version-app { text-align: center; font-size: 0.75rem; color: var(--discret); margin: 1.5rem 0 0; }
+
+// Profil : ta lune en grand, sa phase montre ton niveau
+.ma-lune { display: flex; align-items: center; gap: 1.25rem; margin: 0.5rem 0 1.25rem;
+  svg { width: 4.5rem; height: 4.5rem; flex: none; .contour { fill: none; stroke: var(--texte); stroke-opacity: 0.3; stroke-width: 3; } .eclairee { fill: var(--texte); } }
+  div { display: grid; gap: 0.2rem; }
+  strong { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  span { color: var(--discret); font-size: 0.9rem; }
+}
+.prochaine-phase { margin: 0.6rem 0 2rem; color: var(--discret); font-size: 0.85rem; }
+.aide-badges { margin: -1.25rem 0 2rem; font-size: 0.8rem; text-align: center; }
