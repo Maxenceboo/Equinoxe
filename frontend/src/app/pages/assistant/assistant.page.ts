@@ -88,6 +88,10 @@ const MOMENTS = [
             </button>
           }
         </div>
+        <label class="case-amis">
+          <input type="checkbox" [ngModel]="visibleAmis()" (ngModelChange)="visibleAmis.set($event)" />
+          <span>Visible par mes amis <small>(progression et flamme, jamais les détails)</small></span>
+        </label>
         <p class="resume">{{ resume() }}</p>
         <p-button label="C'est parti" icon="pi pi-check" styleClass="w-full" [loading]="enCours()" (onClick)="creer()" />
       }
@@ -113,6 +117,7 @@ export class AssistantPage {
   protected readonly categorie = signal<Categorie>('AUTRE');
   protected readonly cible = signal(3);
   protected readonly heure = signal('18:00');
+  protected readonly visibleAmis = signal(false);
   protected readonly enCours = signal(false);
 
   protected readonly resume = computed(() => {
@@ -148,6 +153,7 @@ export class AssistantPage {
       typeFrequence: quotidien ? 'QUOTIDIEN' : 'PAR_SEMAINE',
       cible: this.cible(),
       heure: this.heure(),
+      visibleAmis: this.visibleAmis(),
     };
   }
 

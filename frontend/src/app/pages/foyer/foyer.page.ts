@@ -15,7 +15,7 @@ export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'MERCI', texte: 'Merci' },
 ];
 
-/** L'onglet Proches : mes groupes (famille, amis, collègues…), puis les amis suivis un par un. */
+/** L'onglet Proches : mes groupes (famille, amis, collègues…), puis mes amis et les objectifs faits à deux. */
 @Component({
   selector: 'app-foyer',
   imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Amis],

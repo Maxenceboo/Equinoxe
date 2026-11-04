@@ -6,9 +6,9 @@ import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Encouragement, Foyer, Mesure, Objectif, ObjectifSaisie, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
+import { Encouragement, Foyer, Mesure, Objectif, ObjectifCommun, ObjectifSaisie, Profil, TypeEncouragement, ValidationSaisie } from '../../api/generated';
 import { ENCOURAGEMENTS } from '../foyer/foyer.page';
-import { FoyerService, ObjectifsService, ProfilService } from '../../application/services';
+import { AmisService, FoyerService, ObjectifsService, ProfilService } from '../../application/services';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { CelebrationService, phaseDuNiveau } from '../../core/celebration.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -57,6 +57,13 @@ function lireStockage(cle: string): string | null {
         <span><strong>{{ e.de }}</strong> t'encourage : {{ texteEncouragement(e.type) }} !</span>
         <button type="button" class="fermer" aria-label="Fermer" (click)="lireEncouragement(e.id)"><i class="pi pi-times"></i></button>
       </div>
+    }
+
+    @for (c of invitations(); track c.id) {
+      <a class="encouragement-recu invitation-accueil" routerLink="/foyer">
+        <span><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble.</span>
+        <i class="pi pi-chevron-right"></i>
+      </a>
     }
 
     @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
@@ -130,6 +137,12 @@ function lireStockage(cle: string): string | null {
             </div>
             @if (chiffre(o.mesure)) {
               <small class="quantite">{{ quantite(o) }} cette semaine</small>
+            }
+            @if (communDe(o.id); as c) {
+              <small class="a-deux-carte">
+                <i class="pi pi-users"></i> Avec {{ c.ami }} · flamme commune {{ c.flamme ?? 0 }} ·
+                {{ (c.duAmi ?? 0) >= (c.objectifPeriode ?? 1) ? c.ami + ' a fait sa part' : c.ami + ' pas encore' }}
+              </small>
             }
           </a>
           <div class="cote">
@@ -253,6 +266,16 @@ export class AccueilPage implements OnInit, OnDestroy {
   protected readonly profil = this.profilApi.dernier;
   protected readonly foyers = signal<Foyer[]>([]);
   protected readonly encouragements = signal<Encouragement[]>([]);
+  // Objectifs faits à deux : invitations reçues et flamme commune sur chaque carte
+  private readonly amisApi = inject(AmisService);
+  private readonly communs = signal<ObjectifCommun[]>([]);
+  protected readonly invitations = computed(() => this.communs().filter((c) => c.statut === 'RECUE'));
+  protected communDe(id: number): ObjectifCommun | undefined {
+    return this.communs().find((c) => c.statut === 'ACTIF' && c.monObjectif === id);
+  }
+  private chargerCommuns(): void {
+    this.amisApi.communs().subscribe({ next: (l) => this.communs.set(l), error: () => undefined });
+  }
   protected avancementFoyer(f: Foyer): number {
     return Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100));
   }
@@ -333,6 +356,7 @@ export class AccueilPage implements OnInit, OnDestroy {
         this.horsLigne.horsLigne.set(false);
         this.charge.set(true);
         this.notifications.synchroniser();
+        this.chargerCommuns();
       },
       error: (e) => {
         if (HorsLigneService.estHorsLigne(e)) {
@@ -387,6 +411,7 @@ export class AccueilPage implements OnInit, OnDestroy {
         this.remplacer(maj);
         this.notifications.synchroniser();
         this.chargerRecompenses(true);
+        if (this.communDe(maj.id)) this.chargerCommuns();
         if (!cocher) return;
         const fete = this.feterSiBesoin(o, maj);
         // Objectif chiffré : on demande la quantité juste après la coche (après la célébration s'il y en a une)
