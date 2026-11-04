@@ -105,7 +105,22 @@ import { VERSION } from '../../version';
       <p-button class="deconnexion" label="Se déconnecter" icon="pi pi-sign-out" [text]="true" severity="danger" (onClick)="confirmation.set(true)" />
     }
 
-    <p class="version-app">Équinoxe v{{ version }}</p>
+    @if (suppression()) {
+      <div class="confirmation">
+        <p>
+          <strong>Supprimer ton compte ?</strong>
+          Tes objectifs, tes coches, tes badges et tes achats seront effacés pour de bon, et tu quitteras tes groupes. On ne pourra pas les récupérer.
+        </p>
+        <div class="actions">
+          <p-button label="Annuler" [outlined]="true" (onClick)="suppression.set(false)" />
+          <p-button label="Tout supprimer" severity="danger" [loading]="enCours()" (onClick)="supprimer()" />
+        </div>
+      </div>
+    } @else {
+      <button type="button" class="lien-discret supprimer-compte" (click)="suppression.set(true)">Supprimer mon compte</button>
+    }
+
+    <p class="version-app">Équinoxe v{{ version }} · <a href="https://equinoxe-app.fr/confidentialite/" target="_blank" rel="noopener">Confidentialité</a></p>
 
   `,
 })
@@ -126,6 +141,7 @@ export class ReglagesPage {
   private readonly router = inject(Router);
 
   protected readonly confirmation = signal(false);
+  protected readonly suppression = signal(false);
   protected readonly securisation = signal(false);
   protected readonly emailEnvoye = signal(false);
   protected readonly enCours = signal(false);
@@ -163,6 +179,14 @@ export class ReglagesPage {
     } catch {
       this.messages.add({ severity: 'error', summary: 'Pas de rappels', detail: 'Réessaie dans un moment.' });
     }
+  }
+
+  supprimer(): void {
+    this.enCours.set(true);
+    this.auth.supprimerCompte().subscribe({
+      next: () => void this.deconnecter(),
+      error: () => this.enCours.set(false),
+    });
   }
 
   async deconnecter(): Promise<void> {

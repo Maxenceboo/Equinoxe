@@ -322,6 +322,14 @@ export class AuthService {
     });
   }
 
+  /** Supprime définitivement le compte et toutes ses données (objectifs, coches, groupes, achats). */
+  supprimerCompte(): Observable<void> {
+    return this.erreurs.appel(async () => {
+      const { error } = await this.db.rpc('supprimer_mon_compte');
+      if (error) throw error;
+    });
+  }
+
   /** Ajoute un email et un mot de passe à un compte entré par code, pour le retrouver sur un autre téléphone. */
   securiser(identifiants: Identifiants): Observable<void> {
     return this.erreurs.appel(async () => {

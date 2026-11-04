@@ -1,0 +1,61 @@
+# Construit le paquet pour le Play Store (fichier .aab), à lancer à la main depuis l'onglet Actions.
+# Différence avec l'APK du site : pas de bandeau « Mettre à jour » (c'est le Play Store qui met à jour).
+# Le fichier se télécharge en bas de la page du run (« equinoxe-play »), puis s'envoie dans la Play Console.
+name: Play Store
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build web (canal Play) et copie Android
+        working-directory: frontend
+        env:
+          EQUINOXE_CANAL: play
+        run: |
+          npm ci
+          npm run build
+          npx cap sync android
+
+      # 1.5.2 -> 105020 : toujours croissant, et plus grand que les numéros des APK du site
+      - name: Numéros de version
+        run: |
+          VERSION=$(tr -d '[:space:]' < version.txt)
+          IFS=. read -r MA MI PA <<< "$VERSION"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "CODE=$(( (MA * 10000 + MI * 100 + PA) * 10 ))" >> "$GITHUB_ENV"
+
+      - name: AAB signé (clé d'envoi)
+        working-directory: frontend/android
+        env:
+          EQUINOXE_KEYSTORE_BASE64: ${{ secrets.EQUINOXE_KEYSTORE_BASE64 }}
+          EQUINOXE_KEYSTORE_MOT_DE_PASSE: ${{ secrets.EQUINOXE_KEYSTORE_MOT_DE_PASSE }}
+        run: |
+          test -n "$EQUINOXE_KEYSTORE_BASE64" || { echo "Secret EQUINOXE_KEYSTORE_BASE64 manquant"; exit 1; }
+          export EQUINOXE_KEYSTORE="$RUNNER_TEMP/equinoxe.keystore"
+          echo "$EQUINOXE_KEYSTORE_BASE64" | base64 -d > "$EQUINOXE_KEYSTORE"
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon -PversionName="$VERSION" -PversionCode="$CODE"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: equinoxe-play
+          path: frontend/android/app/build/outputs/bundle/release/app-release.aab

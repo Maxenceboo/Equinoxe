@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { CANAL } from '../version';
 
 /** Fichier publié avec chaque version stable (workflow « Version stable »). */
 export const URL_VERSION = 'https://equinoxe-app.fr/apk/version.json';
@@ -28,7 +29,8 @@ export class MiseAJourService {
 
   /** Au démarrage, puis à chaque retour dans l'app (elle reste souvent ouverte en arrière-plan). */
   async verifier(): Promise<void> {
-    if (!Capacitor.isNativePlatform()) return;
+    // Sur le Play Store, c'est le Store qui met à jour l'app (et il interdit les APK téléchargés)
+    if (!Capacitor.isNativePlatform() || CANAL === 'play') return;
     if (!this.ecoute) {
       this.ecoute = true;
       void App.addListener('resume', () => void this.verifier());

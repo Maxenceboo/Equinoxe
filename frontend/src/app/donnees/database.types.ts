@@ -200,6 +200,7 @@ export type Database = {
       enregistrer_push: { Args: { p_endpoint: string; p_p256dh: string; p_auth: string }; Returns: undefined }
       programmer_rappels: { Args: { p_rappels: Json }; Returns: undefined }
       oublier_push: { Args: { p_endpoint: string }; Returns: undefined }
+      supprimer_mon_compte: { Args: Record<PropertyKey, never>; Returns: undefined }
       objectifs_suivis: {
         Args: Record<PropertyKey, never>;
         Returns: {
