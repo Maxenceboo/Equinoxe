@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   aab:
@@ -59,3 +59,15 @@ jobs:
         with:
           name: equinoxe-play
           path: frontend/android/app/build/outputs/bundle/release/app-release.aab
+
+      # Copie aussi le fichier sur la branche « play-aab » : il peut ainsi être envoyé
+      # dans la Play Console depuis le navigateur, sans passer par le zip des artefacts.
+      - name: Fichier sur la branche play-aab
+        run: |
+          mkdir -p "$RUNNER_TEMP/aab" && cd "$RUNNER_TEMP/aab"
+          cp "$GITHUB_WORKSPACE/frontend/android/app/build/outputs/bundle/release/app-release.aab" "equinoxe-$VERSION.aab"
+          git init -q -b play-aab
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add . && git commit -qm "AAB $VERSION ($CODE)"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" play-aab
