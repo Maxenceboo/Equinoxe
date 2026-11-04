@@ -69,40 +69,55 @@ export class DepotObjectifs {
     if (error) throw error;
   }
 
-  async partager(objectifId: number): Promise<{ code: string; abonnes: number }> {
-    const { data, error } = await this.db.rpc('partager_objectif', { p_objectif_id: objectifId });
-    if (error) throw error;
-    return data[0];
-  }
-
-  async rejoindre(code: string): Promise<number> {
-    const { data, error } = await this.db.rpc('rejoindre_binome', { p_code: code });
+  async monCodeAmi(): Promise<string> {
+    const { data, error } = await this.db.rpc('mon_code_ami');
     if (error) throw error;
     return data;
   }
 
-  /** Objectifs d'amis suivis, sous forme d'objectifs du domaine (jours cochés seulement). */
-  async suivis(): Promise<(ObjectifPerso & { ami: string })[]> {
-    const { data, error } = await this.db.rpc('objectifs_suivis');
+  async ajouterAmi(code: string): Promise<string> {
+    const { data, error } = await this.db.rpc('ajouter_ami', { p_code: code });
     if (error) throw error;
-    return data.map((s) => ({
-      id: s.objectif_id,
-      nom: s.nom,
-      ami: s.ami,
-      categorie: s.categorie as Categorie,
-      typeFrequence: s.type_frequence as TypeFrequence,
-      cible: s.cible,
-      heure: '00:00',
-      couleur: '#ffffff',
-      archive: false,
-      dateCreation: s.date_creation,
-      mesure: null,
-      objectifQuantite: null,
-      rappelAuto: false,
-      cibleDepuis: null,
-      codePartage: null,
-      coches: (s.jours ?? []).map((jour) => ({ jour })),
+    return data;
+  }
+
+  async retirerAmi(id: string): Promise<void> {
+    const { error } = await this.db.rpc('retirer_ami', { p_ami: id });
+    if (error) throw error;
+  }
+
+  /** Mes amis et leurs objectifs visibles (jours cochés seulement). */
+  async amis(): Promise<{ id: string; nom: string; objectifs: ObjectifPerso[] }[]> {
+    const [amis, objectifs] = await Promise.all([this.db.rpc('mes_amis'), this.db.rpc('objectifs_amis')]);
+    if (amis.error) throw amis.error;
+    if (objectifs.error) throw objectifs.error;
+    return amis.data.map((a) => ({
+      id: a.ami_id,
+      nom: a.nom,
+      objectifs: objectifs.data.filter((o) => o.ami_id === a.ami_id).map((o) => ({
+        id: o.objectif_id,
+        nom: o.nom,
+        categorie: o.categorie as Categorie,
+        typeFrequence: o.type_frequence as TypeFrequence,
+        cible: o.cible,
+        heure: '00:00',
+        couleur: '#ffffff',
+        archive: false,
+        dateCreation: o.date_creation,
+        mesure: null,
+        objectifQuantite: null,
+        rappelAuto: false,
+        cibleDepuis: null,
+        codePartage: null,
+        coches: (o.jours ?? []).map((jour) => ({ jour })),
+      })),
     }));
+  }
+
+  async amisQuiVoient(objectifId: number): Promise<string[]> {
+    const { data, error } = await this.db.rpc('amis_qui_voient', { p_objectif: objectifId });
+    if (error) throw error;
+    return data.map((a) => a.nom);
   }
 
   /** Achats de la boutique : nombre de jokers achetés et palettes possédées. */
@@ -126,10 +141,6 @@ export class DepotObjectifs {
     if (error) throw error;
   }
 
-  async quitter(objectifId: number): Promise<void> {
-    const { error } = await this.db.from('binome').delete().eq('objectif_id', objectifId);
-    if (error) throw error;
-  }
 }
 
 function versDomaine(l: LigneObjectif & { validation: LigneCoche[]; joker_achete?: { mois: string }[] }): ObjectifPerso {
@@ -148,6 +159,7 @@ function versDomaine(l: LigneObjectif & { validation: LigneCoche[]; joker_achete
     rappelAuto: l.rappel_auto,
     cibleDepuis: l.cible_depuis,
     codePartage: l.code_partage,
+    visibleAmis: l.visible_amis ?? false,
     coches: l.validation.map((v) => ({
       jour: v.jour,
       typeSeance: v.type_seance,

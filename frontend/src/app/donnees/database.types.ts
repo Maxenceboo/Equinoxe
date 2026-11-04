@@ -50,6 +50,12 @@ export type Database = {
           },
         ];
       };
+      amitie: {
+        Row: { a: string; b: string; depuis: string }
+        Insert: { a: string; b: string; depuis?: string }
+        Update: { a?: string; b?: string; depuis?: string }
+        Relationships: []
+      }
       encouragement: {
         Row: { a: string; cree_le: string; de: string; foyer_id: number; id: number; type: string; vu: boolean }
         Insert: { a: string; cree_le?: string; de?: string; foyer_id: number; id?: number; type: string; vu?: boolean }
@@ -99,6 +105,7 @@ export type Database = {
           rappel_auto: boolean;
           type_frequence: string;
           utilisateur_id: string;
+          visible_amis: boolean;
         };
         ComputedFields: never;
         Insert: {
@@ -117,6 +124,7 @@ export type Database = {
           rappel_auto?: boolean;
           type_frequence: string;
           utilisateur_id?: string;
+          visible_amis?: boolean;
         };
         Update: {
           archive?: boolean;
@@ -134,6 +142,7 @@ export type Database = {
           rappel_auto?: boolean;
           type_frequence?: string;
           utilisateur_id?: string;
+          visible_amis?: boolean;
         };
         Relationships: [];
       };
@@ -222,6 +231,24 @@ export type Database = {
         }[];
       };
       rejoindre_binome: { Args: { p_code: string }; Returns: number };
+      mon_code_ami: { Args: Record<PropertyKey, never>; Returns: string };
+      ajouter_ami: { Args: { p_code: string }; Returns: string };
+      retirer_ami: { Args: { p_ami: string }; Returns: undefined };
+      mes_amis: { Args: Record<PropertyKey, never>; Returns: { ami_id: string; nom: string; depuis: string }[] };
+      objectifs_amis: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          objectif_id: number;
+          ami_id: string;
+          nom: string;
+          categorie: string;
+          type_frequence: string;
+          cible: number;
+          date_creation: string;
+          jours: string[];
+        }[];
+      };
+      amis_qui_voient: { Args: { p_objectif: number }; Returns: { nom: string }[] };
     };
     Enums: {
       [_ in never]: never;

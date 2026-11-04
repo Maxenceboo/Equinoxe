@@ -503,6 +503,16 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   .titre-section .etiquette { margin: 0; }
   .aide { display: block; margin-top: 0.5rem; }
 }
+.ami {
+  margin-top: 1.25rem;
+  .nom-ami {
+    all: unset; cursor: pointer; font-weight: 800; font-size: 1.05rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    .pi { font-size: 0.75rem; color: var(--discret); }
+  }
+  .binome { cursor: default; }
+}
+.mon-code { margin: 1.5rem 0 1rem; padding-top: 1rem; }
 .binome {
   border-bottom: 1px solid var(--ligne);
   padding: 0.9rem 0 0.6rem;

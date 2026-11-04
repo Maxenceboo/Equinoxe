@@ -84,6 +84,11 @@ components:
           title: Me rappeler à l'heure où je le fais d'habitude
           description: "L'app apprend l'heure de tes coches (5 coches suffisent) et te rappelle 30 min avant."
           default: false
+        visibleAmis:
+          type: boolean
+          title: Visible par mes amis
+          description: "Tes amis verront sa progression et sa flamme, jamais tes détails."
+          default: false
 
     Mesure:
       type: string
@@ -119,6 +124,7 @@ components:
         heureHabituelle: { type: string, description: "Heure habituelle de coche (HH:mm), une fois apprise" }
         heureRappel: { type: string, description: Heure effective des rappels (HH:mm) }
         partage: { type: boolean, description: Un code de partage existe }
+        visibleAmis: { type: boolean, description: Visible par les amis (sinon privé) }
         suggestion: { $ref: '#/components/schemas/Suggestion' }
 
     ProgressionSemaine:
@@ -315,6 +321,27 @@ components:
           title: Code de ton binôme
           minLength: 6
           maxLength: 6
+
+    CodeAmi:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          title: Code de ton ami
+          minLength: 6
+          maxLength: 6
+
+    Ami:
+      type: object
+      required: [id, nom, objectifs]
+      properties:
+        id: { type: string }
+        nom: { type: string, description: Nom affiché (avant l'arobase de son email) }
+        objectifs:
+          type: array
+          description: Ses objectifs visibles par ses amis
+          items: { $ref: '#/components/schemas/ObjectifSuivi' }
 
     ObjectifSuivi:
       type: object

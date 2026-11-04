@@ -4,10 +4,10 @@ import { Router, RouterLink } from '@angular/router';
 import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
-import { Historique, Objectif, Partage, Statistiques, TypeSeance } from '../../api/generated';
-import { BinomesService, ObjectifsService } from '../../application/services';
+import { Historique, Objectif, Statistiques, TypeSeance } from '../../api/generated';
+import { AmisService, ObjectifsService } from '../../application/services';
 import schemas from '../../api/generated/schemas.json';
-import { estChiffre, heureLisible, nombre, unite } from '../../shared/objectifs';
+import { estChiffre, heureLisible, nombre, saisieDe, unite } from '../../shared/objectifs';
 import { NotificationsService } from '../../core/notifications.service';
 import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../../shared/dates';
 
@@ -130,18 +130,24 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           </p>
         }
 
-        <section class="partage" aria-label="Ami">
-          <p class="etiquette">Faire avec un ami</p>
-          @if (partage(); as p) {
-            <p class="aide">Donne ce code à un ami : il verra ta progression et ta flamme (pas tes détails).</p>
-            <div class="code">
-              <strong>{{ p.code }}</strong>
-              <p-button [label]="copie() ? 'Copié' : 'Partager'" icon="pi pi-share-alt" [outlined]="true" (onClick)="partagerCode(p.code)" />
-            </div>
-            <small>{{ p.abonnes === 0 ? 'Personne ne te suit encore.' : p.abonnes + ' ami(s) te suivent.' }}</small>
+        <section class="partage" aria-label="Amis">
+          <p class="etiquette">Amis</p>
+          <div class="code">
+            <span>{{ o.visibleAmis ? 'Visible par mes amis' : 'Privé' }}</span>
+            <p-button
+              [label]="o.visibleAmis ? 'Rendre privé' : 'Montrer à mes amis'"
+              [icon]="o.visibleAmis ? 'pi pi-lock' : 'pi pi-users'"
+              [outlined]="true"
+              [loading]="changeVisibilite()"
+              (onClick)="basculerVisibilite(o)"
+            />
+          </div>
+          @if (!o.visibleAmis) {
+            <small class="aide">Seul toi le vois. Tes amis s'ajoutent avec ton code, sur la page Proches.</small>
+          } @else if (voientMoi().length === 0) {
+            <small class="aide">Aucun ami ne le voit encore. Ajoute des amis avec ton code, sur la page Proches.</small>
           } @else {
-            <p class="aide">C'est plus facile à deux. Partage cet objectif avec un ami pour vous suivre mutuellement.</p>
-            <p-button label="Partager avec un ami" icon="pi pi-users" [outlined]="true" (onClick)="creerPartage()" />
+            <small class="aide">Vu par {{ voientMoi().join(', ') }} : ta progression et ta flamme, pas tes détails.</small>
           }
         </section>
       }
@@ -157,11 +163,12 @@ export class ObjectifDetailPage implements OnInit {
   private readonly api = inject(ObjectifsService);
   private readonly router = inject(Router);
   private readonly notifications = inject(NotificationsService);
-  private readonly binomes = inject(BinomesService);
+  private readonly amis = inject(AmisService);
 
   protected readonly stats = signal<Statistiques | null>(null);
-  protected readonly partage = signal<Partage | null>(null);
-  protected readonly copie = signal(false);
+  /** Les amis qui voient cet objectif (vide s'il est privé). */
+  protected readonly voientMoi = signal<string[]>([]);
+  protected readonly changeVisibilite = signal(false);
   protected readonly nombre = nombre;
   protected readonly unite = unite;
   protected readonly chiffre = estChiffre;
@@ -192,29 +199,26 @@ export class ObjectifDetailPage implements OnInit {
   ngOnInit(): void {
     this.api.lireObjectif(Number(this.id())).subscribe((o) => {
       this.objectif.set(o);
-      // Le code n'est créé qu'à la demande ; s'il existe déjà, on l'affiche directement
-      if (o.partage) this.creerPartage();
+      if (o.visibleAmis) this.chargerQuiVoit();
     });
     this.chargerHistorique();
   }
 
-  creerPartage(): void {
-    this.binomes.partagerObjectif(Number(this.id())).subscribe((p) => this.partage.set(p));
+  private chargerQuiVoit(): void {
+    this.amis.quiVoit(Number(this.id())).subscribe({ next: (l) => this.voientMoi.set(l), error: () => undefined });
   }
 
-  async partagerCode(code: string): Promise<void> {
-    const texte = `Suis mon objectif « ${this.objectif()?.nom} » sur Équinoxe avec le code ${code}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: texte });
-        return;
-      }
-      await navigator.clipboard.writeText(code);
-      this.copie.set(true);
-      setTimeout(() => this.copie.set(false), 2000);
-    } catch {
-      /* partage annulé */
-    }
+  basculerVisibilite(o: Objectif): void {
+    this.changeVisibilite.set(true);
+    this.api.modifierObjectif(o.id, saisieDe(o, { visibleAmis: !o.visibleAmis })).subscribe({
+      next: (maj) => {
+        this.objectif.set(maj);
+        this.changeVisibilite.set(false);
+        if (maj.visibleAmis) this.chargerQuiVoit();
+        else this.voientMoi.set([]);
+      },
+      error: () => this.changeVisibilite.set(false),
+    });
   }
 
   protected libelleType(type: TypeSeance): string {

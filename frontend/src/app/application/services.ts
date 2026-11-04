@@ -15,13 +15,11 @@ import type {
   ReglagesFoyer,
   RejoindreFoyer,
   TypeEncouragement,
-  CodeBinome,
+  Ami,
   Historique,
   Identifiants,
   Objectif,
   ObjectifSaisie,
-  ObjectifSuivi,
-  Partage,
   Rappel,
   Statistiques,
   Validation,
@@ -103,6 +101,7 @@ export function versObjectif(o: ObjectifPerso, jour = aujourdhui()): Objectif {
     heureHabituelle: heureHabituelle(o) ?? undefined,
     heureRappel: heureRappel(o),
     partage: o.codePartage !== null,
+    visibleAmis: o.visibleAmis ?? false,
     suggestion: suggestion(o, jour) ?? undefined,
   };
 }
@@ -135,6 +134,7 @@ function reglages(s: ObjectifSaisie): ReglagesObjectif {
     mesure: chiffre,
     objectif_quantite: chiffre && s.objectifQuantite && s.objectifQuantite > 0 ? s.objectifQuantite : null,
     rappel_auto: s.categorie !== 'SOMMEIL' && !!s.rappelAuto,
+    visible_amis: !!s.visibleAmis,
   };
 }
 
@@ -240,37 +240,44 @@ export class RappelsService {
   }
 }
 
+/** Les amis : on s'ajoute avec un code perso et on voit les objectifs visibles de l'autre. */
 @Injectable({ providedIn: 'root' })
-export class BinomesService {
+export class AmisService {
   private readonly depot = inject(DepotObjectifs);
   private readonly erreurs = inject(Erreurs);
 
-  partagerObjectif(id: number): Observable<Partage> {
-    return this.erreurs.appel(() => this.depot.partager(id));
+  monCode(): Observable<string> {
+    return this.erreurs.appel(() => this.depot.monCodeAmi(), { silencieux: true });
   }
 
-  listerBinomes(): Observable<ObjectifSuivi[]> {
+  lister(): Observable<Ami[]> {
     return this.erreurs.appel(async () =>
-      (await this.depot.suivis()).map((o) => ({
-        objectifId: o.id,
-        nom: o.nom,
-        ami: o.ami,
-        categorie: o.categorie,
-        progression: progression(o, aujourdhui()),
+      (await this.depot.amis()).map((a) => ({
+        id: a.id,
+        nom: a.nom,
+        objectifs: a.objectifs.map((o) => ({
+          objectifId: o.id,
+          nom: o.nom,
+          ami: a.nom,
+          categorie: o.categorie,
+          progression: progression(o, aujourdhui()),
+        })),
       })),
+      { silencieux: true },
     );
   }
 
-  rejoindreBinome(code: CodeBinome): Observable<ObjectifSuivi> {
-    return this.erreurs.appel(async () => {
-      const id = await this.depot.rejoindre(code.code);
-      const suivi = (await this.depot.suivis()).find((o) => o.id === id)!;
-      return { objectifId: id, nom: suivi.nom, ami: suivi.ami, categorie: suivi.categorie, progression: progression(suivi, aujourdhui()) };
-    });
+  /** Ajoute l'ami du code et renvoie son nom. */
+  ajouter(code: string): Observable<string> {
+    return this.erreurs.appel(() => this.depot.ajouterAmi(code));
   }
 
-  quitterBinome(objectifId: number): Observable<void> {
-    return this.erreurs.appel(() => this.depot.quitter(objectifId));
+  retirer(id: string): Observable<void> {
+    return this.erreurs.appel(() => this.depot.retirerAmi(id));
+  }
+
+  quiVoit(objectifId: number): Observable<string[]> {
+    return this.erreurs.appel(() => this.depot.amisQuiVoient(objectifId), { silencieux: true });
   }
 }
 

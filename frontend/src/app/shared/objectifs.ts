@@ -12,6 +12,7 @@ export function saisieDe(o: Objectif, changements: Partial<ObjectifSaisie> = {})
     mesure: o.mesure ?? 'AUCUNE',
     objectifQuantite: o.objectifQuantite,
     rappelAuto: o.rappelAuto ?? false,
+    visibleAmis: o.visibleAmis ?? false,
     ...changements,
   };
 }

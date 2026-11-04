@@ -33,6 +33,8 @@ export interface ObjectifPerso {
   /** Dernier changement de cible, null s'il n'a jamais changé */
   cibleDepuis: string | null;
   codePartage: string | null;
+  /** Visible par les amis ; sinon privé */
+  visibleAmis?: boolean;
   coches: Coche[];
   /** Mois (AAAA-MM) où un joker en plus a été acheté avec des points, une entrée par joker. */
   jokersAchetes?: string[];
