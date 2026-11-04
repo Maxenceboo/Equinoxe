@@ -20,6 +20,8 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/archives/archives.page').then((m) => m.ArchivesPage),
       },
       { path: 'profil/boutique', loadComponent: () => import('./pages/boutique/boutique.page').then((m) => m.BoutiquePage) },
+      { path: 'profil/badges', loadComponent: () => import('./pages/profil/badges.page').then((m) => m.BadgesPage) },
+      { path: 'profil/reglages', loadComponent: () => import('./pages/profil/reglages.page').then((m) => m.ReglagesPage) },
       { path: 'compte', redirectTo: 'profil' },
       { path: 'archives', redirectTo: 'profil/archives' },
       {

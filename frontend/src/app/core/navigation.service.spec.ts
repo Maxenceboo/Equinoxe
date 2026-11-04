@@ -34,7 +34,9 @@ describe('écran parent', () => {
   it('remonte de la modification au détail, du détail à la semaine', () => {
     expect(parent('/objectifs/4/modifier')).toBe('/objectifs/4');
     expect(parent('/objectifs/4')).toBe('/');
-    expect(parent('/profil/archives')).toBe('/profil');
+    expect(parent('/profil/archives')).toBe('/profil/reglages');
+    expect(parent('/profil/reglages')).toBe('/profil');
+    expect(parent('/profil/badges')).toBe('/profil');
     expect(parent('/foyer/12')).toBe('/foyer');
   });
 });
