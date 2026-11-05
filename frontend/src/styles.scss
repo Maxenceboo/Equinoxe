@@ -136,7 +136,9 @@ formly-field-primeng-radio {
   .infos { flex: 1; min-width: 0; color: inherit; text-decoration: none; }
   .ligne-haut { display: flex; align-items: center; justify-content: space-between; gap: var(--pas); }
   .ligne-bas { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pas); margin-top: 0.5rem; }
-  .cote { display: grid; justify-items: center; gap: 0.35rem; }
+  // « + détails » sous la case sans la faire bouger
+  .cote { position: relative; display: grid; justify-items: center; }
+  .cote .lien-details { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); white-space: nowrap; margin-top: 0.2rem; }
   &.pop .coche { animation: pop 0.3s ease-out, eclat-coche 0.8s ease-out; }
   &.pop .cote { position: relative; }
   &.pop .cote::before, &.pop .cote::after {
