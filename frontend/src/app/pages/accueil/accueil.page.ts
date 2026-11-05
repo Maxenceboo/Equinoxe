@@ -66,7 +66,7 @@ function lireStockage(cle: string): string | null {
     @if (horsLigne.horsLigne() || horsLigne.enAttente().length > 0) {
       <p class="bandeau-hors-ligne">
         <i class="pi pi-wifi"></i>
-        Hors ligne. {{ horsLigne.enAttente().length }} action(s) enregistrée(s) sur le téléphone, envoyée(s) au retour du réseau.
+        Hors ligne. {{ horsLigne.enAttente().length > 1 ? horsLigne.enAttente().length + ' actions gardées' : 'Une action gardée' }} sur le téléphone, envoyée{{ horsLigne.enAttente().length > 1 ? 's' : '' }} au retour du réseau.
       </p>
     }
 
@@ -93,11 +93,11 @@ function lireStockage(cle: string): string | null {
       <section class="bilan" aria-label="Bilan de la semaine">
         <div>
           <strong>{{ tenus() }}<span>/{{ objectifs().length }}</span></strong>
-          <span>objectif(s) tenu(s) cette semaine</span>
+          <span>{{ tenus() > 1 ? 'tenus' : 'tenu' }} cette semaine</span>
         </div>
         <div>
           <strong>{{ faitsAujourdhui() }}<span>/{{ objectifs().length }}</span></strong>
-          <span>fait(s) aujourd'hui</span>
+          <span>{{ faitsAujourdhui() > 1 ? 'faits' : 'fait' }} aujourd'hui</span>
         </div>
       </section>
     }
@@ -126,7 +126,7 @@ function lireStockage(cle: string): string | null {
               <span class="nom">{{ o.nom }}</span>
               <span class="serie-et-jokers">
                 @if (o.progression.serie > 0 && o.progression.jokersRestants > 0) {
-                  <span class="jokers" [attr.aria-label]="o.progression.jokersRestants + ' joker(s) en réserve'"><i class="pi pi-shield"></i>{{ o.progression.jokersRestants }}</span>
+                  <span class="jokers" [attr.aria-label]="o.progression.jokersRestants + (o.progression.jokersRestants > 1 ? ' jokers' : ' joker') + ' en réserve'"><i class="pi pi-shield"></i>{{ o.progression.jokersRestants }}</span>
                 }
                 <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
               </span>
@@ -137,18 +137,15 @@ function lireStockage(cle: string): string | null {
               }
             </div>
             <div class="ligne-bas">
-              <small class="message">{{ o.progression.message }}</small>
+              <small class="message">{{ chiffre(o.mesure) ? quantite(o) + ' cette semaine' : o.progression.message }}</small>
               <span class="compteur">{{ o.progression.realisees }}<span>/{{ o.progression.cible }}</span></span>
             </div>
-            @if (chiffre(o.mesure)) {
-              <small class="quantite">{{ quantite(o) }} cette semaine</small>
-            }
             @if (communDe(o.id); as c) {
               <small class="a-deux-carte">
                 @for (m of actifsDe(c); track m.id) {
                   <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.5" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
                 }
-                flamme commune {{ c.flamme ?? 0 }}
+                <span>ensemble · flamme {{ c.flamme ?? 0 }}</span>
               </small>
             }
           </a>
@@ -486,7 +483,7 @@ export class AccueilPage implements OnInit, OnDestroy {
         titre: 'Semaine réussie !',
         sousTitre: `${apres.nom} : ${p.cible}/${p.cible} cette semaine.` + (p.serie === p.meilleureSerie && p.serie > 1 ? ' Nouveau record !' : ''),
         nombre: String(p.serie),
-        legende: "semaine(s) d'affilée",
+        legende: p.serie > 1 ? "semaines d'affilée" : "semaine d'affilée",
       });
     } else if (p.uniteSerie === 'JOURS' && CelebrationService.PALIERS_JOURS.includes(p.serie)) {
       this.celebration.celebrer({

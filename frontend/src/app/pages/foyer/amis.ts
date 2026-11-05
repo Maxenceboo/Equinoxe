@@ -67,7 +67,7 @@ export function viderCacheAmis(): void {
           <button type="button" class="tete-ami" [attr.aria-expanded]="ouvert() === a.id" (click)="basculer(a.id)">
             <app-avatar [id]="a.id" [nom]="a.nom" [taille]="2" />
             <span class="nom-ami">{{ a.nom }}</span>
-            <small>{{ a.objectifs.length === 0 ? 'aucun objectif visible' : a.objectifs.length + ' objectif(s) visible(s)' }}</small>
+            <small>{{ a.objectifs.length === 0 ? 'aucun objectif visible' : a.objectifs.length + (a.objectifs.length > 1 ? ' objectifs visibles' : ' objectif visible') }}</small>
             <i class="pi pi-chevron-down"></i>
           </button>
           @if (ouvert() === a.id) {

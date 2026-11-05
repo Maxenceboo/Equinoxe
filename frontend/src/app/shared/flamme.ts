@@ -88,7 +88,7 @@ export class Flamme {
 
   protected readonly bump = signal(false);
   protected readonly libelle = computed(
-    () => `Série : ${this.valeur()} ${this.unite() === 'JOURS' ? 'jour(s)' : 'semaine(s)'} d'affilée`,
+    () => `Série : ${this.valeur()} ${this.unite() === 'JOURS' ? 'jour' : 'semaine'}${this.valeur() > 1 ? 's' : ''} d'affilée`,
   );
   private precedente = -1;
 

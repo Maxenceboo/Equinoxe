@@ -79,7 +79,7 @@ function message(realisees: number, cible: number, joursRestants: number, faitAu
   if (realisees >= cible) return 'Objectif de la semaine atteint, bravo !';
   const restantes = cible - realisees;
   const joursDisponibles = faitAujourdhui ? joursRestants - 1 : joursRestants;
-  if (restantes > joursDisponibles) return `${realisees}/${cible} cette semaine, on repart lundi.`;
+  if (restantes > joursDisponibles) return 'Raté pour cette semaine, on repart lundi.';
   return `Encore ${restantes} cette semaine, il reste ${joursRestants} ${joursRestants > 1 ? 'jours.' : 'jour.'}`;
 }
 

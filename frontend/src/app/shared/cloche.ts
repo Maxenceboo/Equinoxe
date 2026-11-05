@@ -7,7 +7,7 @@ import { BoiteService } from '../core/boite.service';
   selector: 'app-cloche',
   imports: [RouterLink],
   template: `
-    <a class="cloche" routerLink="/notifications" [attr.aria-label]="boite.nombre() ? boite.nombre() + ' notification(s)' : 'Notifications'">
+    <a class="cloche" routerLink="/notifications" [attr.aria-label]="boite.nombre() ? boite.nombre() + (boite.nombre() > 1 ? ' notifications' : ' notification') : 'Notifications'">
       <i class="pi pi-bell"></i>
       @if (boite.nombre() > 0) {
         <b class="pastille">{{ boite.nombre() }}</b>

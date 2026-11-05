@@ -819,7 +819,7 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 
 // Profil : ta lune en grand, sa phase montre ton niveau
 .ma-lune { display: flex; align-items: center; gap: 1.25rem; margin: 0.5rem 0 1.25rem;
-  svg { width: 4.5rem; height: 4.5rem; flex: none; .contour { fill: none; stroke: var(--texte); stroke-opacity: 0.3; stroke-width: 3; } .eclairee { fill: var(--texte); } }
+  svg { width: 4.5rem; height: 4.5rem; flex: none; .contour { fill: var(--texte); fill-opacity: 0.08; stroke: var(--texte); stroke-opacity: 0.3; stroke-width: 3; } .eclairee { fill: var(--texte); } }
   div { display: grid; gap: 0.2rem; }
   strong { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
   span { color: var(--discret); font-size: 0.9rem; }
@@ -881,7 +881,7 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 .notif-encouragement { display: flex; align-items: center; gap: 0.6rem; padding: 0.85rem 0; border-bottom: 1px solid var(--ligne-forte); .pi { font-size: 1rem; } }
 .vide-notif { text-align: center; margin-top: 3rem; }
 .lien-ami .code { flex-wrap: wrap; gap: 0.6rem; strong { font-size: 1.05rem; letter-spacing: 0; font-family: inherit; } }
-.lien-groupes { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding: 1rem 0; border-top: 1px solid var(--ligne); color: var(--discret); text-decoration: none; font-size: 0.9rem; .pi { font-size: 0.75rem; } }
+.lien-groupes { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; padding: 1rem 0; color: var(--discret); text-decoration: none; font-size: 0.9rem; .pi { font-size: 0.75rem; } }
 .actions-amis { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: -1rem 0 2rem; }
 .aide a { color: inherit; text-decoration: underline; }
 
@@ -889,7 +889,7 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
   border-radius: 999px; border: 1px solid var(--ligne-forte); background: var(--fond); color: var(--texte); font-weight: 800;
   img { width: 100%; height: 100%; object-fit: cover; }
-  &.fait { border: 2px solid var(--texte); box-shadow: 0 0 0 2px var(--fond), 0 0 0 3px var(--texte); }
+  &.fait { border: 2px solid var(--texte); }
 }
 .duo { display: flex; gap: 1rem; margin-top: 0.6rem; }
 .duo-membre { display: inline-flex; align-items: center; gap: 0.4rem; small { color: var(--discret); font-weight: 600; } }

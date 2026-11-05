@@ -21,7 +21,7 @@ import { Avatar } from '../../shared/avatar';
       <div>
         <h1>{{ foyer()?.nom }}</h1>
         @if (foyer(); as f) {
-          <small>{{ f.membres.length }} membre(s) · on avance ensemble</small>
+          <small>{{ f.membres.length }} membre{{ f.membres.length > 1 ? 's' : '' }} · on avance ensemble</small>
         }
       </div>
     </header>
@@ -145,7 +145,7 @@ export class GroupePage implements OnInit {
 
   protected resume(m: MembreFoyer): string {
     if (m.objectifs === 0) return "Pas encore d'objectif";
-    return `${m.coches} coche(s) · ${m.tenus}/${m.objectifs} objectif(s) tenu(s)`;
+    return `${m.coches} coche${m.coches > 1 ? 's' : ''} · ${m.tenus}/${m.objectifs} tenu${m.tenus > 1 ? 's' : ''}`;
   }
 
   regler(f: Foyer): void {

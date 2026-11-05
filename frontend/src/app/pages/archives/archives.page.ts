@@ -23,7 +23,7 @@ import { NotificationsService } from '../../core/notifications.service';
         <li class="objectif archive">
           <div class="infos">
             <span class="nom">{{ o.nom }}</span>
-            <small>Record : {{ o.progression.meilleureSerie }} {{ o.progression.uniteSerie === 'JOURS' ? 'jour(s)' : 'semaine(s)' }}</small>
+            <small>Record : {{ o.progression.meilleureSerie }} {{ o.progression.uniteSerie === 'JOURS' ? 'jour' : 'semaine' }}{{ o.progression.meilleureSerie > 1 ? 's' : '' }}</small>
           </div>
           <p-button label="Restaurer" [outlined]="true" size="small" (onClick)="restaurer(o)" />
         </li>

@@ -44,4 +44,23 @@ export const ThemeNoir = definePreset(Aura, {
       },
     },
   },
+  // Pas de rouge : les actions qui retirent quelque chose restent en noir et blanc
+  components: {
+    button: {
+      colorScheme: {
+        dark: {
+          root: {
+            danger: {
+              background: '#ffffff', hoverBackground: '{neutral.200}', activeBackground: '{neutral.300}',
+              borderColor: '#ffffff', hoverBorderColor: '{neutral.200}', activeBorderColor: '{neutral.300}',
+              color: '#000000', hoverColor: '#000000', activeColor: '#000000',
+              focusRing: { color: '#ffffff', shadow: 'none' },
+            },
+          },
+          outlined: { danger: { hoverBackground: 'rgba(255,255,255,0.06)', activeBackground: 'rgba(255,255,255,0.12)', borderColor: '{neutral.500}', color: '#ffffff' } },
+          text: { danger: { hoverBackground: 'rgba(255,255,255,0.06)', activeBackground: 'rgba(255,255,255,0.12)', color: '#ffffff' } },
+        },
+      },
+    },
+  },
 });

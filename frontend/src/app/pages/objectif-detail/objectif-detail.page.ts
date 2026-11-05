@@ -29,7 +29,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
         @if (objectif(); as o) {
           <div class="serie-en-cours">
             <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
-            <span>{{ o.progression.uniteSerie === 'JOURS' ? 'jour(s)' : 'semaine(s)' }} d'affilée</span>
+            <span>{{ o.progression.uniteSerie === 'JOURS' ? 'jour' : 'semaine' }}{{ o.progression.serie > 1 ? 's' : '' }} d'affilée</span>
           </div>
           <div>
             <strong>{{ o.progression.meilleureSerie }}</strong>
@@ -238,7 +238,9 @@ export class ObjectifDetailPage implements OnInit {
   /** Le graphique mois par mois n'a de sens qu'à partir du deuxième mois de l'objectif. */
   protected readonly afficherBarres = computed(() => {
     const o = this.objectif();
-    return !!o && o.dateCreation.slice(0, 7) < this.auj.slice(0, 7);
+    const st = this.stats();
+    const vide = !st || st.mois.every((m) => !(m.quantite ?? 0) && !m.seances);
+    return !!o && !vide && o.dateCreation.slice(0, 7) < this.auj.slice(0, 7);
   });
 
   /** Six barres : coches par mois, ou quantité par mois pour un objectif chiffré. */

@@ -47,7 +47,7 @@ export function viderCacheProches(): void {
                 <span>{{ f.cochesSemaine }}/{{ f.objectifSemaine }} coches <i class="pi pi-chevron-right"></i></span>
               </div>
               <div class="jauge"><span [style.width.%]="avancement(f)"></span></div>
-              <small>{{ f.membres.length }} membre(s){{ f.recompense ? ' · À la clé : ' + f.recompense : '' }}</small>
+              <small>{{ f.membres.length }} membre{{ f.membres.length > 1 ? 's' : '' }}{{ f.recompense ? ' · À la clé : ' + f.recompense : '' }}</small>
             </a>
           </li>
         }

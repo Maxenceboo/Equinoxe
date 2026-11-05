@@ -41,7 +41,7 @@ describe('progression et séries', () => {
   });
 
   it('message neutre quand la semaine est perdue', () => {
-    expect(progression(objectif(), j(LUNDI, 6)).message).toBe('0/3 cette semaine, on repart lundi.');
+    expect(progression(objectif(), j(LUNDI, 6)).message).toBe('Raté pour cette semaine, on repart lundi.');
   });
 
   it("série de jours pour un objectif quotidien, avec le joker du mois", () => {
