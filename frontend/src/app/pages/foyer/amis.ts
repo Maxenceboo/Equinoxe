@@ -1,13 +1,8 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FormlyForm } from '@ngx-formly/core';
 import { Button } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
-import { Ami, CodeAmi, ObjectifCommun, ObjectifSuivi } from '../../api/generated';
+import { Ami, ObjectifCommun, ObjectifSuivi } from '../../api/generated';
 import { AmisService } from '../../application/services';
-import { lienAmi } from '../../core/invitation.service';
-import { SchemaFormService } from '../../core/schema-form.service';
 import { Flamme } from '../../shared/flamme';
 
 /** Dernières données connues : l'onglet s'affiche tout de suite au retour, puis se met à jour. */
@@ -25,7 +20,7 @@ export function viderCacheAmis(): void {
  */
 @Component({
   selector: 'app-amis',
-  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Dialog, Flamme],
+  imports: [RouterLink, Button, Flamme],
   template: `
     @if (actifs().length > 0 || envoyees().length > 0) {
       <section class="binomes" aria-label="À deux">
@@ -107,38 +102,10 @@ export function viderCacheAmis(): void {
           }
         </div>
       } @empty {
-        <p class="aide">Ajoute un ami avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire à deux.</p>
+        <p class="aide">Pas encore d'ami. <a routerLink="/profil" [queryParams]="{ ajouter: 1 }">Ajoute-en un</a> avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire à deux.</p>
       }
 
-      <p-button label="Ajouter un ami" icon="pi pi-user-plus" [outlined]="true" (onClick)="ouvrir()" />
     </section>
-
-    <p-dialog
-      header="Ajouter un ami"
-      [visible]="ajout()"
-      (visibleChange)="!$event && ajout.set(false)"
-      [modal]="true"
-      [dismissableMask]="true"
-      [style]="{ width: 'min(30rem, 95vw)' }"
-    >
-      <p class="aide">Tape son identifiant, affiché sur sa page Profil.</p>
-      <form [formGroup]="formCode" (ngSubmit)="envoyer()">
-        <formly-form [form]="formCode" [fields]="champsCode" [model]="modelCode" />
-        <div class="actions">
-          <p-button label="Annuler" [text]="true" (onClick)="ajout.set(false)" />
-          <p-button type="submit" label="Ajouter" />
-        </div>
-      </form>
-      @if (pseudo(); as p) {
-        <div class="partage mon-code lien-ami">
-          <p class="etiquette">Ou envoie-lui ton lien</p>
-          <div class="code">
-            <strong>&#64;{{ p }}</strong>
-            <p-button [label]="copie() ? 'Copié' : 'Partager'" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(p)" />
-          </div>
-        </div>
-      }
-    </p-dialog>
   `,
 })
 export class Amis implements OnInit {
@@ -147,24 +114,15 @@ export class Amis implements OnInit {
   protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
   protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
-  protected readonly pseudo = this.api.pseudo;
-  protected readonly copie = signal(false);
-  protected readonly ajout = signal(false);
   /** Ami déplié (un seul à la fois). */
   protected readonly ouvert = signal<string | null>(null);
   /** Objectif d'ami qu'on est en train de rejoindre. */
   protected readonly rejoint = signal<number | null>(null);
   /** Ami pour qui on confirme le retrait. */
   protected readonly aRetirer = signal<string | null>(null);
-  protected formCode = new FormGroup({});
-  protected modelCode: Partial<CodeAmi> = {};
-  protected readonly champsCode = inject(SchemaFormService).champs('CodeAmi', {
-    code: { props: { placeholder: '@lea', attributes: { autocapitalize: 'none', autocomplete: 'off', spellcheck: 'false' } } },
-  });
 
   ngOnInit(): void {
     this.charger();
-    if (this.pseudo() === undefined) this.api.chargerPseudo().subscribe({ error: () => undefined });
   }
 
   private charger(): void {
@@ -179,38 +137,6 @@ export class Amis implements OnInit {
 
   protected frequence(c: ObjectifCommun): string {
     return c.typeFrequence === 'QUOTIDIEN' ? 'tous les jours' : `${c.cible} fois par semaine`;
-  }
-
-  async partager(pseudo: string): Promise<void> {
-    const lien = lienAmi(pseudo);
-    const texte = `Ajoute-moi en ami sur Équinoxe : ${lien} (mon identifiant : @${pseudo})`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: texte });
-        return;
-      }
-      await navigator.clipboard.writeText(lien);
-      this.copie.set(true);
-      setTimeout(() => this.copie.set(false), 2000);
-    } catch {
-      /* partage annulé */
-    }
-  }
-
-  ouvrir(): void {
-    this.formCode = new FormGroup({});
-    this.modelCode = {};
-    this.ajout.set(true);
-  }
-
-  envoyer(): void {
-    this.formCode.markAllAsTouched();
-    const code = this.modelCode.code?.trim();
-    if (this.formCode.invalid || !code) return;
-    this.api.ajouter(code).subscribe(() => {
-      this.ajout.set(false);
-      this.charger();
-    });
   }
 
   retirer(a: Ami): void {

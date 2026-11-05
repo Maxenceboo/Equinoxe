@@ -882,3 +882,5 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
 .vide-notif { text-align: center; margin-top: 3rem; }
 .lien-ami .code { flex-wrap: wrap; gap: 0.6rem; strong { font-size: 1.05rem; letter-spacing: 0; font-family: inherit; } }
 .lien-groupes { display: flex; align-items: center; justify-content: space-between; margin-top: 2.5rem; padding: 1rem 0; border-top: 1px solid var(--ligne); color: var(--discret); text-decoration: none; font-size: 0.9rem; .pi { font-size: 0.75rem; } }
+.actions-amis { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: -1rem 0 2rem; }
+.aide a { color: inherit; text-decoration: underline; }
