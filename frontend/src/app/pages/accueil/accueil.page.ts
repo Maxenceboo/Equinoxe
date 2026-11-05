@@ -89,19 +89,6 @@ function lireStockage(cle: string): string | null {
       <p class="bandeau-joker"><i class="pi pi-shield"></i> Ton joker a protégé ta série « {{ o.nom }} ». Elle continue !</p>
     }
 
-    @if (objectifs().length > 0) {
-      <section class="bilan" aria-label="Bilan de la semaine">
-        <div>
-          <strong>{{ tenus() }}<span>/{{ objectifs().length }}</span></strong>
-          <span>{{ tenus() > 1 ? 'tenus' : 'tenu' }} cette semaine</span>
-        </div>
-        <div>
-          <strong>{{ faitsAujourdhui() }}<span>/{{ objectifs().length }}</span></strong>
-          <span>{{ faitsAujourdhui() > 1 ? 'faits' : 'fait' }} aujourd'hui</span>
-        </div>
-      </section>
-    }
-
     @if (charge() && objectifs().length === 0) {
       <div class="vide">
         <p class="etiquette">Pour commencer</p>
@@ -124,29 +111,25 @@ function lireStockage(cle: string): string | null {
           <a class="infos" [routerLink]="['/objectifs', o.id]">
             <div class="ligne-haut">
               <span class="nom">{{ o.nom }}</span>
-              <span class="serie-et-jokers">
-                @if (o.progression.serie > 0 && o.progression.jokersRestants > 0) {
-                  <span class="jokers" [attr.aria-label]="o.progression.jokersRestants + (o.progression.jokersRestants > 1 ? ' jokers' : ' joker') + ' en réserve'"><i class="pi pi-shield"></i>{{ o.progression.jokersRestants }}</span>
-                }
-                <app-flamme [valeur]="o.progression.serie" [unite]="o.progression.uniteSerie" />
-              </span>
-            </div>
-            <div class="segments" aria-hidden="true">
-              @for (plein of segments(o); track $index) {
-                <i [class.plein]="plein"></i>
+              @if (communDe(o.id); as c) {
+                <span class="pile petite" [attr.aria-label]="'Ensemble, flamme commune ' + (c.flamme ?? 0)">
+                  @for (m of actifsDe(c); track m.id) {
+                    <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.4" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
+                  }
+                </span>
               }
+              <app-flamme [valeur]="communDe(o.id)?.flamme ?? o.progression.serie" [unite]="o.progression.uniteSerie" />
             </div>
-            <div class="ligne-bas">
-              <small class="message">{{ chiffre(o.mesure) ? quantite(o) + ' cette semaine' : o.progression.message }}</small>
+            <div class="ligne-segments">
+              <div class="segments" aria-hidden="true">
+                @for (plein of segments(o); track $index) {
+                  <i [class.plein]="plein"></i>
+                }
+              </div>
               <span class="compteur">{{ o.progression.realisees }}<span>/{{ o.progression.cible }}</span></span>
             </div>
-            @if (communDe(o.id); as c) {
-              <small class="a-deux-carte">
-                @for (m of actifsDe(c); track m.id) {
-                  <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.5" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
-                }
-                <span>ensemble · flamme {{ c.flamme ?? 0 }}</span>
-              </small>
+            @if (chiffre(o.mesure)) {
+              <small class="quantite">{{ quantite(o) }} cette semaine</small>
             }
           </a>
           <div class="cote">

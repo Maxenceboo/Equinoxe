@@ -29,32 +29,27 @@ export function viderCacheAmis(): void {
       <section class="binomes" aria-label="Ensemble">
         <h2 class="titre-section">Ensemble</h2>
         @for (c of actifs(); track c.id) {
-          <a class="binome commun" [routerLink]="['/objectifs', c.monObjectif]">
-            <div class="ligne-haut">
-              <span class="nom">{{ c.nom }}</span>
-              <app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" />
-            </div>
-            <!-- Les photos de chacun : un trait plein autour de ceux qui ont fait leur part -->
-            <div class="duo">
-              <span class="duo-membre">
-                <app-avatar [id]="moi()" nom="Moi" [taille]="2" [fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" />
-                @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ c.moi ?? 0 }}/{{ c.objectifPeriode }}</small> }
-              </span>
+          <a class="ensemble" [routerLink]="['/objectifs', c.monObjectif]">
+            <span class="pile" aria-hidden="true">
+              <app-avatar [id]="moi()" nom="Moi" [taille]="2.25" [fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" />
               @for (m of actifsDe(c); track m.id) {
-                <span class="duo-membre">
-                  <app-avatar [id]="m.id" [nom]="m.nom" [taille]="2" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
-                  @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ m.fait ?? 0 }}/{{ c.objectifPeriode }}</small> }
-                </span>
+                <app-avatar [id]="m.id" [nom]="m.nom" [taille]="2.25" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
               }
-            </div>
+            </span>
+            <span class="texte">
+              <strong>{{ c.nom }}</strong>
+              <small>{{ faitsDe(c) }}/{{ actifsDe(c).length + 1 }} {{ c.typeFrequence === 'QUOTIDIEN' ? "aujourd'hui" : 'cette semaine' }} · {{ nomsDe(c) }}</small>
+            </span>
+            <app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" />
           </a>
         }
         @for (e of enAttente(); track e.commun.id + (e.membre ?? '')) {
-          <div class="binome commun en-attente">
-            <div class="ligne-haut">
-              <span class="nom">{{ e.commun.nom }} <small>· {{ e.texte }}</small></span>
-              <button type="button" class="lien-details" (click)="annuler(e.commun, e.membre)">Annuler</button>
-            </div>
+          <div class="ensemble en-attente">
+            <span class="texte">
+              <strong>{{ e.commun.nom }}</strong>
+              <small>{{ e.texte }}</small>
+            </span>
+            <button type="button" class="lien-details" (click)="annuler(e.commun, e.membre)">Annuler</button>
           </div>
         }
       </section>
@@ -133,6 +128,15 @@ export class Amis implements OnInit {
   ]);
   protected actifsDe(c: ObjectifCommun) {
     return c.membres.filter((m) => m.statut === 'ACTIF');
+  }
+  protected nomsDe(c: ObjectifCommun): string {
+    const noms = this.actifsDe(c).map((m) => m.nom);
+    return noms.length <= 2 ? noms.join(' et ') : `${noms.slice(0, 2).join(', ')} +${noms.length - 2}`;
+  }
+  /** Combien ont fait leur part (moi compris) sur la période. */
+  protected faitsDe(c: ObjectifCommun): number {
+    const cible = c.objectifPeriode ?? 1;
+    return ((c.moi ?? 0) >= cible ? 1 : 0) + this.actifsDe(c).filter((m) => (m.fait ?? 0) >= cible).length;
   }
   /** Ami déplié (un seul à la fois). */
   protected readonly ouvert = signal<string | null>(null);

@@ -527,6 +527,27 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   p { margin: 0 0 0.35rem; }
   .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem; }
 }
+.ensemble {
+  display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 0; border-bottom: 1px solid var(--ligne);
+  color: inherit; text-decoration: none;
+  .texte { flex: 1; min-width: 0; display: grid; gap: 0.15rem; }
+  strong { font-weight: 800; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  small { color: var(--discret); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &.en-attente strong { font-weight: 600; color: var(--discret); }
+}
+// Photos qui se chevauchent
+.pile {
+  display: inline-flex; flex: none;
+  .avatar { border: 2px solid var(--fond); box-shadow: 0 0 0 1px var(--ligne-forte); opacity: 0.55; }
+  .avatar.fait { box-shadow: 0 0 0 1.5px var(--texte); opacity: 1; }
+  .avatar + .avatar { margin-left: -0.55rem; }
+  &.petite { margin-right: auto; .avatar + .avatar { margin-left: -0.4rem; } }
+}
+.objectif .ligne-haut .nom { flex: 0 1 auto; }
+.ligne-segments { display: flex; align-items: center; gap: 0.75rem; margin-top: 0.6rem;
+  .segments { flex: 1; margin-top: 0; }
+  .compteur { font-size: 0.95rem; }
+}
 .binome.commun {
   display: block; color: inherit; text-decoration: none;
   .duo { display: flex; gap: 1.25rem; margin: 0.5rem 0 0.25rem; font-size: 0.95rem; color: var(--discret); }
