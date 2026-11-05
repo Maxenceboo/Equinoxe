@@ -166,10 +166,14 @@ export class ProfilPage implements OnInit {
     if (this.formCode.invalid || !code) return;
     this.enCours.set(true);
     this.amis.ajouter(code).subscribe({
-      next: (nom) => {
+      next: ({ nom, amis }) => {
         this.enCours.set(false);
         this.ajout.set(false);
-        this.messages.add({ severity: 'success', summary: `${nom} est ton ami`, detail: 'Retrouve ses objectifs dans Proches.' });
+        this.messages.add(
+          amis
+            ? { severity: 'success', summary: `${nom} est ton ami`, detail: 'Retrouve ses objectifs dans Proches.' }
+            : { severity: 'success', summary: `Demande envoyée à ${nom}`, detail: "Vous serez amis dès qu'il ou elle acceptera." },
+        );
         void this.router.navigate(['/foyer']);
       },
       error: () => this.enCours.set(false),

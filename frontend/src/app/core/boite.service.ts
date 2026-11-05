@@ -14,7 +14,9 @@ export class BoiteService {
   /** Amis qui demandent à rejoindre un objectif que je fais (à plusieurs ou seul) */
   readonly demandes = signal<{ commun: ObjectifCommun; membre: MembreCommun }[]>([]);
   readonly encouragements = signal<Encouragement[]>([]);
-  readonly nombre = computed(() => this.invitations().length + this.demandes().length + this.encouragements().length);
+  /** Demandes d'ami reçues */
+  readonly amisEnAttente = signal<{ id: string; nom: string }[]>([]);
+  readonly nombre = computed(() => this.invitations().length + this.demandes().length + this.encouragements().length + this.amisEnAttente().length);
 
   charger(apresEncouragements?: () => void): void {
     this.amis.communs().subscribe({
@@ -26,6 +28,7 @@ export class BoiteService {
       },
       error: () => undefined,
     });
+    this.amis.demandes().subscribe({ next: (l) => this.amisEnAttente.set(l.filter((d) => d.recue)), error: () => undefined });
     this.foyer.encouragementsRecus().subscribe({
       next: (l) => {
         this.encouragements.set(l);
@@ -37,6 +40,10 @@ export class BoiteService {
 
   retirerInvitation(id: number): void {
     this.invitations.update((l) => l.filter((c) => c.id !== id));
+  }
+
+  retirerAmi(id: string): void {
+    this.amisEnAttente.update((l) => l.filter((d) => d.id !== id));
   }
 
   retirerDemande(id: number, membre: string): void {
@@ -53,5 +60,6 @@ export class BoiteService {
     this.invitations.set([]);
     this.demandes.set([]);
     this.encouragements.set([]);
+    this.amisEnAttente.set([]);
   }
 }

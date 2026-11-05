@@ -294,9 +294,19 @@ export class AmisService {
     );
   }
 
-  /** Ajoute l'ami du code et renvoie son nom. */
-  ajouter(code: string): Observable<string> {
-    return this.erreurs.appel(() => this.depot.ajouterAmi(code));
+  /** Demande en ami la personne de cet identifiant (amis tout de suite si elle m'avait déjà demandé). */
+  ajouter(code: string): Observable<{ nom: string; amis: boolean }> {
+    return this.erreurs.appel(() => this.depot.demanderAmi(code));
+  }
+
+  /** Demandes d'ami reçues (recue) et envoyées. */
+  demandes(): Observable<{ id: string; nom: string; recue: boolean }[]> {
+    return this.erreurs.appel(() => this.depot.demandesAmis(), { silencieux: true });
+  }
+
+  /** Accepter ou refuser une demande reçue ; refuser annule aussi la sienne. */
+  repondre(autre: string, accepter: boolean): Observable<void> {
+    return this.erreurs.appel(() => this.depot.repondreAmi(autre, accepter));
   }
 
   retirer(id: string): Observable<void> {

@@ -75,10 +75,22 @@ export class DepotObjectifs {
     return data;
   }
 
-  async ajouterAmi(code: string): Promise<string> {
-    const { data, error } = await this.db.rpc('ajouter_ami', { p_code: code });
+  /** Envoie une demande d'ami ; amis = true si l'autre m'avait déjà demandé (ou si on l'était déjà). */
+  async demanderAmi(code: string): Promise<{ nom: string; amis: boolean }> {
+    const { data, error } = await this.db.rpc('demander_ami', { p_code: code });
     if (error) throw error;
-    return data;
+    return data[0];
+  }
+
+  async demandesAmis(): Promise<{ id: string; nom: string; recue: boolean }[]> {
+    const { data, error } = await this.db.rpc('mes_demandes_amis');
+    if (error) throw error;
+    return data.map((d) => ({ id: d.id, nom: d.nom, recue: d.recue }));
+  }
+
+  async repondreAmi(autre: string, accepter: boolean): Promise<void> {
+    const { error } = await this.db.rpc('repondre_ami', { p_autre: autre, p_accepter: accepter });
+    if (error) throw error;
   }
 
   async retirerAmi(id: string): Promise<void> {

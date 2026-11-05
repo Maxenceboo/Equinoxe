@@ -7,16 +7,28 @@ import { BoiteService } from '../../core/boite.service';
 import { NavigationService } from '../../core/navigation.service';
 import { NotificationsService } from '../../core/notifications.service';
 import { ENCOURAGEMENTS } from '../foyer/foyer.page';
+import { Avatar } from '../../shared/avatar';
 
 /** La boîte : invitations et demandes pour faire un objectif à deux, encouragements reçus. */
 @Component({
   selector: 'app-notifications',
-  imports: [Button],
+  imports: [Button, Avatar],
   template: `
     <header class="entete entete-assistant">
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
       <div><h1>Notifications</h1></div>
     </header>
+
+    @for (d of boite.amisEnAttente(); track d.id) {
+      <section class="invitation demande-ami" aria-label="Demande d'ami">
+        <app-avatar [id]="d.id" [nom]="d.nom" [taille]="2.5" />
+        <p><strong>{{ d.nom }}</strong> veut être ton ami.</p>
+        <div class="actions">
+          <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="repondreAmi(d.id, false)" />
+          <p-button label="Accepter" icon="pi pi-check" (onClick)="repondreAmi(d.id, true)" />
+        </div>
+      </section>
+    }
 
     @for (c of boite.invitations(); track c.id) {
       <section class="invitation" aria-label="Invitation">
@@ -44,7 +56,7 @@ import { ENCOURAGEMENTS } from '../foyer/foyer.page';
       <div class="notif-encouragement"><i class="pi pi-heart"></i><span><strong>{{ e.de }}</strong> t'encourage : {{ texte(e.type) }} !</span></div>
     }
 
-    @if (boite.invitations().length === 0 && boite.demandes().length === 0 && encouragements().length === 0) {
+    @if (boite.amisEnAttente().length === 0 && boite.invitations().length === 0 && boite.demandes().length === 0 && encouragements().length === 0) {
       <p class="aide vide-notif">Rien de nouveau. Les invitations de tes amis et les encouragements de tes groupes arriveront ici.</p>
     }
   `,
@@ -104,6 +116,11 @@ export class NotificationsPage implements OnInit, OnDestroy {
 
   refuserDemande(c: ObjectifCommun, membre: string): void {
     this.amis.quitterCommun(c.id, membre).subscribe(() => this.boite.retirerDemande(c.id, membre));
+  }
+
+  repondreAmi(id: string, accepter: boolean): void {
+    this.boite.retirerAmi(id);
+    this.amis.repondre(id, accepter).subscribe({ error: () => this.boite.charger() });
   }
 
   refuser(c: ObjectifCommun): void {

@@ -238,6 +238,9 @@ export type Database = {
       photos: { Args: Record<PropertyKey, never>; Returns: { utilisateur_id: string; chemin: string }[] };
       mon_code_ami: { Args: Record<PropertyKey, never>; Returns: string };
       ajouter_ami: { Args: { p_code: string }; Returns: string };
+      demander_ami: { Args: { p_code: string }; Returns: { nom: string; amis: boolean }[] };
+      mes_demandes_amis: { Args: Record<PropertyKey, never>; Returns: { id: string; nom: string; recue: boolean; cree_le: string }[] };
+      repondre_ami: { Args: { p_autre: string; p_accepter: boolean }; Returns: undefined };
       retirer_ami: { Args: { p_ami: string }; Returns: undefined };
       mes_amis: { Args: Record<PropertyKey, never>; Returns: { ami_id: string; nom: string; depuis: string }[] };
       objectifs_amis: {

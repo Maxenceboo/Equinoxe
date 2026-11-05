@@ -1,3 +1,4 @@
+import { SessionService } from '../../core/session.service';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { DecimalPipe, PercentPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -161,14 +162,15 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           @if (commun(); as c) {
             @if (actifsDe(c).length > 0) {
               <div class="ligne-a-deux">
-                <span class="avec">
+                <span class="pile">
+                  <app-avatar [id]="moi()" nom="Moi" [taille]="2.25" [fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" />
                   @for (m of actifsDe(c); track m.id) {
-                    <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.75" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
+                    <app-avatar [id]="m.id" [nom]="m.nom" [taille]="2.25" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
                   }
                 </span>
                 <span class="flamme-commune"><app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" /> commune</span>
               </div>
-              <small class="aide">Avec {{ c.ami }}. La flamme commune ne monte que si tout le monde le fait ; si l'un rate, elle retombe pour tous.</small>
+              <small class="aide">Avec {{ c.ami }}{{ c.creeParMoi ? '' : ', créé par ' + c.createur }}. La flamme commune ne monte que si tout le monde le fait ; si l'un rate, elle retombe pour tous.</small>
             }
             @if (invitesDe(c); as inv) {
               <small class="aide">Invitation envoyée à {{ inv }}, en attente de réponse.</small>
@@ -214,6 +216,8 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
 })
 export class ObjectifDetailPage implements OnInit {
   protected readonly navigation = inject(NavigationService);
+  private readonly session = inject(SessionService);
+  protected readonly moi = computed(() => this.session.utilisateur()?.id);
   readonly id = input.required<string>();
 
   private readonly api = inject(ObjectifsService);

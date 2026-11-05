@@ -5,7 +5,7 @@ import { FormlyFieldConfig, FormlyForm } from '@ngx-formly/core';
 import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Objectif, ObjectifSaisie } from '../../api/generated';
-import { ObjectifsService } from '../../application/services';
+import { AmisService, ObjectifsService } from '../../application/services';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { estChiffre, saisieDe } from '../../shared/objectifs';
@@ -21,7 +21,10 @@ import { estChiffre, saisieDe } from '../../shared/objectifs';
 
     @if (pret()) {
       <form [formGroup]="form" (ngSubmit)="enregistrer()">
-        <formly-form [form]="form" [fields]="champs" [model]="model" />
+        @if (createur(); as c) {
+          <p class="aide encart-membre">« {{ model.nom }} » est fait ensemble : {{ c }} règle le nom et le rythme pour tout le monde. Ici, tu choisis ton rappel et qui le voit.</p>
+        }
+        <formly-form [form]="form" [fields]="champs" [model]="model" [options]="options" />
         <p-button type="submit" label="Enregistrer" [loading]="enCours()" styleClass="w-full" />
       </form>
     }
@@ -39,14 +42,24 @@ export class ObjectifFormPage implements OnInit {
   protected model: Partial<ObjectifSaisie> = {};
   protected readonly pret = signal(false);
   protected readonly enCours = signal(false);
+  /** Objectif fait ensemble créé par quelqu'un d'autre : son nom, sinon null. */
+  protected readonly createur = signal<string | null>(null);
+  protected readonly options = { formState: { membre: false } };
+  private readonly amis = inject(AmisService);
+  private original: ObjectifSaisie | null = null;
 
   // Champs construits depuis le schéma ObjectifSaisie, avec deux règles d'affichage
   protected readonly champs: FormlyFieldConfig[] = inject(SchemaFormService).champs('ObjectifSaisie', {
     cible: {
       type: 'radio',
       props: { options: [1, 2, 3, 4, 5, 6, 7].map((n) => ({ value: n, label: String(n) })) },
-      expressions: { hide: 'model.typeFrequence === "QUOTIDIEN"' },
+      expressions: { hide: 'model.typeFrequence === "QUOTIDIEN" || formState.membre' },
     },
+    // Objectif fait ensemble : seul son créateur change le nom, la catégorie, le rythme et la quantité
+    nom: { expressions: { hide: 'formState.membre' } },
+    categorie: { expressions: { hide: 'formState.membre' } },
+    typeFrequence: { expressions: { hide: 'formState.membre' } },
+    mesure: { expressions: { hide: 'formState.membre' } },
     // La DA est en noir et blanc : la couleur n'est plus affichée, on ne la demande pas
     couleur: { hide: true },
     heure: {
@@ -65,7 +78,7 @@ export class ObjectifFormPage implements OnInit {
       type: 'quantite',
       props: { dureeMax: 99 * 60 },
       expressions: {
-        hide: '!model.mesure || model.mesure === "AUCUNE"',
+        hide: '!model.mesure || model.mesure === "AUCUNE" || formState.membre',
         'props.duree': 'model.mesure === "MINUTES"',
         'props.label': (f: FormlyFieldConfig) =>
           f.model?.mesure === 'MINUTES' ? 'Temps visé par semaine (facultatif)' : 'Total visé par semaine (facultatif)',
@@ -83,14 +96,30 @@ export class ObjectifFormPage implements OnInit {
     }
     this.api.lireObjectif(Number(id)).subscribe((o: Objectif) => {
       this.model = saisieDe(o);
-      this.pret.set(true);
+      this.original = saisieDe(o);
+      this.amis.communs().subscribe({
+        next: (l) => {
+          const c = l.find((x) => x.monObjectif === o.id && x.statut === 'ACTIF' && !x.creeParMoi);
+          if (c) {
+            this.createur.set(c.createur ?? 'Le créateur');
+            this.options.formState.membre = true;
+          }
+          this.pret.set(true);
+        },
+        error: () => this.pret.set(true),
+      });
     });
   }
 
   enregistrer(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-    const saisie = { ...this.model } as ObjectifSaisie;
+    let saisie = { ...this.model } as ObjectifSaisie;
+    // Membre d'un objectif fait ensemble : on garde tels quels les réglages du créateur
+    const o = this.original;
+    if (this.options.formState.membre && o) {
+      saisie = { ...saisie, nom: o.nom, categorie: o.categorie, typeFrequence: o.typeFrequence, cible: o.cible, mesure: o.mesure, objectifQuantite: o.objectifQuantite };
+    }
     if (saisie.typeFrequence === 'QUOTIDIEN') saisie.cible = 7;
     if (!estChiffre(saisie.mesure)) saisie.objectifQuantite = undefined;
     if (saisie.categorie === 'SOMMEIL') saisie.rappelAuto = false;

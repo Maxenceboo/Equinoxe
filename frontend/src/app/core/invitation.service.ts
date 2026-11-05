@@ -75,8 +75,12 @@ export class InvitationService {
       return true;
     }
     this.amis.ajouter(inv.code).subscribe({
-      next: (nom) => {
-        this.messages.add({ severity: 'success', summary: `${nom} est ton ami`, detail: 'Vous voyez maintenant vos objectifs visibles.' });
+      next: ({ nom, amis }) => {
+        this.messages.add(
+          amis
+            ? { severity: 'success', summary: `${nom} est ton ami`, detail: 'Vous voyez maintenant vos objectifs visibles.' }
+            : { severity: 'success', summary: `Demande envoyée à ${nom}`, detail: "Vous serez amis dès qu'il ou elle acceptera." },
+        );
         void this.router.navigate(['/foyer']);
       },
       error: () => undefined,

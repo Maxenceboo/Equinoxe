@@ -104,7 +104,24 @@ export function viderCacheAmis(): void {
           }
         </div>
       } @empty {
+        @if (amisDemandes().length === 0) {
         <p class="aide">Pas encore d'ami. <a routerLink="/profil" [queryParams]="{ ajouter: 1 }">Ajoute-en un</a> avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire ensemble.</p>
+        }
+      }
+      @for (d of amisDemandes(); track d.id) {
+        <div class="ensemble en-attente">
+          <app-avatar [id]="d.id" [nom]="d.nom" [taille]="2.25" />
+          <span class="texte">
+            <strong>{{ d.nom }}</strong>
+            <small>{{ d.recue ? 'veut être ton ami' : 'demande envoyée' }}</small>
+          </span>
+          @if (d.recue) {
+            <button type="button" class="lien-details" (click)="repondreAmi(d.id, false)">Refuser</button>
+            <p-button label="Accepter" size="small" (onClick)="repondreAmi(d.id, true)" />
+          } @else {
+            <button type="button" class="lien-details" (click)="repondreAmi(d.id, false)">Annuler</button>
+          }
+        </div>
       }
 
     </section>
@@ -117,6 +134,7 @@ export class Amis implements OnInit {
   protected readonly moi = computed(() => this.session.utilisateur()?.id);
   protected readonly amis = signal<Ami[]>(cache.amis);
   protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
+  protected readonly amisDemandes = signal<{ id: string; nom: string; recue: boolean }[]>([]);
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
   protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
   /** Ce qui attend une réponse : mes demandes pour rejoindre, et les invitations que j'ai envoyées. */
@@ -152,6 +170,7 @@ export class Amis implements OnInit {
 
   private charger(): void {
     this.api.lister().subscribe({ next: (l) => this.amis.set((cache.amis = l)), error: () => undefined });
+    this.api.demandes().subscribe({ next: (l) => this.amisDemandes.set(l), error: () => undefined });
     this.api.communs().subscribe({ next: (l) => this.communs.set((cache.communs = l)), error: () => undefined });
   }
 
@@ -191,5 +210,10 @@ export class Amis implements OnInit {
 
   annuler(c: ObjectifCommun, membre?: string): void {
     this.api.quitterCommun(c.id, membre).subscribe(() => this.charger());
+  }
+
+  protected repondreAmi(id: string, accepter: boolean): void {
+    this.amisDemandes.update((l) => l.filter((d) => d.id !== id));
+    this.api.repondre(id, accepter).subscribe({ next: () => this.charger(), error: () => this.charger() });
   }
 }
