@@ -14,7 +14,8 @@ export function parent(url: string): string {
   if (modifier) return `/objectifs/${modifier[1]}`;
   if (chemin === '/profil/archives') return '/profil/reglages';
   if (chemin.startsWith('/profil/')) return '/profil';
-  if (/^\/foyer\/\d+$/.test(chemin)) return '/foyer';
+  if (/^\/foyer\/\d+$/.test(chemin)) return '/foyer/groupes';
+  if (chemin === '/foyer/groupes') return '/foyer';
   if (chemin === '/objectifs/nouveau/avance') return '/objectifs/nouveau';
   return '/';
 }

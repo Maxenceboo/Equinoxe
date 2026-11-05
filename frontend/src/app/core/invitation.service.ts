@@ -71,7 +71,7 @@ export class InvitationService {
     if (!inv || !this.session.connecte()) return false;
     this.oublier();
     if (inv.type === 'groupe') {
-      void this.router.navigate(['/foyer'], { queryParams: { rejoindre: inv.code } });
+      void this.router.navigate(['/foyer/groupes'], { queryParams: { rejoindre: inv.code } });
       return true;
     }
     this.amis.ajouter(inv.code).subscribe({

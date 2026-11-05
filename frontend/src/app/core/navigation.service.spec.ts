@@ -37,7 +37,8 @@ describe('écran parent', () => {
     expect(parent('/profil/archives')).toBe('/profil/reglages');
     expect(parent('/profil/reglages')).toBe('/profil');
     expect(parent('/profil/badges')).toBe('/profil');
-    expect(parent('/foyer/12')).toBe('/foyer');
+    expect(parent('/foyer/12')).toBe('/foyer/groupes');
+    expect(parent('/foyer/groupes')).toBe('/foyer');
   });
 });
 

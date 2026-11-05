@@ -46,7 +46,6 @@ export function viderCacheAmis(): void {
                 {{ c.ami }} {{ c.typeFrequence === 'QUOTIDIEN' ? '' : (c.duAmi ?? 0) + '/' + c.objectifPeriode }}
               </span>
             </div>
-            <small class="aide">{{ etatCommun(c) }}</small>
           </a>
         }
         @for (c of envoyees(); track c.id) {
@@ -77,28 +76,17 @@ export function viderCacheAmis(): void {
                     <span class="nom">{{ b.nom }}</span>
                     <app-flamme [valeur]="b.progression.serie" [unite]="b.progression.uniteSerie" />
                   </div>
-                  <div class="segments" aria-hidden="true">
-                    @for (plein of segments(b); track $index) {
-                      <i [class.plein]="plein"></i>
-                    }
-                  </div>
-                  <div class="ligne-bas">
-                    <small>{{ etat(b) }}</small>
-                    <span class="compteur">{{ b.progression.realisees }}<span>/{{ b.progression.cible }}</span></span>
-                  </div>
                   @if (demandeEnvoyee(a, b)) {
-                    <small class="aide"><i class="pi pi-clock"></i> Demande envoyée, {{ a.nom }} doit accepter</small>
+                    <small class="aide"><i class="pi pi-clock"></i> Demande envoyée</small>
                   } @else if (!b.enCommun) {
                     <p-button
-                      [label]="'Proposer à ' + a.nom + ' de le faire ensemble'"
+                      label="Le faire à deux"
                       icon="pi pi-users"
                       [text]="true"
                       size="small"
                       [loading]="rejoint() === b.objectifId"
                       (onClick)="rejoindre(b)"
                     />
-                  } @else {
-                    <small class="aide"><i class="pi pi-users"></i> Déjà fait à deux</small>
                   }
                 </div>
               } @empty {
@@ -189,28 +177,8 @@ export class Amis implements OnInit {
     this.ouvert.set(this.ouvert() === id ? null : id);
   }
 
-  protected segments(b: ObjectifSuivi): boolean[] {
-    return Array.from({ length: b.progression.cible }, (_, i) => i < b.progression.realisees);
-  }
-
-  protected etat(b: ObjectifSuivi): string {
-    if (b.progression.faitAujourdhui) return "Fait aujourd'hui";
-    return b.progression.atteint ? 'Semaine réussie' : "Pas encore aujourd'hui";
-  }
-
   protected frequence(c: ObjectifCommun): string {
     return c.typeFrequence === 'QUOTIDIEN' ? 'tous les jours' : `${c.cible} fois par semaine`;
-  }
-
-  protected etatCommun(c: ObjectifCommun): string {
-    const objectif = c.objectifPeriode ?? 1;
-    const moi = (c.moi ?? 0) >= objectif;
-    const ami = (c.duAmi ?? 0) >= objectif;
-    const periode = c.typeFrequence === 'QUOTIDIEN' ? "aujourd'hui" : 'cette semaine';
-    if (moi && ami) return `Fait à deux ${periode} : la flamme commune est sauvée.`;
-    if (moi) return `À ${c.ami} de jouer ${periode}, sinon la flamme commune retombe.`;
-    if (ami) return `${c.ami} l'a fait. À toi ${periode}, sinon la flamme commune retombe.`;
-    return `Aucun de vous deux ${periode} pour l'instant.`;
   }
 
   async partager(pseudo: string): Promise<void> {

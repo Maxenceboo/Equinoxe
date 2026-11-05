@@ -186,6 +186,6 @@ export class GroupePage implements OnInit {
   }
 
   quitter(f: Foyer): void {
-    this.api.quitter(f.id).subscribe(() => this.router.navigate(['/foyer'], { replaceUrl: true }));
+    this.api.quitter(f.id).subscribe(() => this.router.navigate(['/foyer/groupes'], { replaceUrl: true }));
   }
 }

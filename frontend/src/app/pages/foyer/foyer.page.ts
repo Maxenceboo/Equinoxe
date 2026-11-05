@@ -6,9 +6,8 @@ import { Button } from 'primeng/button';
 import { CreationFoyer, Foyer, RejoindreFoyer, TypeEncouragement } from '../../api/generated';
 import { FoyerService } from '../../application/services';
 import { SchemaFormService } from '../../core/schema-form.service';
-import { Amis, viderCacheAmis } from './amis';
-import { Cloche } from '../../shared/cloche';
-import { BoiteService } from '../../core/boite.service';
+import { viderCacheAmis } from './amis';
+import { NavigationService } from '../../core/navigation.service';
 
 export const ENCOURAGEMENTS: { type: TypeEncouragement; texte: string }[] = [
   { type: 'BRAVO', texte: 'Bravo' },
@@ -25,24 +24,17 @@ export function viderCacheProches(): void {
   viderCacheAmis();
 }
 
-/** L'onglet Proches : objectifs faits à deux, amis, puis groupes. Les invitations sont derrière la cloche. */
+/** Mes groupes (famille, coloc, collègues…) : page secondaire, ouverte depuis le bas de Proches. */
 @Component({
   selector: 'app-foyer',
-  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button, Amis, Cloche],
+  imports: [ReactiveFormsModule, RouterLink, FormlyForm, Button],
   template: `
-    <header class="entete">
-      <div>
-        <h1>Proches</h1>
-        <small>Tenir ses objectifs, c'est plus facile à plusieurs</small>
-      </div>
-      <app-cloche />
+    <header class="entete entete-assistant">
+      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
+      <div><h1>Groupes</h1></div>
     </header>
 
-    <app-amis />
-
     <section class="section-groupes" aria-label="Groupes">
-      <h2 class="titre-section">Groupes</h2>
-      <p class="aide">Famille, coloc, collègues : chaque coche remplit une jauge commune, avec une récompense si elle est pleine dimanche.</p>
     @if (!charge()) {
       <p class="aide chargement"><i class="pi pi-spin pi-spinner"></i> Chargement des groupes…</p>
     } @else {
@@ -60,6 +52,9 @@ export function viderCacheProches(): void {
           </li>
         }
       </ul>
+      @if (foyers().length === 0 && mode() === null) {
+        <p class="aide">Famille, coloc, collègues : chaque coche remplit une jauge commune, avec une récompense si elle est pleine dimanche.</p>
+      }
 
       @if (mode() === null) {
         <p-button label="Créer ou rejoindre un groupe" icon="pi pi-plus" [outlined]="true" (onClick)="mode.set('choix')" />
@@ -115,16 +110,14 @@ export class FoyerPage implements OnInit {
   /** Code de groupe reçu par un lien d'invitation (?rejoindre=123456) : le formulaire est prérempli. */
   readonly codeGroupe = input<string>(undefined, { alias: 'rejoindre' });
 
-  private readonly boite = inject(BoiteService);
+  protected readonly navigation = inject(NavigationService);
 
   ngOnInit(): void {
-    this.boite.charger();
     const code = this.codeGroupe();
     if (code) {
       this.modelRejoindre = { code };
       this.mode.set('rejoindre');
-      setTimeout(() => document.querySelector('.section-groupes')?.scrollIntoView({ behavior: 'smooth' }), 300);
-    }
+          }
     this.api.foyers().subscribe({
       next: (l) => {
         derniersFoyers = l;

@@ -16,7 +16,8 @@ export const routes: Routes = [
     children: [
       { path: '', loadComponent: () => import('./pages/accueil/accueil.page').then((m) => m.AccueilPage) },
       { path: 'bilan', loadComponent: () => import('./pages/bilan/bilan.page').then((m) => m.BilanPage) },
-      { path: 'foyer', loadComponent: () => import('./pages/foyer/foyer.page').then((m) => m.FoyerPage) },
+      { path: 'foyer', loadComponent: () => import('./pages/foyer/proches.page').then((m) => m.ProchesPage) },
+      { path: 'foyer/groupes', loadComponent: () => import('./pages/foyer/foyer.page').then((m) => m.FoyerPage) },
       { path: 'foyer/:id', loadComponent: () => import('./pages/foyer/groupe.page').then((m) => m.GroupePage) },
       { path: 'profil', loadComponent: () => import('./pages/profil/profil.page').then((m) => m.ProfilPage) },
       {
