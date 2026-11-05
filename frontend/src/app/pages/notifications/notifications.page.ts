@@ -20,15 +20,22 @@ import { ENCOURAGEMENTS } from '../foyer/foyer.page';
 
     @for (c of boite.invitations(); track c.id) {
       <section class="invitation" aria-label="Invitation">
-        @if (c.demande) {
-          <p><strong>{{ c.ami }}</strong> aimerait faire ton objectif « {{ c.nom }} » avec toi, {{ frequence(c) }}.</p>
-        } @else {
-          <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
-        }
-        <small class="aide">Vous aurez une flamme commune : elle ne monte que si vous le faites tous les deux.</small>
+        <p><strong>{{ c.ami }}</strong> te propose de faire « {{ c.nom }} » ensemble, {{ frequence(c) }}.</p>
+        <small class="aide">Vous aurez une flamme commune : elle ne monte que si tout le monde le fait.</small>
         <div class="actions">
           <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="refuser(c)" />
           <p-button label="On le fait ensemble" icon="pi pi-check" [loading]="enCours() === c.id" (onClick)="accepter(c)" />
+        </div>
+      </section>
+    }
+
+    @for (d of boite.demandes(); track d.commun.id + d.membre.id) {
+      <section class="invitation" aria-label="Demande">
+        <p><strong>{{ d.membre.nom }}</strong> aimerait faire « {{ d.commun.nom }} » avec {{ d.commun.membres.length > 1 ? 'vous' : 'toi' }}.</p>
+        <small class="aide">La flamme commune ne montera que si tout le monde le fait.</small>
+        <div class="actions">
+          <p-button label="Refuser" [text]="true" severity="secondary" (onClick)="refuserDemande(d.commun, d.membre.id)" />
+          <p-button label="Accepter" icon="pi pi-check" [loading]="enCours() === d.commun.id" (onClick)="accepterDemande(d.commun, d.membre.id)" />
         </div>
       </section>
     }
@@ -37,7 +44,7 @@ import { ENCOURAGEMENTS } from '../foyer/foyer.page';
       <div class="notif-encouragement"><i class="pi pi-heart"></i><span><strong>{{ e.de }}</strong> t'encourage : {{ texte(e.type) }} !</span></div>
     }
 
-    @if (boite.invitations().length === 0 && encouragements().length === 0) {
+    @if (boite.invitations().length === 0 && boite.demandes().length === 0 && encouragements().length === 0) {
       <p class="aide vide-notif">Rien de nouveau. Les invitations de tes amis et les encouragements de tes groupes arriveront ici.</p>
     }
   `,
@@ -82,6 +89,21 @@ export class NotificationsPage implements OnInit, OnDestroy {
       },
       error: () => this.enCours.set(null),
     });
+  }
+
+  accepterDemande(c: ObjectifCommun, membre: string): void {
+    this.enCours.set(c.id);
+    this.amis.accepterCommun(c.id, membre).subscribe({
+      next: (id) => {
+        this.boite.retirerDemande(c.id, membre);
+        void this.router.navigate(['/objectifs', id]);
+      },
+      error: () => this.enCours.set(null),
+    });
+  }
+
+  refuserDemande(c: ObjectifCommun, membre: string): void {
+    this.amis.quitterCommun(c.id, membre).subscribe(() => this.boite.retirerDemande(c.id, membre));
   }
 
   refuser(c: ObjectifCommun): void {

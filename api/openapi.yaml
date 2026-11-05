@@ -362,26 +362,37 @@ components:
 
     ObjectifCommun:
       type: object
-      required: [id, statut, ami, amiId, nom, categorie, typeFrequence, cible, heure]
+      required: [id, statut, ami, nom, categorie, typeFrequence, cible, heure, membres, creeParMoi, createur]
       properties:
         id: { type: integer, format: int64 }
         statut: { $ref: '#/components/schemas/StatutCommun' }
-        demande: { type: boolean, description: "true : l'invité a demandé à rejoindre l'objectif du propriétaire" }
-        ami: { type: string }
-        amiId: { type: string }
+        demande: { type: boolean, description: "En attente : c'est moi qui ai demandé à le rejoindre" }
+        creeParMoi: { type: boolean, description: "C'est mon objectif d'origine" }
+        createur: { type: string, description: Nom affiché de celui qui l'a créé }
+        aRejoint: { type: boolean, description: "J'ai rejoint l'objectif d'un ami : le quitter le fait disparaître de mes objectifs" }
+        ami: { type: string, description: "Les autres membres actifs, pour les phrases (« tom et léa »)" }
+        amiId: { type: string, description: Le premier autre membre actif (ou le créateur) }
+        membres: { type: array, items: { $ref: '#/components/schemas/MembreCommun' }, description: "Les autres membres, moi exclu" }
         monObjectif: { type: integer, format: int64, description: "Mon objectif relié (absent pour une invitation reçue)" }
         nom: { type: string }
         categorie: { $ref: '#/components/schemas/Categorie' }
         typeFrequence: { $ref: '#/components/schemas/TypeFrequence' }
         cible: { type: integer }
         heure: { type: string }
-        flamme: { type: integer, description: Série réussie à deux d'affilée }
+        flamme: { type: integer, description: Série réussie par tous d'affilée }
         record: { type: integer }
         uniteSerie: { $ref: '#/components/schemas/UniteSerie' }
         moi: { type: integer, description: "Ce que j'ai fait aujourd'hui (quotidien) ou cette semaine" }
-        duAmi: { type: integer, description: "Ce que mon ami a fait aujourd'hui (quotidien) ou cette semaine" }
         objectifPeriode: { type: integer, description: "Ce qu'il faut à chacun sur la période en cours" }
-        aRejoint: { type: boolean, description: "J'ai rejoint l'objectif de mon ami : le quitter le fait disparaître de mes objectifs" }
+
+    MembreCommun:
+      type: object
+      required: [id, nom, statut]
+      properties:
+        id: { type: string }
+        nom: { type: string }
+        statut: { type: string, enum: [ACTIF, INVITE, DEMANDE] }
+        fait: { type: integer, description: "Ce qu'il a fait aujourd'hui (quotidien) ou cette semaine" }
 
     ObjectifSuivi:
       type: object

@@ -199,14 +199,16 @@ export class ReglagesPage {
 
   async deconnecter(): Promise<void> {
     this.enCours.set(true);
-    await this.notifications.toutAnnuler();
-    await this.widgets.vider();
+    // Même si un rappel ou un widget résiste, la déconnexion va jusqu'au bout
+    await this.notifications.toutAnnuler().catch(() => undefined);
+    await this.widgets.vider().catch(() => undefined);
     this.horsLigne.oublier();
     viderCacheProches();
     this.boite.vider();
     this.photos.vider();
     this.amis.pseudo.set(undefined);
-    await this.session.fermer();
-    void this.router.navigate(['/connexion'], { replaceUrl: true });
+    await this.session.fermer().catch(() => undefined);
+    // On recharge l'app : plus rien du compte précédent ne reste en mémoire (profil, points, listes)
+    location.replace(new URL('connexion', document.baseURI).href);
   }
 }

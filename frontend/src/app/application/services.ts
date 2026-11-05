@@ -308,26 +308,45 @@ export class AmisService {
     return this.erreurs.appel(async () => {
       const lignes = await this.depot.communs();
       return lignes.map((c): ObjectifCommun => {
+        const actifs = c.membres.filter((m) => m.statut === 'ACTIF');
         const commun: ObjectifCommun = {
           id: c.id,
           statut: c.statut as StatutCommun,
-          demande: !!c.demande,
-          ami: c.ami,
-          amiId: c.ami_id,
+          demande: c.statut === 'ENVOYEE',
+          creeParMoi: c.cree_par_moi,
+          createur: c.createur,
+          aRejoint: !c.cree_par_moi,
+          ami: listeNoms(actifs.length ? actifs.map((m) => m.nom) : [c.createur]),
+          amiId: actifs[0]?.id ?? c.membres[0]?.id,
+          membres: c.membres.map((m) => ({ id: m.id, nom: m.nom, statut: m.statut })),
           monObjectif: c.mon_objectif ?? undefined,
           nom: c.nom,
           categorie: c.categorie as ObjectifCommun['categorie'],
           typeFrequence: c.type_frequence as ObjectifCommun['typeFrequence'],
           cible: c.cible,
           heure: c.heure,
-          aRejoint: !!c.a_rejoint,
         };
-        if (c.statut !== 'ACTIF' || !c.depuis) return commun;
+        if (c.statut !== 'ACTIF' || !c.mon_depuis) return commun;
         const s = serieCommune(
-          { quotidien: c.type_frequence === 'QUOTIDIEN', cible: c.cible, depuis: c.depuis, mesJours: c.mes_jours, joursAmi: c.jours_ami },
+          {
+            quotidien: c.type_frequence === 'QUOTIDIEN',
+            cible: c.cible,
+            depuis: c.mon_depuis,
+            mesJours: c.mes_jours,
+            autres: actifs.map((m) => ({ depuis: m.depuis ?? c.mon_depuis!, jours: m.jours })),
+          },
           aujourdhui(),
         );
-        return { ...commun, flamme: s.enCours, record: s.record, uniteSerie: s.unite, moi: s.moi, duAmi: s.ami, objectifPeriode: s.objectif };
+        const fait = new Map(actifs.map((m, i) => [m.id, s.autres[i]]));
+        return {
+          ...commun,
+          membres: commun.membres.map((m) => (fait.has(m.id) ? { ...m, fait: fait.get(m.id) } : m)),
+          flamme: s.enCours,
+          record: s.record,
+          uniteSerie: s.unite,
+          moi: s.moi,
+          objectifPeriode: s.objectif,
+        };
       });
     }, { silencieux: true });
   }
@@ -341,13 +360,14 @@ export class AmisService {
     return this.erreurs.appel(() => this.depot.inviterCommun(objectifId, amiId));
   }
 
-  /** Accepte l'invitation et renvoie l'identifiant de mon nouvel objectif. */
-  accepterCommun(id: number): Observable<number> {
-    return this.erreurs.appel(() => this.depot.accepterCommun(id));
+  /** Accepte mon invitation, ou la demande d'un ami (membre) ; renvoie l'identifiant de mon objectif. */
+  accepterCommun(id: number, membre?: string): Observable<number> {
+    return this.erreurs.appel(() => this.depot.accepterCommun(id, membre));
   }
 
-  quitterCommun(id: number): Observable<void> {
-    return this.erreurs.appel(() => this.depot.quitterCommun(id));
+  /** Quitter ; avec un membre : refuser sa demande ou annuler son invitation. */
+  quitterCommun(id: number, membre?: string): Observable<void> {
+    return this.erreurs.appel(() => this.depot.quitterCommun(id, membre));
   }
 
   quiVoit(objectifId: number): Observable<string[]> {
@@ -356,6 +376,12 @@ export class AmisService {
 }
 
 /** Identifiant tel qu'enregistré : minuscules, sans @ ni espaces. */
+/** « tom », « tom et léa », « tom, léa et sam ». */
+export function listeNoms(noms: string[]): string {
+  if (noms.length <= 1) return noms[0] ?? '';
+  return `${noms.slice(0, -1).join(', ')} et ${noms[noms.length - 1]}`;
+}
+
 export function pseudoNormal(p: string): string {
   return p.trim().replace(/^@/, '').toLowerCase();
 }

@@ -256,26 +256,24 @@ export type Database = {
       };
       rejoindre_objectif_ami: { Args: { p_objectif: number }; Returns: number };
       inviter_commun: { Args: { p_objectif: number; p_ami: string }; Returns: number };
-      accepter_commun: { Args: { p_id: number }; Returns: number };
-      quitter_commun: { Args: { p_id: number }; Returns: undefined };
+      accepter_commun: { Args: { p_id: number; p_membre?: string }; Returns: number };
+      quitter_commun: { Args: { p_id: number; p_membre?: string }; Returns: undefined };
       mes_communs: {
         Args: Record<PropertyKey, never>;
         Returns: {
           id: number;
           statut: string;
-          demande?: boolean;
-          a_rejoint?: boolean;
-          ami_id: string;
-          ami: string;
+          cree_par_moi: boolean;
+          createur: string;
           mon_objectif: number | null;
           nom: string;
           categorie: string;
           type_frequence: string;
           cible: number;
           heure: string;
-          depuis: string | null;
+          mon_depuis: string | null;
           mes_jours: string[];
-          jours_ami: string[];
+          membres: { id: string; nom: string; statut: 'ACTIF' | 'INVITE' | 'DEMANDE'; depuis: string | null; jours: string[] }[];
         }[];
       };
       amis_qui_voient: { Args: { p_objectif: number }; Returns: { nom: string }[] };

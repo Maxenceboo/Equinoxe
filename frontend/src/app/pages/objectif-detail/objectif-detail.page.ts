@@ -8,7 +8,7 @@ import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
 import { Ami, Historique, Objectif, ObjectifCommun, Statistiques, TypeSeance } from '../../api/generated';
-import { AmisService, ObjectifsService } from '../../application/services';
+import { AmisService, ObjectifsService, listeNoms } from '../../application/services';
 import schemas from '../../api/generated/schemas.json';
 import { estChiffre, heureLisible, nombre, saisieDe, valeur } from '../../shared/objectifs';
 import { NotificationsService } from '../../core/notifications.service';
@@ -156,42 +156,54 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           }
         </section>
 
-        <section class="partage a-deux" aria-label="À deux">
-          <p class="etiquette">À deux</p>
+        <section class="partage a-deux" aria-label="Ensemble">
+          <p class="etiquette">Ensemble</p>
           @if (commun(); as c) {
-            @if (c.statut === 'ACTIF') {
+            @if (actifsDe(c).length > 0) {
               <div class="ligne-a-deux">
-                <span class="avec"><app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="1.75" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" /> <strong>{{ c.ami }}</strong></span>
+                <span class="avec">
+                  @for (m of actifsDe(c); track m.id) {
+                    <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.75" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
+                  }
+                </span>
                 <span class="flamme-commune"><app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" /> commune</span>
               </div>
-              <small class="aide">La flamme commune ne monte que si vous le faites tous les deux. Si l'un rate, elle retombe pour les deux.</small>
-            } @else {
-              <small class="aide">Invitation envoyée à {{ c.ami }}, en attente de sa réponse.</small>
+              <small class="aide">Avec {{ c.ami }}. La flamme commune ne monte que si tout le monde le fait ; si l'un rate, elle retombe pour tous.</small>
             }
-            @if (confirmerArret()) {
-              @if (c.statut === 'ACTIF' && c.aRejoint) {
-                <small class="aide">C'est l'objectif de {{ c.ami }} : en le quittant, il disparaît de tes objectifs.</small>
-              }
-              <div class="actions-ligne">
-                <p-button label="Garder" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(false)" />
-                <p-button [label]="c.statut !== 'ACTIF' ? 'Annuler l’invitation' : c.aRejoint ? 'Quitter' : 'Arrêter à deux'" severity="danger" size="small" (onClick)="arreterCommun(c)" />
-              </div>
-            } @else {
-              <p-button [label]="c.statut !== 'ACTIF' ? 'Annuler l’invitation' : c.aRejoint ? 'Quitter cet objectif' : 'Arrêter de le faire à deux'" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(true)" />
+            @if (invitesDe(c); as inv) {
+              <small class="aide">Invitation envoyée à {{ inv }}, en attente de réponse.</small>
             }
-          } @else if (amis().length === 0) {
-            <small class="aide">Ajoute un ami depuis ton Profil pour faire cet objectif ensemble, avec une flamme commune.</small>
-          } @else if (choixAmi()) {
+          }
+
+          @if (choixAmi()) {
             <small class="aide">Avec qui ? Ton ami recevra l'invitation dans ses notifications.</small>
             <div class="choix-amis">
-              @for (a of amis(); track a.id) {
+              @for (a of amisDispo(); track a.id) {
                 <p-button [label]="a.nom" [outlined]="true" size="small" (onClick)="inviter(a.id)" />
               }
               <p-button label="Annuler" [text]="true" severity="secondary" size="small" (onClick)="choixAmi.set(false)" />
             </div>
-          } @else {
-            <small class="aide">Fais-le avec un ami : vous aurez une flamme commune, qui ne monte que si vous le faites tous les deux.</small>
-            <p-button label="Le faire avec un ami" icon="pi pi-users" [outlined]="true" (onClick)="choixAmi.set(true)" />
+          } @else if (amis().length === 0) {
+            <small class="aide">Ajoute un ami depuis ton Profil pour faire cet objectif ensemble, avec une flamme commune.</small>
+          } @else if (!commun()) {
+            <small class="aide">Fais-le avec des amis (jusqu'à 10) : la flamme commune ne monte que si tout le monde le fait.</small>
+            <p-button label="Le faire avec des amis" icon="pi pi-users" [outlined]="true" (onClick)="choixAmi.set(true)" />
+          } @else if (amisDispo().length > 0 && (commun()?.membres?.length ?? 0) < 9) {
+            <p-button label="Inviter un ami de plus" icon="pi pi-user-plus" [text]="true" size="small" (onClick)="choixAmi.set(true)" />
+          }
+
+          @if (commun(); as c) {
+            @if (confirmerArret()) {
+              <small class="aide">
+                {{ c.aRejoint ? "C'est l'objectif de " + c.createur + " : en le quittant, il disparaît de tes objectifs." : 'Chacun garde son objectif, mais la flamme commune s’arrête pour tout le monde.' }}
+              </small>
+              <div class="actions-ligne">
+                <p-button label="Garder" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(false)" />
+                <p-button [label]="c.aRejoint ? 'Quitter' : 'Arrêter'" severity="danger" size="small" (onClick)="arreterCommun(c)" />
+              </div>
+            } @else {
+              <p-button [label]="c.aRejoint ? 'Quitter cet objectif' : 'Arrêter de le faire ensemble'" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(true)" />
+            }
           }
         </section>
       }
@@ -279,13 +291,27 @@ export class ObjectifDetailPage implements OnInit {
     });
   }
 
+  protected actifsDe(c: ObjectifCommun) {
+    return c.membres.filter((m) => m.statut === 'ACTIF');
+  }
+
+  protected invitesDe(c: ObjectifCommun): string {
+    return listeNoms(c.membres.filter((m) => m.statut === 'INVITE').map((m) => m.nom));
+  }
+
+  /** Mes amis qui ne sont pas déjà dans cet objectif (ni invités). */
+  protected amisDispo(): Ami[] {
+    const deja = new Set(this.commun()?.membres.map((m) => m.id) ?? []);
+    return this.amis().filter((a) => !deja.has(a.id));
+  }
+
   arreterCommun(c: ObjectifCommun): void {
     this.amisApi.quitterCommun(c.id).subscribe(() => {
       viderCacheAmis();
       this.confirmerArret.set(false);
       this.commun.set(null);
       // L'objectif rejoint chez un ami disparaît avec lui
-      if (c.statut === 'ACTIF' && c.aRejoint) {
+      if (c.aRejoint) {
         this.notifications.synchroniser();
         void this.router.navigate(['/'], { replaceUrl: true });
       }

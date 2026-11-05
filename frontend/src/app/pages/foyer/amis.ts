@@ -25,33 +25,35 @@ export function viderCacheAmis(): void {
   selector: 'app-amis',
   imports: [RouterLink, Button, Flamme, Avatar],
   template: `
-    @if (actifs().length > 0 || envoyees().length > 0) {
-      <section class="binomes" aria-label="À deux">
-        <h2 class="titre-section">À deux</h2>
+    @if (actifs().length > 0 || enAttente().length > 0) {
+      <section class="binomes" aria-label="Ensemble">
+        <h2 class="titre-section">Ensemble</h2>
         @for (c of actifs(); track c.id) {
           <a class="binome commun" [routerLink]="['/objectifs', c.monObjectif]">
             <div class="ligne-haut">
               <span class="nom">{{ c.nom }}</span>
               <app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" />
             </div>
-            <!-- Les photos des deux : un trait plein autour de celui qui a fait sa part -->
+            <!-- Les photos de chacun : un trait plein autour de ceux qui ont fait leur part -->
             <div class="duo">
               <span class="duo-membre">
                 <app-avatar [id]="moi()" nom="Moi" [taille]="2" [fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" />
                 @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ c.moi ?? 0 }}/{{ c.objectifPeriode }}</small> }
               </span>
-              <span class="duo-membre">
-                <app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="2" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" />
-                @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ c.duAmi ?? 0 }}/{{ c.objectifPeriode }}</small> }
-              </span>
+              @for (m of actifsDe(c); track m.id) {
+                <span class="duo-membre">
+                  <app-avatar [id]="m.id" [nom]="m.nom" [taille]="2" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
+                  @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ m.fait ?? 0 }}/{{ c.objectifPeriode }}</small> }
+                </span>
+              }
             </div>
           </a>
         }
-        @for (c of envoyees(); track c.id) {
+        @for (e of enAttente(); track e.commun.id + (e.membre ?? '')) {
           <div class="binome commun en-attente">
             <div class="ligne-haut">
-              <span class="nom">{{ c.nom }} <small>· {{ c.demande ? 'demande envoyée' : 'invitation envoyée' }} à {{ c.ami }}</small></span>
-              <button type="button" class="lien-details" (click)="quitterCommun(c)">Annuler</button>
+              <span class="nom">{{ e.commun.nom }} <small>· {{ e.texte }}</small></span>
+              <button type="button" class="lien-details" (click)="annuler(e.commun, e.membre)">Annuler</button>
             </div>
           </div>
         }
@@ -80,7 +82,7 @@ export function viderCacheAmis(): void {
                     <small class="aide"><i class="pi pi-clock"></i> Demande envoyée</small>
                   } @else if (!b.enCommun) {
                     <p-button
-                      label="Le faire à deux"
+                      label="Le faire ensemble"
                       icon="pi pi-users"
                       [text]="true"
                       size="small"
@@ -107,7 +109,7 @@ export function viderCacheAmis(): void {
           }
         </div>
       } @empty {
-        <p class="aide">Pas encore d'ami. <a routerLink="/profil" [queryParams]="{ ajouter: 1 }">Ajoute-en un</a> avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire à deux.</p>
+        <p class="aide">Pas encore d'ami. <a routerLink="/profil" [queryParams]="{ ajouter: 1 }">Ajoute-en un</a> avec son identifiant : vous verrez vos objectifs visibles et pourrez en faire ensemble.</p>
       }
 
     </section>
@@ -122,6 +124,16 @@ export class Amis implements OnInit {
   protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
   protected readonly envoyees = computed(() => this.communs().filter((c) => c.statut === 'ENVOYEE'));
+  /** Ce qui attend une réponse : mes demandes pour rejoindre, et les invitations que j'ai envoyées. */
+  protected readonly enAttente = computed(() => [
+    ...this.envoyees().map((commun) => ({ commun, membre: undefined as string | undefined, texte: `demande envoyée à ${commun.createur}` })),
+    ...this.actifs().flatMap((commun) =>
+      commun.membres.filter((m) => m.statut === 'INVITE').map((m) => ({ commun, membre: m.id as string | undefined, texte: `invitation envoyée à ${m.nom}` })),
+    ),
+  ]);
+  protected actifsDe(c: ObjectifCommun) {
+    return c.membres.filter((m) => m.statut === 'ACTIF');
+  }
   /** Ami déplié (un seul à la fois). */
   protected readonly ouvert = signal<string | null>(null);
   /** Objectif d'ami qu'on est en train de rejoindre. */
@@ -158,7 +170,7 @@ export class Amis implements OnInit {
 
   /** Demande déjà envoyée à cet ami pour cet objectif (en attente de sa réponse). */
   protected demandeEnvoyee(a: Ami, b: ObjectifSuivi): boolean {
-    return this.envoyees().some((c) => c.demande && c.amiId === a.id && c.nom === b.nom);
+    return this.envoyees().some((c) => c.nom === b.nom && c.membres.some((m) => m.id === a.id));
   }
 
   /** « Le faire avec Léa » : envoie une demande ; à son accord, mon objectif est créé et la flamme commune démarre. */
@@ -173,7 +185,7 @@ export class Amis implements OnInit {
     });
   }
 
-  quitterCommun(c: ObjectifCommun): void {
-    this.api.quitterCommun(c.id).subscribe(() => this.communs.update((l) => l.filter((x) => x.id !== c.id)));
+  annuler(c: ObjectifCommun, membre?: string): void {
+    this.api.quitterCommun(c.id, membre).subscribe(() => this.charger());
   }
 }

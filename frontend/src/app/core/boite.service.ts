@@ -1,5 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Encouragement, ObjectifCommun } from '../api/generated';
+import { Encouragement, MembreCommun, ObjectifCommun } from '../api/generated';
 import { AmisService, FoyerService } from '../application/services';
 
 /**
@@ -11,11 +11,21 @@ export class BoiteService {
   private readonly amis = inject(AmisService);
   private readonly foyer = inject(FoyerService);
   readonly invitations = signal<ObjectifCommun[]>([]);
+  /** Amis qui demandent à rejoindre un objectif que je fais (à plusieurs ou seul) */
+  readonly demandes = signal<{ commun: ObjectifCommun; membre: MembreCommun }[]>([]);
   readonly encouragements = signal<Encouragement[]>([]);
-  readonly nombre = computed(() => this.invitations().length + this.encouragements().length);
+  readonly nombre = computed(() => this.invitations().length + this.demandes().length + this.encouragements().length);
 
   charger(apresEncouragements?: () => void): void {
-    this.amis.communs().subscribe({ next: (l) => this.invitations.set(l.filter((c) => c.statut === 'RECUE')), error: () => undefined });
+    this.amis.communs().subscribe({
+      next: (l) => {
+        this.invitations.set(l.filter((c) => c.statut === 'RECUE'));
+        this.demandes.set(
+          l.filter((c) => c.statut === 'ACTIF').flatMap((c) => c.membres.filter((m) => m.statut === 'DEMANDE').map((membre) => ({ commun: c, membre }))),
+        );
+      },
+      error: () => undefined,
+    });
     this.foyer.encouragementsRecus().subscribe({
       next: (l) => {
         this.encouragements.set(l);
@@ -29,6 +39,10 @@ export class BoiteService {
     this.invitations.update((l) => l.filter((c) => c.id !== id));
   }
 
+  retirerDemande(id: number, membre: string): void {
+    this.demandes.update((l) => l.filter((d) => !(d.commun.id === id && d.membre.id === membre)));
+  }
+
   /** Les encouragements sont lus dès qu'on ouvre la boîte. */
   lireEncouragements(): void {
     const ids = this.encouragements().map((e) => e.id);
@@ -37,6 +51,7 @@ export class BoiteService {
 
   vider(): void {
     this.invitations.set([]);
+    this.demandes.set([]);
     this.encouragements.set([]);
   }
 }

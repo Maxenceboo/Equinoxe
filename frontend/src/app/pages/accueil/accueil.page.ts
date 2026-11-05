@@ -145,8 +145,10 @@ function lireStockage(cle: string): string | null {
             }
             @if (communDe(o.id); as c) {
               <small class="a-deux-carte">
-                <app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="1.5" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" />
-                {{ (c.duAmi ?? 0) >= (c.objectifPeriode ?? 1) ? 'a fait sa part' : 'pas encore' }} · flamme commune {{ c.flamme ?? 0 }}
+                @for (m of actifsDe(c); track m.id) {
+                  <app-avatar [id]="m.id" [nom]="m.nom" [taille]="1.5" [fait]="(m.fait ?? 0) >= (c.objectifPeriode ?? 1)" />
+                }
+                flamme commune {{ c.flamme ?? 0 }}
               </small>
             }
           </a>
@@ -276,6 +278,9 @@ export class AccueilPage implements OnInit, OnDestroy {
   private readonly session = inject(SessionService);
   private readonly router = inject(Router);
   private readonly communs = signal<ObjectifCommun[]>([]);
+  protected actifsDe(c: ObjectifCommun) {
+    return c.membres.filter((m) => m.statut === 'ACTIF');
+  }
   protected communDe(id: number): ObjectifCommun | undefined {
     return this.communs().find((c) => c.statut === 'ACTIF' && c.monObjectif === id);
   }

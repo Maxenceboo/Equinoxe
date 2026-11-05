@@ -132,14 +132,14 @@ export class DepotObjectifs {
     if (error) throw error;
   }
 
-  async accepterCommun(id: number): Promise<number> {
-    const { data, error } = await this.db.rpc('accepter_commun', { p_id: id });
+  async accepterCommun(id: number, membre?: string): Promise<number> {
+    const { data, error } = await this.db.rpc('accepter_commun', membre ? { p_id: id, p_membre: membre } : { p_id: id });
     if (error) throw error;
     return data;
   }
 
-  async quitterCommun(id: number): Promise<void> {
-    const { error } = await this.db.rpc('quitter_commun', { p_id: id });
+  async quitterCommun(id: number, membre?: string): Promise<void> {
+    const { error } = await this.db.rpc('quitter_commun', membre ? { p_id: id, p_membre: membre } : { p_id: id });
     if (error) throw error;
   }
 
