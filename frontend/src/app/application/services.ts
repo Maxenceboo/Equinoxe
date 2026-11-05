@@ -320,6 +320,7 @@ export class AmisService {
           typeFrequence: c.type_frequence as ObjectifCommun['typeFrequence'],
           cible: c.cible,
           heure: c.heure,
+          aRejoint: !!c.a_rejoint,
         };
         if (c.statut !== 'ACTIF' || !c.depuis) return commun;
         const s = serieCommune(

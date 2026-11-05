@@ -13,7 +13,7 @@ export class SessionService {
   private readonly db = inject(SupabaseService).client;
   private readonly router = inject(Router);
   /** Utilisateur connecté : un compte avec email, ou un membre de foyer entré par code (anonyme). */
-  readonly utilisateur = signal<{ email: string | null; anonyme: boolean } | null>(null);
+  readonly utilisateur = signal<{ id?: string; email: string | null; anonyme: boolean } | null>(null);
   readonly email = computed(() => this.utilisateur()?.email ?? null);
   readonly anonyme = computed(() => this.utilisateur()?.anonyme ?? false);
   readonly connecte = computed(() => this.utilisateur() !== null);
@@ -22,8 +22,8 @@ export class SessionService {
     this.db.auth.onAuthStateChange((_evenement, session) => this.noter(session?.user));
   }
 
-  private noter(user: { email?: string; is_anonymous?: boolean } | undefined): void {
-    this.utilisateur.set(user ? { email: user.email || null, anonyme: !!user.is_anonymous } : null);
+  private noter(user: { id: string; email?: string; is_anonymous?: boolean } | undefined): void {
+    this.utilisateur.set(user ? { id: user.id, email: user.email || null, anonyme: !!user.is_anonymous } : null);
   }
 
   /** À l'ouverture de l'app : reprend la session enregistrée, même sans réseau. */
@@ -62,7 +62,7 @@ export class SessionService {
   }
 
   ouvrir(email: string | null, anonyme = false): void {
-    this.utilisateur.set({ email, anonyme });
+    this.utilisateur.set({ id: this.utilisateur()?.id, email, anonyme });
   }
 
   async fermer(): Promise<void> {

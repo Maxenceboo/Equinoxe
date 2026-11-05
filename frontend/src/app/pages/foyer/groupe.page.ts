@@ -8,11 +8,13 @@ import { Foyer, MembreFoyer, ReglagesFoyer, TypeEncouragement } from '../../api/
 import { FoyerService } from '../../application/services';
 import { NavigationService } from '../../core/navigation.service';
 import { SchemaFormService } from '../../core/schema-form.service';
+import { PhotosService } from '../../core/photos.service';
+import { Avatar } from '../../shared/avatar';
 
 /** Un groupe : la jauge commune de la semaine, la récompense, les membres et le bouton Encourager. */
 @Component({
   selector: 'app-groupe',
-  imports: [ReactiveFormsModule, FormlyForm, Button],
+  imports: [ReactiveFormsModule, FormlyForm, Button, Avatar],
   template: `
     <header class="entete entete-assistant">
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
@@ -51,6 +53,7 @@ import { SchemaFormService } from '../../core/schema-form.service';
       <ul class="membres">
         @for (m of f.membres; track m.id) {
           <li class="membre">
+            <app-avatar [id]="m.id" [nom]="m.prenom" [taille]="2.5" />
             <div class="membre-infos">
               <span class="nom">{{ m.prenom }}{{ m.moi ? ' (toi)' : '' }}</span>
               <small>{{ m.parent ? 'Parent · ' : '' }}{{ resume(m) }}</small>
@@ -67,7 +70,7 @@ import { SchemaFormService } from '../../core/schema-form.service';
 
       <div class="encart">
         <p><strong>Inviter quelqu'un</strong></p>
-        <p class="aide">À entrer dans Proches, « Créer ou rejoindre un groupe ».</p>
+        <p class="aide">À entrer dans Proches, puis « Mes groupes ».</p>
         <p class="code-foyer" aria-label="Code du groupe">{{ f.code.slice(0, 3) }} {{ f.code.slice(3) }}</p>
         <p-button label="Partager le code" icon="pi pi-share-alt" [outlined]="true" (onClick)="partager(f)" />
       </div>
@@ -118,7 +121,10 @@ export class GroupePage implements OnInit {
     objectifSemaine: { props: { type: 'number', attributes: { inputmode: 'numeric' } } },
   });
 
+  private readonly photos = inject(PhotosService);
+
   ngOnInit(): void {
+    void this.photos.charger(true);
     this.charger();
   }
 

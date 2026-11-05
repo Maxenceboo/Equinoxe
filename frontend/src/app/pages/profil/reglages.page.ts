@@ -8,6 +8,7 @@ import { Button } from 'primeng/button';
 import { Identifiants } from '../../api/generated';
 import { AmisService, AuthService } from '../../application/services';
 import { BoiteService } from '../../core/boite.service';
+import { PhotosService } from '../../core/photos.service';
 import { HorsLigneService } from '../../core/hors-ligne.service';
 import { NavigationService } from '../../core/navigation.service';
 import { NotificationsService } from '../../core/notifications.service';
@@ -134,6 +135,7 @@ export class ReglagesPage {
   protected readonly reglages = inject(ReglagesService);
   private readonly auth = inject(AuthService);
   private readonly boite = inject(BoiteService);
+  private readonly photos = inject(PhotosService);
   private readonly amis = inject(AmisService);
   private readonly horsLigne = inject(HorsLigneService);
   private readonly notifications = inject(NotificationsService);
@@ -202,6 +204,7 @@ export class ReglagesPage {
     this.horsLigne.oublier();
     viderCacheProches();
     this.boite.vider();
+    this.photos.vider();
     this.amis.pseudo.set(undefined);
     await this.session.fermer();
     void this.router.navigate(['/connexion'], { replaceUrl: true });

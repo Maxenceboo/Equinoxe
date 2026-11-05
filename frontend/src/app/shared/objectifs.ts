@@ -21,10 +21,24 @@ export function estChiffre(mesure: Mesure | undefined | null): mesure is Exclude
   return !!mesure && mesure !== 'AUCUNE';
 }
 
-const UNITES: Record<Mesure, string> = { AUCUNE: '', KM: 'km', PAGES: 'pages', MINUTES: 'min' };
+const UNITES: Record<Mesure, string> = { AUCUNE: '', NOMBRE: '', MINUTES: 'min' };
 
 export function unite(mesure: Mesure | undefined | null): string {
   return mesure ? UNITES[mesure] : '';
+}
+
+/** 90 → « 1 h 30 », 45 → « 45 min ». */
+export function duree(minutes: number | undefined | null): string {
+  const t = Math.round(minutes ?? 0);
+  const h = Math.floor(t / 60);
+  const m = t % 60;
+  if (h === 0) return `${m} min`;
+  return m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, '0')}`;
+}
+
+/** Une quantité lisible selon la mesure : « 12 » pour un nombre, « 1 h 30 » pour du temps. */
+export function valeur(n: number | undefined | null, mesure: Mesure | undefined | null): string {
+  return mesure === 'MINUTES' ? duree(n) : nombre(n);
 }
 
 /** 7.5 → « 7,5 », 12 → « 12 ». */
@@ -33,10 +47,10 @@ export function nombre(n: number | undefined | null): string {
   return (Math.round(n * 10) / 10).toLocaleString('fr-FR');
 }
 
-/** « 12 / 20 km » ou « 12 km » sans total visé. */
+/** « 12 / 20 » ou « 1 h 30 / 3 h » ; sans total visé, juste ce qui est fait. */
 export function quantiteSemaine(o: Pick<Objectif, 'mesure' | 'objectifQuantite' | 'progression'>): string {
-  const fait = nombre(o.progression.quantiteSemaine);
-  return o.objectifQuantite ? `${fait} / ${nombre(o.objectifQuantite)} ${unite(o.mesure)}` : `${fait} ${unite(o.mesure)}`;
+  const fait = valeur(o.progression.quantiteSemaine, o.mesure);
+  return o.objectifQuantite ? `${fait} / ${valeur(o.objectifQuantite, o.mesure)}` : fait;
 }
 
 /** « 18:05 » → « 18 h 05 ». */

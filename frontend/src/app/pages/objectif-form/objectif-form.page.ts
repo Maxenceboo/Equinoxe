@@ -8,7 +8,7 @@ import { Objectif, ObjectifSaisie } from '../../api/generated';
 import { ObjectifsService } from '../../application/services';
 import { NotificationsService } from '../../core/notifications.service';
 import { SchemaFormService } from '../../core/schema-form.service';
-import { estChiffre, saisieDe, unite } from '../../shared/objectifs';
+import { estChiffre, saisieDe } from '../../shared/objectifs';
 
 @Component({
   selector: 'app-objectif-form',
@@ -62,9 +62,13 @@ export class ObjectifFormPage implements OnInit {
     // Le sommeil a déjà son heure (le coucher visé) : pas d'heure apprise
     rappelAuto: { expressions: { hide: 'model.categorie === "SOMMEIL"' } },
     objectifQuantite: {
+      type: 'quantite',
+      props: { dureeMax: 99 * 60 },
       expressions: {
         hide: '!model.mesure || model.mesure === "AUCUNE"',
-        'props.label': (f: FormlyFieldConfig) => `Total visé par semaine, en ${unite(f.model?.mesure)} (facultatif)`,
+        'props.duree': 'model.mesure === "MINUTES"',
+        'props.label': (f: FormlyFieldConfig) =>
+          f.model?.mesure === 'MINUTES' ? 'Temps visé par semaine (facultatif)' : 'Total visé par semaine (facultatif)',
       },
     },
   });

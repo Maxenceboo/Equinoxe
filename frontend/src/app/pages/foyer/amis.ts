@@ -4,6 +4,9 @@ import { Button } from 'primeng/button';
 import { Ami, ObjectifCommun, ObjectifSuivi } from '../../api/generated';
 import { AmisService } from '../../application/services';
 import { Flamme } from '../../shared/flamme';
+import { Avatar } from '../../shared/avatar';
+import { PhotosService } from '../../core/photos.service';
+import { SessionService } from '../../core/session.service';
 
 /** Dernières données connues : l'onglet s'affiche tout de suite au retour, puis se met à jour. */
 const cache: { amis: Ami[]; communs: ObjectifCommun[] } = { amis: [], communs: [] };
@@ -20,7 +23,7 @@ export function viderCacheAmis(): void {
  */
 @Component({
   selector: 'app-amis',
-  imports: [RouterLink, Button, Flamme],
+  imports: [RouterLink, Button, Flamme, Avatar],
   template: `
     @if (actifs().length > 0 || envoyees().length > 0) {
       <section class="binomes" aria-label="À deux">
@@ -28,17 +31,18 @@ export function viderCacheAmis(): void {
         @for (c of actifs(); track c.id) {
           <a class="binome commun" [routerLink]="['/objectifs', c.monObjectif]">
             <div class="ligne-haut">
-              <span class="nom">{{ c.nom }} <small>· avec {{ c.ami }}</small></span>
+              <span class="nom">{{ c.nom }}</span>
               <app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" />
             </div>
+            <!-- Les photos des deux : un trait plein autour de celui qui a fait sa part -->
             <div class="duo">
-              <span [class.fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)">
-                <i class="pi" [class.pi-check-circle]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" [class.pi-circle]="(c.moi ?? 0) < (c.objectifPeriode ?? 1)"></i>
-                Toi {{ c.typeFrequence === 'QUOTIDIEN' ? '' : (c.moi ?? 0) + '/' + c.objectifPeriode }}
+              <span class="duo-membre">
+                <app-avatar [id]="moi()" nom="Moi" [taille]="2" [fait]="(c.moi ?? 0) >= (c.objectifPeriode ?? 1)" />
+                @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ c.moi ?? 0 }}/{{ c.objectifPeriode }}</small> }
               </span>
-              <span [class.fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)">
-                <i class="pi" [class.pi-check-circle]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" [class.pi-circle]="(c.duAmi ?? 0) < (c.objectifPeriode ?? 1)"></i>
-                {{ c.ami }} {{ c.typeFrequence === 'QUOTIDIEN' ? '' : (c.duAmi ?? 0) + '/' + c.objectifPeriode }}
+              <span class="duo-membre">
+                <app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="2" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" />
+                @if (c.typeFrequence !== 'QUOTIDIEN') { <small>{{ c.duAmi ?? 0 }}/{{ c.objectifPeriode }}</small> }
               </span>
             </div>
           </a>
@@ -59,6 +63,7 @@ export function viderCacheAmis(): void {
       @for (a of amis(); track a.id) {
         <div class="ami" [class.ouvert]="ouvert() === a.id">
           <button type="button" class="tete-ami" [attr.aria-expanded]="ouvert() === a.id" (click)="basculer(a.id)">
+            <app-avatar [id]="a.id" [nom]="a.nom" [taille]="2" />
             <span class="nom-ami">{{ a.nom }}</span>
             <small>{{ a.objectifs.length === 0 ? 'aucun objectif visible' : a.objectifs.length + ' objectif(s) visible(s)' }}</small>
             <i class="pi pi-chevron-down"></i>
@@ -110,6 +115,9 @@ export function viderCacheAmis(): void {
 })
 export class Amis implements OnInit {
   private readonly api = inject(AmisService);
+  private readonly photos = inject(PhotosService);
+  private readonly session = inject(SessionService);
+  protected readonly moi = computed(() => this.session.utilisateur()?.id);
   protected readonly amis = signal<Ami[]>(cache.amis);
   protected readonly communs = signal<ObjectifCommun[]>(cache.communs);
   protected readonly actifs = computed(() => this.communs().filter((c) => c.statut === 'ACTIF'));
@@ -123,6 +131,7 @@ export class Amis implements OnInit {
 
   ngOnInit(): void {
     this.charger();
+    void this.photos.charger(true);
   }
 
   private charger(): void {

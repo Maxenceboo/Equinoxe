@@ -166,7 +166,7 @@ describe('heure habituelle et coches', () => {
   });
 
   it('ajouter des détails garde la quantité, et inversement ; pas de jour futur', () => {
-    const o = objectif({ mesure: 'KM' });
+    const o = objectif({ mesure: 'NOMBRE' });
     const maintenant = { jour: LUNDI, heure: '19:00' };
     o.coches.push(coche(o, LUNDI, undefined, 8.5, maintenant));
     const avecDetails = coche(o, LUNDI, { typeSeance: 'COURSE', dureeMinutes: 45 }, null, { jour: LUNDI, heure: '21:00' });
@@ -177,7 +177,7 @@ describe('heure habituelle et coches', () => {
 
 describe('bilan et statistiques', () => {
   it('bilan et statistiques d’un objectif chiffré', () => {
-    const o = objectif({ nom: 'Courir', cible: 2, mesure: 'KM', objectifQuantite: 15, dateCreation: j(LUNDI, -7) });
+    const o = objectif({ nom: 'Courir', cible: 2, mesure: 'NOMBRE', objectifQuantite: 15, dateCreation: j(LUNDI, -7) });
     const dimanche = j(LUNDI, 6);
     cocher(o, LUNDI, { typeSeance: 'COURSE', dureeMinutes: 30, quantite: 5 });
     cocher(o, j(LUNDI, 3), { typeSeance: 'COURSE', dureeMinutes: 45, quantite: 8 });

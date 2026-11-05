@@ -16,6 +16,8 @@ import { InvitationService } from '../../core/invitation.service';
 import { BoiteService } from '../../core/boite.service';
 import { SessionService } from '../../core/session.service';
 import { Cloche } from '../../shared/cloche';
+import { Avatar } from '../../shared/avatar';
+import { PhotosService } from '../../core/photos.service';
 import { SchemaFormService } from '../../core/schema-form.service';
 import { aujourdhui, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
@@ -41,7 +43,7 @@ function lireStockage(cle: string): string | null {
 
 @Component({
   selector: 'app-accueil',
-  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog, Flamme, Cloche],
+  imports: [RouterLink, ReactiveFormsModule, FormlyForm, Button, Dialog, Flamme, Cloche, Avatar],
   template: `
     <header class="entete">
       <div>
@@ -143,8 +145,8 @@ function lireStockage(cle: string): string | null {
             }
             @if (communDe(o.id); as c) {
               <small class="a-deux-carte">
-                <i class="pi pi-users"></i> Avec {{ c.ami }} · flamme commune {{ c.flamme ?? 0 }} ·
-                {{ (c.duAmi ?? 0) >= (c.objectifPeriode ?? 1) ? c.ami + ' a fait sa part' : c.ami + ' pas encore' }}
+                <app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="1.5" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" />
+                {{ (c.duAmi ?? 0) >= (c.objectifPeriode ?? 1) ? 'a fait sa part' : 'pas encore' }} · flamme commune {{ c.flamme ?? 0 }}
               </small>
             }
           </a>
@@ -161,7 +163,7 @@ function lireStockage(cle: string): string | null {
               }
             </button>
             @if (o.progression.faitAujourdhui && (o.categorie !== 'AUTRE' || chiffre(o.mesure))) {
-              <button type="button" class="lien-details" (click)="ouvrirDetails(o)">{{ chiffre(o.mesure) ? '+ ' + uniteDe(o.mesure) : '+ détails' }}</button>
+              <button type="button" class="lien-details" (click)="ouvrirDetails(o)">{{ chiffre(o.mesure) ? (o.mesure === 'MINUTES' ? '+ temps' : '+ nombre') : '+ détails' }}</button>
             }
           </div>
         </li>
@@ -256,7 +258,6 @@ export class AccueilPage implements OnInit, OnDestroy {
   );
 
   protected readonly chiffre = estChiffre;
-  protected readonly uniteDe = (m: Mesure | undefined) => unite(m);
   protected readonly quantite = quantiteSemaine;
 
   // Récompenses et Foyer
@@ -278,8 +279,15 @@ export class AccueilPage implements OnInit, OnDestroy {
   protected communDe(id: number): ObjectifCommun | undefined {
     return this.communs().find((c) => c.statut === 'ACTIF' && c.monObjectif === id);
   }
+  private readonly photos = inject(PhotosService);
   private chargerCommuns(): void {
-    this.amisApi.communs().subscribe({ next: (l) => this.communs.set(l), error: () => undefined });
+    this.amisApi.communs().subscribe({
+      next: (l) => {
+        this.communs.set(l);
+        if (l.some((c) => c.statut === 'ACTIF')) void this.photos.charger();
+      },
+      error: () => undefined,
+    });
   }
   protected avancementFoyer(f: Foyer): number {
     return Math.min(100, Math.round((f.cochesSemaine / f.objectifSemaine) * 100));
@@ -495,7 +503,10 @@ export class AccueilPage implements OnInit, OnDestroy {
     if (estChiffre(o.mesure)) {
       champs.push(
         ...this.schemas.champs('ValidationSaisie', {
-          quantite: { props: { label: `Combien de ${unite(o.mesure)} ?`, type: 'number', attributes: { inputmode: 'decimal' } } },
+          quantite: {
+            type: 'quantite',
+            props: { label: o.mesure === 'MINUTES' ? "Combien de temps aujourd'hui ?" : "Combien aujourd'hui ?", duree: o.mesure === 'MINUTES' },
+          },
         }).filter((c) => c.key === 'quantite'),
       );
     }
@@ -535,7 +546,7 @@ export class AccueilPage implements OnInit, OnDestroy {
 
   protected aideDetails(): string {
     return estChiffre(this.enDetail()?.mesure)
-      ? "Combien aujourd'hui ? Les détails sont facultatifs."
+      ? 'Les détails sont facultatifs.'
       : 'Détails de la séance du jour, tout est facultatif.';
   }
 

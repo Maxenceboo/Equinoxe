@@ -1,19 +1,22 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { DecimalPipe, PercentPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { viderCacheAmis } from '../foyer/amis';
+import { Avatar } from '../../shared/avatar';
+import { PhotosService } from '../../core/photos.service';
 import { NavigationService } from '../../core/navigation.service';
 import { Button } from 'primeng/button';
 import { Flamme } from '../../shared/flamme';
 import { Ami, Historique, Objectif, ObjectifCommun, Statistiques, TypeSeance } from '../../api/generated';
 import { AmisService, ObjectifsService } from '../../application/services';
 import schemas from '../../api/generated/schemas.json';
-import { estChiffre, heureLisible, nombre, saisieDe, unite } from '../../shared/objectifs';
+import { estChiffre, heureLisible, nombre, saisieDe, valeur } from '../../shared/objectifs';
 import { NotificationsService } from '../../core/notifications.service';
 import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../../shared/dates';
 
 @Component({
   selector: 'app-objectif-detail',
-  imports: [RouterLink, Button, PercentPipe, DecimalPipe, Flamme],
+  imports: [RouterLink, Button, PercentPipe, DecimalPipe, Flamme, Avatar],
   template: `
     <header class="entete">
       <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
@@ -85,14 +88,14 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
             <div><strong>{{ st.totalSeances }}</strong><small>coches au total</small></div>
             <div><strong>{{ nombre(st.moyenneParSemaine) }}</strong><small>par semaine en moyenne</small></div>
             @if (chiffre(st.mesure)) {
-              <div><strong>{{ nombre(st.totalQuantite) }}</strong><small>{{ unite(st.mesure) }} au total</small></div>
+              <div><strong>{{ valeur(st.totalQuantite, st.mesure) }}</strong><small>au total</small></div>
             } @else if (st.totalMinutes > 0) {
               <div><strong>{{ duree(st.totalMinutes) }}</strong><small>de sport noté</small></div>
             }
           </div>
 
           @if (afficherBarres()) {
-          <p class="sous-etiquette">{{ chiffre(st.mesure) ? unite(st.mesure) + ' par mois' : 'Coches par mois' }}</p>
+          <p class="sous-etiquette">{{ chiffre(st.mesure) ? (st.mesure === 'MINUTES' ? 'Temps par mois' : 'Total par mois') : 'Coches par mois' }}</p>
           <svg class="barres" viewBox="0 0 300 120" role="img" [attr.aria-label]="'Évolution sur 6 mois'">
             @for (b of barres(); track b.mois; let i = $index) {
               <rect [attr.x]="i * 50 + 12" [attr.y]="96 - b.hauteur" width="26" [attr.height]="b.hauteur || 1" rx="3"
@@ -147,7 +150,7 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           @if (!o.visibleAmis) {
             <small class="aide">Toi seul le vois. Tes amis s'ajoutent avec ton code, sur la page Proches.</small>
           } @else if (voientMoi().length === 0) {
-            <small class="aide">Aucun ami ne le voit encore. Ajoute des amis avec ton code, sur la page Proches.</small>
+            <small class="aide">Aucun ami ne le voit encore. Ajoute des amis depuis ton Profil.</small>
           } @else {
             <small class="aide">Vu par {{ voientMoi().join(', ') }} : ta progression et ta flamme, pas tes détails.</small>
           }
@@ -158,25 +161,28 @@ import { aujourdhui, formatDate, joursDuMois, moisDecale, nomDuMois } from '../.
           @if (commun(); as c) {
             @if (c.statut === 'ACTIF') {
               <div class="ligne-a-deux">
-                <span>Avec <strong>{{ c.ami }}</strong></span>
+                <span class="avec"><app-avatar [id]="c.amiId" [nom]="c.ami" [taille]="1.75" [fait]="(c.duAmi ?? 0) >= (c.objectifPeriode ?? 1)" /> <strong>{{ c.ami }}</strong></span>
                 <span class="flamme-commune"><app-flamme [valeur]="c.flamme ?? 0" [unite]="c.uniteSerie ?? 'JOURS'" /> commune</span>
               </div>
               <small class="aide">La flamme commune ne monte que si vous le faites tous les deux. Si l'un rate, elle retombe pour les deux.</small>
             } @else {
-              <small class="aide">Invitation envoyée à {{ c.ami }}. Elle apparaîtra sur sa page Proches.</small>
+              <small class="aide">Invitation envoyée à {{ c.ami }}, en attente de sa réponse.</small>
             }
             @if (confirmerArret()) {
+              @if (c.statut === 'ACTIF' && c.aRejoint) {
+                <small class="aide">C'est l'objectif de {{ c.ami }} : en le quittant, il disparaît de tes objectifs.</small>
+              }
               <div class="actions-ligne">
                 <p-button label="Garder" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(false)" />
-                <p-button [label]="c.statut === 'ACTIF' ? 'Arrêter à deux' : 'Annuler l’invitation'" severity="danger" size="small" (onClick)="arreterCommun(c.id)" />
+                <p-button [label]="c.statut !== 'ACTIF' ? 'Annuler l’invitation' : c.aRejoint ? 'Quitter' : 'Arrêter à deux'" severity="danger" size="small" (onClick)="arreterCommun(c)" />
               </div>
             } @else {
-              <p-button [label]="c.statut === 'ACTIF' ? 'Arrêter de le faire à deux' : 'Annuler l’invitation'" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(true)" />
+              <p-button [label]="c.statut !== 'ACTIF' ? 'Annuler l’invitation' : c.aRejoint ? 'Quitter cet objectif' : 'Arrêter de le faire à deux'" [text]="true" severity="secondary" size="small" (onClick)="confirmerArret.set(true)" />
             }
           } @else if (amis().length === 0) {
-            <small class="aide">Ajoute un ami sur la page Proches pour faire cet objectif ensemble, avec une flamme commune.</small>
+            <small class="aide">Ajoute un ami depuis ton Profil pour faire cet objectif ensemble, avec une flamme commune.</small>
           } @else if (choixAmi()) {
-            <small class="aide">Avec qui ? Ton ami recevra l'invitation sur sa page Proches.</small>
+            <small class="aide">Avec qui ? Ton ami recevra l'invitation dans ses notifications.</small>
             <div class="choix-amis">
               @for (a of amis(); track a.id) {
                 <p-button [label]="a.nom" [outlined]="true" size="small" (onClick)="inviter(a.id)" />
@@ -213,7 +219,7 @@ export class ObjectifDetailPage implements OnInit {
   protected readonly choixAmi = signal(false);
   protected readonly confirmerArret = signal(false);
   protected readonly nombre = nombre;
-  protected readonly unite = unite;
+  protected readonly valeur = valeur;
   protected readonly chiffre = estChiffre;
   protected readonly heure = heureLisible;
 
@@ -231,7 +237,7 @@ export class ObjectifDetailPage implements OnInit {
     const max = Math.max(1, ...valeurs);
     return st.mois.map((m, i) => ({
       mois: m.mois,
-      valeur: nombre(valeurs[i]),
+      valeur: estChiffre(st.mesure) ? valeur(valeurs[i], st.mesure) : nombre(valeurs[i]),
       hauteur: Math.round((valeurs[i] / max) * 72),
       libelle: new Date(m.mois + '-15').toLocaleDateString('fr-FR', { month: 'short' }).replace('.', ''),
     }));
@@ -255,7 +261,10 @@ export class ObjectifDetailPage implements OnInit {
     this.amisApi.lister().subscribe({ next: (l) => this.amis.set(l), error: () => undefined });
   }
 
+  private readonly photos = inject(PhotosService);
+
   private chargerCommun(): void {
+    void this.photos.charger();
     const id = Number(this.id());
     this.amisApi.communs().subscribe({
       next: (l) => this.commun.set(l.find((c) => c.statut !== 'RECUE' && c.monObjectif === id) ?? null),
@@ -270,10 +279,16 @@ export class ObjectifDetailPage implements OnInit {
     });
   }
 
-  arreterCommun(id: number): void {
-    this.amisApi.quitterCommun(id).subscribe(() => {
+  arreterCommun(c: ObjectifCommun): void {
+    this.amisApi.quitterCommun(c.id).subscribe(() => {
+      viderCacheAmis();
       this.confirmerArret.set(false);
       this.commun.set(null);
+      // L'objectif rejoint chez un ami disparaît avec lui
+      if (c.statut === 'ACTIF' && c.aRejoint) {
+        this.notifications.synchroniser();
+        void this.router.navigate(['/'], { replaceUrl: true });
+      }
     });
   }
 

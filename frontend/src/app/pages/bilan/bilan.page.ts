@@ -6,7 +6,7 @@ import { BilanService, ObjectifsService } from '../../application/services';
 import { NotificationsService } from '../../core/notifications.service';
 import { aujourdhui, formatDate, libelleSemaine } from '../../shared/dates';
 import { Flamme } from '../../shared/flamme';
-import { nombre, saisieDe, unite } from '../../shared/objectifs';
+import { nombre, saisieDe, valeur } from '../../shared/objectifs';
 
 /** Bilan de la semaine : ouvert par la notification du dimanche soir ou depuis l'accueil. */
 @Component({
@@ -50,7 +50,7 @@ import { nombre, saisieDe, unite } from '../../shared/objectifs';
               </div>
               <div class="ligne-bas">
                 <small class="message">
-                  {{ l.atteint ? 'Tenu' : estCourante() ? 'En cours' : 'Pas cette fois' }}@if (l.quantite != null) { · {{ nombre(l.quantite) }} {{ unite(l.mesure) }} }
+                  {{ l.atteint ? 'Tenu' : estCourante() ? 'En cours' : 'Pas cette fois' }}@if (l.quantite != null) { · {{ valeur(l.quantite, l.mesure) }} }
                 </small>
                 <span class="compteur">{{ l.realisees }}<span>/{{ l.cible }}</span></span>
               </div>
@@ -93,7 +93,7 @@ export class BilanPage implements OnInit {
     return formatDate(lundi) > aujourdhui();
   });
   protected readonly nombre = nombre;
-  protected readonly unite = unite;
+  protected readonly valeur = valeur;
 
   ngOnInit(): void {
     this.charger();

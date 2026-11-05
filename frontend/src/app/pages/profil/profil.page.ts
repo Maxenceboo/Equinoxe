@@ -6,6 +6,9 @@ import { MessageService } from 'primeng/api';
 import { Dialog } from 'primeng/dialog';
 import { CodeAmi, Profil } from '../../api/generated';
 import { SchemaFormService } from '../../core/schema-form.service';
+import { PhotosService } from '../../core/photos.service';
+import { SessionService } from '../../core/session.service';
+import { Avatar } from '../../shared/avatar';
 import { AmisService, ProfilService } from '../../application/services';
 import { Button } from 'primeng/button';
 import { lienAmi } from '../../core/invitation.service';
@@ -17,9 +20,14 @@ import { BadgeIcone } from '../../shared/badge-icone';
 /** Profil : ton identifiant et l'ajout d'amis, ta lune (ton niveau), puis badges, boutique, réglages. */
 @Component({
   selector: 'app-profil',
-  imports: [RouterLink, BadgeIcone, Button, Dialog, FormlyForm, ReactiveFormsModule],
+  imports: [RouterLink, BadgeIcone, Button, Dialog, FormlyForm, ReactiveFormsModule, Avatar],
   template: `
-    <header class="entete">
+    <header class="entete entete-profil">
+      <label class="ma-photo" [class.charge]="envoiPhoto()" aria-label="Changer ma photo de profil">
+        <app-avatar [id]="moi()" [nom]="profil()?.prenom ?? ''" [taille]="4" />
+        <span class="ma-photo-icone"><i class="pi" [class.pi-camera]="!envoiPhoto()" [class.pi-spin]="envoiPhoto()" [class.pi-spinner]="envoiPhoto()"></i></span>
+        <input type="file" accept="image/*" (change)="photoChoisie($event)" hidden />
+      </label>
       <div>
         <h1>{{ profil()?.prenom ?? 'Profil' }}</h1>
         @if (amis.pseudo(); as ps) {
@@ -94,6 +102,10 @@ export class ProfilPage implements OnInit {
   private readonly api = inject(ProfilService);
   protected readonly amis = inject(AmisService);
   protected readonly copie = signal(false);
+  private readonly photos = inject(PhotosService);
+  private readonly session = inject(SessionService);
+  protected readonly moi = computed(() => this.session.utilisateur()?.id);
+  protected readonly envoiPhoto = signal(false);
   private readonly router = inject(Router);
   private readonly messages = inject(MessageService);
   /** ?ajouter=1 (depuis Proches quand on n'a pas encore d'ami) : la fenêtre d'ajout s'ouvre directement. */
@@ -124,6 +136,22 @@ export class ProfilPage implements OnInit {
     this.api.profil().subscribe((p) => this.profil.set(p));
     if (this.amis.pseudo() === undefined) this.amis.chargerPseudo().subscribe({ error: () => undefined });
     if (this.ajouter()) this.ouvrirAjout();
+    void this.photos.charger();
+  }
+
+  /** Photo choisie dans la galerie (ou prise) : recadrée en carré, puis envoyée. */
+  async photoChoisie(e: Event): Promise<void> {
+    const champ = e.target as HTMLInputElement;
+    const fichier = champ.files?.[0];
+    champ.value = '';
+    if (!fichier) return;
+    this.envoiPhoto.set(true);
+    try {
+      await this.photos.choisir(fichier);
+    } catch {
+      this.messages.add({ severity: 'error', summary: 'Photo non envoyée', detail: 'Réessaie avec une autre image.' });
+    }
+    this.envoiPhoto.set(false);
   }
 
   ouvrirAjout(): void {

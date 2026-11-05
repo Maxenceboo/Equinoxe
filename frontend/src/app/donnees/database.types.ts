@@ -234,6 +234,8 @@ export type Database = {
       pseudo_disponible: { Args: { p_pseudo: string }; Returns: boolean };
       mon_pseudo: { Args: Record<PropertyKey, never>; Returns: string | null };
       choisir_pseudo: { Args: { p_pseudo: string }; Returns: string };
+      choisir_photo: { Args: { p_chemin: string | null }; Returns: undefined };
+      photos: { Args: Record<PropertyKey, never>; Returns: { utilisateur_id: string; chemin: string }[] };
       mon_code_ami: { Args: Record<PropertyKey, never>; Returns: string };
       ajouter_ami: { Args: { p_code: string }; Returns: string };
       retirer_ami: { Args: { p_ami: string }; Returns: undefined };
@@ -262,6 +264,7 @@ export type Database = {
           id: number;
           statut: string;
           demande?: boolean;
+          a_rejoint?: boolean;
           ami_id: string;
           ami: string;
           mon_objectif: number | null;

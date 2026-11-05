@@ -105,8 +105,8 @@ components:
     Mesure:
       type: string
       title: Objectif chiffré
-      enum: [AUCUNE, KM, PAGES, MINUTES]
-      x-enum-descriptions: [Non, Kilomètres, Pages, Minutes]
+      enum: [AUCUNE, NOMBRE, MINUTES]
+      x-enum-descriptions: [Non, Un nombre, Du temps]
       default: AUCUNE
 
     Suggestion:
@@ -381,6 +381,7 @@ components:
         moi: { type: integer, description: "Ce que j'ai fait aujourd'hui (quotidien) ou cette semaine" }
         duAmi: { type: integer, description: "Ce que mon ami a fait aujourd'hui (quotidien) ou cette semaine" }
         objectifPeriode: { type: integer, description: "Ce qu'il faut à chacun sur la période en cours" }
+        aRejoint: { type: boolean, description: "J'ai rejoint l'objectif de mon ami : le quitter le fait disparaître de mes objectifs" }
 
     ObjectifSuivi:
       type: object
