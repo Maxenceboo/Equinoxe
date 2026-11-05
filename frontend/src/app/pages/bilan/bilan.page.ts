@@ -1,3 +1,4 @@
+import { NavigationService } from '../../core/navigation.service';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Button } from 'primeng/button';
@@ -13,7 +14,8 @@ import { nombre, saisieDe, valeur } from '../../shared/objectifs';
   selector: 'app-bilan',
   imports: [RouterLink, Button, Flamme],
   template: `
-    <header class="entete">
+    <header class="entete entete-assistant">
+      <p-button icon="pi pi-arrow-left" [text]="true" ariaLabel="Retour" (onClick)="navigation.retour()" />
       <div>
         <h1>Bilan</h1>
         <small>{{ titre() }}</small>
@@ -75,6 +77,7 @@ import { nombre, saisieDe, valeur } from '../../shared/objectifs';
   `,
 })
 export class BilanPage implements OnInit {
+  protected readonly navigation = inject(NavigationService);
   private readonly api = inject(BilanService);
   private readonly objectifs = inject(ObjectifsService);
   private readonly notifications = inject(NotificationsService);

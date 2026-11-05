@@ -13,9 +13,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a routerLink="/foyer" routerLinkActive="actif" [replaceUrl]="true">
         <i class="pi pi-users"></i><span>Proches</span>
       </a>
-      <a routerLink="/bilan" routerLinkActive="actif" [replaceUrl]="true">
-        <i class="pi pi-chart-bar"></i><span>Bilan</span>
-      </a>
       <a routerLink="/profil" routerLinkActive="actif" [routerLinkActiveOptions]="{ exact: true }" [replaceUrl]="true">
         <i class="pi pi-user"></i><span>Profil</span>
       </a>

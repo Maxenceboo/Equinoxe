@@ -5,7 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { filter } from 'rxjs';
 
 /** Écrans principaux, accessibles par la barre d'onglets. */
-export const ONGLETS = ['/', '/foyer', '/bilan', '/profil'] as const;
+export const ONGLETS = ['/', '/foyer', '/profil'] as const;
 
 /** Écran logique « au-dessus » d'une adresse, quand on n'a pas d'historique (ouverture par notification…). */
 export function parent(url: string): string {

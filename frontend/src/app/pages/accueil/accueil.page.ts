@@ -154,6 +154,7 @@ function lireStockage(cle: string): string | null {
 
     @if (objectifs().length > 0) {
       <a class="ajouter-objectif" routerLink="/objectifs/nouveau"><i class="pi pi-plus"></i> Nouvel objectif</a>
+      <a class="lien-groupes" routerLink="/bilan">Bilan de la semaine dernière <i class="pi pi-chevron-right"></i></a>
     }
 
     @if (suggestion(); as o) {

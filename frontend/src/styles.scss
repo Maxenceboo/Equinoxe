@@ -587,7 +587,7 @@ formly-field-primeng-checkbox label, formly-field .p-field-checkbox label { font
   left: 0; right: 0; bottom: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   background: var(--fond);
   border-top: 1px solid var(--ligne);
   padding: 0.4rem max(0.5rem, calc((100vw - 32rem) / 2)) calc(env(safe-area-inset-bottom) + 0.4rem);
@@ -709,7 +709,7 @@ h2.titre-section { font-size: 1rem; margin: 0 0 0.9rem; display: flex; justify-c
   .lien-fort { background: var(--texte); color: var(--fond); border: 0; border-radius: var(--rayon); padding: 0.5rem 0.8rem; font: inherit; font-weight: 600; cursor: pointer; }
 }
 
-.entete-assistant { justify-content: flex-start; > div { flex: 1; min-width: 0; } h1 { font-size: 1.55rem; line-height: 1.2; } }
+.entete-assistant { justify-content: flex-start; > div { flex: 1; min-width: 0; } > .outils { flex: none; } h1 { font-size: 1.55rem; line-height: 1.2; } }
 .groupes { list-style: none; padding: 0; margin: 0 0 1rem;
   .foyer-bande { padding-bottom: 1.25rem; border-bottom: 1px solid var(--ligne); margin-bottom: 1.25rem; }
   .foyer-bande-haut strong { font-size: 1rem; }
